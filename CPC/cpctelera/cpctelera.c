@@ -8,6 +8,11 @@ void cpct_memset(void *array, u8  value, u16 size)
 {
 }
 
+void cpct_setStackLocation(void* memory)
+{
+
+}
+
 u8 cpct_rand8()
 {
 	return 0;
@@ -29,6 +34,11 @@ u16 cpct_disableFirmware()
 }
 
 void cpct_scanKeyboard_f()
+{
+
+}
+
+void cpct_scanKeyboard_if()
 {
 
 }
@@ -74,6 +84,21 @@ void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
+{
+
+}
+
+u8 cpct_px2byteM0(u8 px0, u8 px1)
+{
+	return 0;
+}
+
+void cpct_setVideoMode(u8 videoMode)
+{
+
+}
+
+void cpct_setVideoMemoryPage(u8 page_6LSb)
 {
 
 }
