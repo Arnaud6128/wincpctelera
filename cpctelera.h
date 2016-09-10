@@ -11,11 +11,18 @@
 #define __z88dk_callee	
 #define __naked 
 
+#define CPCT_VMEM_START (u8*)0xC000
+#define cpct_pageC0 0x30
+#define cpct_page80 0x20
+#define cpct_page40 0x10
+#define cpct_page00 0x00
+
 /** Memory */
 void cpct_memset(void *array, u8  value, u16 size) __z88dk_callee;
 void cpct_memset_f8(void *array, u16 value, u16 size) __z88dk_callee;
 void cpct_memset_f64(void *array, u16 value, u16 size) __z88dk_callee;
 void cpct_memcpy(void *to, const void *from, u16 size) __z88dk_callee;
+void cpct_setStackLocation(void* memory) __z88dk_fastcall;
 
 /** Keyboard */
 enum cpct_e_keyID;
@@ -23,9 +30,27 @@ typedef enum cpct_e_keyID cpct_keyID;
 
 void cpct_scanKeyboard();
 void cpct_scanKeyboard_f();
+void cpct_scanKeyboard_if();
 u8 cpct_isKeyPressed(cpct_keyID key) __z88dk_fastcall;
 u8 cpct_isAnyKeyPressed();
 u8 cpct_isAnyKeyPressed_f();
+
+enum CPCT_HW_Colour {
+	HW_BLACK = 0x14, HW_BLUE = 0x04
+	, HW_BRIGHT_BLUE = 0x15, HW_RED = 0x1C
+	, HW_MAGENTA = 0x18, HW_MAUVE = 0x1D
+	, HW_BRIGHT_RED = 0x0C, HW_PURPLE = 0x05
+	, HW_BRIGHT_MAGENTA = 0x0D, HW_GREEN = 0x16
+	, HW_CYAN = 0x06, HW_SKY_BLUE = 0x17
+	, HW_YELLOW = 0x1E, HW_WHITE = 0x00
+	, HW_PASTEL_BLUE = 0x1F, HW_ORANGE = 0x0E
+	, HW_PINK = 0x07, HW_PASTEL_MAGENTA = 0x0F
+	, HW_BRIGHT_GREEN = 0x12, HW_SEA_GREEN = 0x02
+	, HW_BRIGHT_CYAN = 0x13, HW_LIME = 0x1A
+	, HW_PASTEL_GREEN = 0x19, HW_PASTEL_CYAN = 0x1B
+	, HW_BRIGHT_YELLOW = 0x0A, HW_PASTEL_YELLOW = 0x03
+	, HW_BRIGHT_WHITE = 0x0B
+};
 
 enum cpct_e_keyID
 {
@@ -147,6 +172,7 @@ void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height) __z88dk_ca
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height) __z88dk_callee;
 void cpct_drawSpriteBlended(void *memory, u8 height, u8 width, void *sprite) __z88dk_callee;
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height);
+u8 cpct_px2byteM0(u8 px0, u8 px1);
 
 /** Video */
 #define cpct_clearScreen(COL) cpct_memset((void*)0xC000, (COL), 0x4000)
@@ -162,6 +188,8 @@ void cpct_setPALColour(u8 pen, u8 hw_ink) __z88dk_callee;
 void cpct_setVideoMemoryPage(u8 page_codified_in_6LSb) __z88dk_fastcall;
 void cpct_setVideoMemoryOffset(u8 offset) __z88dk_fastcall;
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y) __z88dk_callee;
+void cpct_setVideoMode(u8 videoMode);
+void cpct_setVideoMemoryPage(u8 page_6LSb);
 
 /** Random */
 u8 cpct_getRandom_mxor_u8();
