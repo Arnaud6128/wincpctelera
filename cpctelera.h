@@ -17,6 +17,9 @@
 #define cpct_page40 0x10
 #define cpct_page00 0x00
 
+
+void CPCTeleraWin();
+
 /** Memory */
 void cpct_memset(void *array, u8  value, u16 size) __z88dk_callee;
 void cpct_memset_f8(void *array, u16 value, u16 size) __z88dk_callee;
@@ -32,7 +35,6 @@ void cpct_scanKeyboard();
 void cpct_scanKeyboard_f();
 void cpct_scanKeyboard_if();
 u8 cpct_isKeyPressed(cpct_keyID key) __z88dk_fastcall;
-u8 cpct_isAnyKeyPressed();
 u8 cpct_isAnyKeyPressed_f();
 
 enum CPCT_HW_Colour {
