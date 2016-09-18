@@ -18,6 +18,14 @@
 #define cpct_page00 0x00
 
 
+#define BORDER_CX		32
+#define BORDER_UP_CY	48
+#define BORDER_DW_CY	40
+#define WIDTH_SCREEN	320
+#define HEIGHT_SCREEN	200
+#define FULL_SCREEN_CX	(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
+#define FULL_SCREEN_CY	(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
+
 void CPCTeleraWin();
 
 /** Memory */
@@ -177,7 +185,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height);
 u8 cpct_px2byteM0(u8 px0, u8 px1);
 
 /** Video */
-#define cpct_clearScreen(COL) cpct_memset((void*)0xC000, (COL), 0x4000)
+void cpct_clearScreen(u8 colour_pattern); 
 #define cpct_setBorder(HWC) cpct_setPALColour (16, (HWC))
 
 void cpct_setVideoMode(u8 videoMode) __z88dk_fastcall;
