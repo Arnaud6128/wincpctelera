@@ -3,6 +3,7 @@
 
 #define WINDOW_STYLE	WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 #define NB_COLORS		16
+#define BORDER_COLOR	16
 #define TITLE			"WinCPCTelera"			
 
 static HBITMAP _hBitmap;
@@ -68,7 +69,7 @@ struct SAmstrad
 
 	HBITMAP _video[4];
 
-	UCHAR _curPal[NB_COLORS];
+	UCHAR _curPal[NB_COLORS + 1];
 	UCHAR _mem[0xFFFF];
 }
 _amstrad;
@@ -126,6 +127,11 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 
 	if (toMem != NULL && fromMem != NULL)
 		memcpy_s(toMem, size, fromMem, size);
+	else
+	{
+		
+
+	}
 }
 
 void cpct_memset(void *array, u8  value, u16 size)
@@ -140,8 +146,7 @@ void cpct_memset(void *array, u8  value, u16 size)
 		int addr = (int)array;
 		SetCurVideo(addr);
 
-		u8 pix = M0byte2px(value);
-		cpct_drawSolidBox(&x, pix, 80, size / 80);
+		cpct_drawSolidBox(&x, value, 80, size / 80);
 	}
 }
 
@@ -243,7 +248,6 @@ HBITMAP getVideoBitmap(int pScreenAddr)
 	}
 }
 
-
 void SetCurVideo(int pVideoAddr)
 {
 	switch (pVideoAddr)
@@ -254,11 +258,9 @@ void SetCurVideo(int pVideoAddr)
 		case 0x4000:
 			_curVideo = cpct_page40;
 			break;
-
 		case 0x8000:
 			_curVideo = cpct_page80;
 			break;
-
 		case 0xC000:
 		default:
 			_curVideo = cpct_pageC0;
@@ -281,7 +283,7 @@ u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 
 void cpct_waitVSYNC()
 {
-
+	Sleep(30);
 }
 
 void SetPalette(int i, UCHAR pHW)
@@ -294,7 +296,6 @@ UCHAR* GetBuffer(int pVideoAddr)
 	HBITMAP bitmapVideo = getVideoBitmap(pVideoAddr);
 }*/
 
-
 void fillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 {
 	//u8 pix1 = pattern & 0xF0 >> 4;
@@ -302,7 +303,6 @@ void fillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 
 	int hw = _amstrad._curPal[pix0];
 	COLORREF rgb = GetColorHW(hw);
-
 	HBRUSH brush = CreateSolidBrush(rgb);
 	
 	if (cx > 80)
@@ -324,8 +324,6 @@ void fillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 
 	FillRect(hdc, &rect, brush);
 	DeleteObject(brush);
-
-	InvalidateRect(_hWnd, NULL, FALSE);
 }
 
 void drawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
@@ -340,8 +338,6 @@ void drawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
 	ReleaseDC(_hWnd, hdc);
-
-	InvalidateRect(_hWnd, NULL, FALSE);
 }
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
@@ -361,8 +357,8 @@ void cpct_clearScreen(u8 colour_pattern)
 	u8 x = 0;
 	_amstrad._y = 0;
 
-	u8 pix = M0byte2px(colour_pattern);
-	cpct_drawSolidBox(&x, pix, 80, 200);
+	_curVideo = cpct_pageC0;
+	cpct_drawSolidBox(&x, colour_pattern, 80, 200);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
@@ -372,7 +368,9 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
 
 	u8* x = (u8*)memory;
-	fillBox(memDC, colour_pattern, *x, _amstrad._y, width, height);
+
+	u8 pix = M0byte2px(colour_pattern);
+	fillBox(memDC, pix, *x, _amstrad._y, width, height);
 
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
@@ -387,6 +385,7 @@ void cpct_setVideoMode(u8 videoMode)
 void cpct_setVideoMemoryPage(u8 page_6LSb)
 {
 	_amstrad._currentPage = page_6LSb;
+	InvalidateRect(_hWnd, NULL, FALSE);
 }
 
 void cpc_UnExo(const u8 *source, u8* dest)
@@ -447,16 +446,16 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 {
 	switch (message)
 	{
-	case WM_KEYDOWN:
-		HandleKeyboard((UINT)wParam);
-		break;
+		case WM_KEYDOWN:
+			HandleKeyboard((UINT)wParam);
+			break;
 
-	case WM_PAINT:
-		Redraw(hWnd);
-		break;
+		case WM_PAINT:
+			Redraw(hWnd);
+			break;
 
-	case WM_DESTROY:
-		exit(0);
+		case WM_DESTROY:
+			exit(0);
 	}
 
 	return DefWindowProc(hWnd, message, wParam, lParam);
@@ -566,7 +565,7 @@ void CreatePaletteCpc()
 
 void FillBorder()
 {
-	int hw = _amstrad._curPal[0];
+	int hw = _amstrad._curPal[BORDER_COLOR];
 	COLORREF rgb = GetColorHW(hw);
 	HBRUSH brush = CreateSolidBrush(rgb);
 
@@ -599,8 +598,6 @@ void FillBorder()
 
 void FillScreen(HDC hdc, u8 pVal)
 {
-
-
 	HBRUSH brush = CreateSolidBrush(_palette[2].rgb);
 
 	RECT rect = { BORDER_CX, BORDER_UP_CY, BORDER_CX + WIDTH_SCREEN, BORDER_UP_CY + HEIGHT_SCREEN };
@@ -681,9 +678,10 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 				mask[i] = DecodePixel((UCHAR)(*pix));
 				sprite[i] = DecodePixel((UCHAR)(*pix >> 8));
 				
-				pix++;
-				i += (widthAlignedDWORD - cx + 1);
+				pix++;	
+				i++;
 			}
+			i += (widthAlignedDWORD - cx);
 		}
 	}
 	else
@@ -761,6 +759,8 @@ void MsgLoop()
 		else
 			return;
 	}
+
+	Sleep(30);
 }
 
 void StartCPC()
@@ -778,7 +778,7 @@ void StartCPC()
 	for (int i = 0; i < 4; i++)
 		_amstrad._video[i] = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
 
-	FillBorder(hdc);
+	//FillBorder(hdc);
 
 	ReleaseDC(_hWnd, hdc);
 }
