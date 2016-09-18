@@ -7,9 +7,11 @@
 #define BORDER_DW_CY	40
 #define WIDTH_SCREEN	320
 #define HEIGHT_SCREEN	200
-#define NB_COLORS		16
-#define TITLE			"Bitume"			
+#define FULL_SCREEN_CX	(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
+#define FULL_SCREEN_CY	(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
 
+#define NB_COLORS		16
+#define TITLE			"WinCPCTelera"			
 
 static HBITMAP _hBitmap;
 static HPALETTE _hPal;
@@ -79,6 +81,10 @@ struct SAmstrad
 	u8 _mode;
 	u8 _currentPage;
 	TInterrupt _interruptFunction;
+	u8 _rowVideo[80];
+	u8 _y;
+
+	HBITMAP _video;
 
 	UCHAR _curPal[NB_COLORS];
 	UCHAR _mem[0xFFFF];
@@ -184,11 +190,12 @@ void cpct_setPALColour(u8 pen, u8 hw_ink)
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	static u8 pos[2];
-	pos[0] = x;
-	pos[1] = y;
+	for (int i = 0; i < 80; i++)
+		_amstrad._rowVideo[i] = x + i;
 
-	return (u8*)pos;
+	_amstrad._y = y;
+
+	return _amstrad._rowVideo;
 }
 
 void cpct_waitVSYNC()
@@ -201,9 +208,8 @@ void SetPalette(int i, UCHAR pHW)
 	_amstrad._curPal[i] = pHW;
 }
 
-void fillBox(int index, int x, int y, int cx, int cy)
+void fillBox(HDC hdc, int index, int x, int y, int cx, int cy)
 {
-	HDC hdc = GetDC(_hWnd);
 	int hw = _amstrad._curPal[index];
 	COLORREF rgb = GetColorHW(hw);
 	HBRUSH brush = CreateSolidBrush(rgb);
@@ -214,46 +220,67 @@ void fillBox(int index, int x, int y, int cx, int cy)
 		cx *= 4;
 	}
 
-	y += BORDER_UP_CY;
-	x += BORDER_CX;
-	
-
 	RECT rect = { x, y, x + cx, y + cy };
 
 	FillRect(hdc, &rect, brush);
 	DeleteObject(brush);
-	ReleaseDC(_hWnd, hdc);
 }
 
 void drawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
 {
 	HDC hdc = GetDC(_hWnd);
-	DisplayBitmap(hdc, x, y, cx, cy, sprite, pMasked);
+	HDC memDC = CreateCompatibleDC(hdc);
+
+	HBITMAP oldBitmap = SelectObject(memDC, _amstrad._video);
+	
+	DisplayBitmap(memDC, x, y, cx, cy, sprite, pMasked);
+	BitBlt(hdc, BORDER_CX, BORDER_UP_CY, WIDTH_SCREEN, HEIGHT_SCREEN, memDC, 0, 0, SRCCOPY);
+
+	SelectObject(memDC, oldBitmap);
+	DeleteDC(memDC);
 	ReleaseDC(_hWnd, hdc);
 }
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
-	u8* mem = (u8*)memory;
-	drawSprite(sprite, mem[0], mem[1], width, height, FALSE);
+	u8* x = (u8*)memory;
+	drawSprite(sprite, *x, _amstrad._y, width, height, FALSE);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
-	u8* mem = (u8*)memory;
-	drawSprite(sprite, mem[0], mem[1], width, height, TRUE);
+	u8* x = (u8*)memory;
+	drawSprite(sprite, *x, _amstrad._y, width, height, TRUE);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
-	u8* mem = (u8*)memory;
-	fillBox(colour_pattern, mem[0], mem[1], width, height);
-}
+	HDC hdc = GetDC(_hWnd);
+	HDC memDC = CreateCompatibleDC(hdc);
+	HBITMAP oldBitmap = SelectObject(memDC, _amstrad._video);
 
+	u8* x = (u8*)memory;
+	fillBox(memDC, colour_pattern, *x, _amstrad._y, width, height);
+
+	BitBlt(hdc, BORDER_CX, BORDER_UP_CY, WIDTH_SCREEN, HEIGHT_SCREEN, memDC, 0, 0, SRCCOPY);
+
+	SelectObject(memDC, oldBitmap);
+	DeleteDC(memDC);
+	ReleaseDC(_hWnd, hdc);
+}
 
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
-	return 0;
+	UCHAR bit0 = (px0 & 0x01);
+	UCHAR bit1 = (px0 & 0x02) >> 1;
+	UCHAR bit2 = (px0 & 0x04) >> 2;
+	UCHAR bit3 = (px0 & 0x08) >> 3;
+	UCHAR bita = (px1 & 0x01);
+	UCHAR bitb = (px1 & 0x02) >> 1;
+	UCHAR bitc = (px1 & 0x04) >> 2;
+	UCHAR bitd = (px1 & 0x08) >> 3;
+
+	return bit0 << 7 | bita << 6 | bit2 << 5 | bitc << 4 | bit1 << 3 | bitb << 2 | bit3 << 2 | bitd;
 }
 
 void cpct_setVideoMode(u8 videoMode)
@@ -323,7 +350,6 @@ RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
 {
 	// Declare a RECT to hold the results of our calculations
 	RECT rcDesiredWindowRect;
-	ZeroMemory(&rcDesiredWindowRect, sizeof(rcDesiredWindowRect));
 
 	// Get the current window rect and its client rect
 	RECT rcCurrentWindowRect;
@@ -333,9 +359,7 @@ RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
 	GetClientRect(hWindow, &rcCurrentClientRect);
 
 	// Get the difference between the current and desired client areas
-	SIZE szClientDifference;
-	szClientDifference.cx = (rcCurrentClientRect.right - szDesiredClient.cx);
-	szClientDifference.cy = (rcCurrentClientRect.bottom - szDesiredClient.cy);
+	SIZE szClientDifference = { rcCurrentClientRect.right - szDesiredClient.cx, rcCurrentClientRect.bottom - szDesiredClient.cy };
 
 	// Get the difference between the current window rect and the desired window rect
 	rcDesiredWindowRect.left = rcCurrentWindowRect.left;
@@ -351,13 +375,10 @@ void PosWindow()
 	SetWindowLong(_hWnd, GWL_STYLE, WINDOW_STYLE);
 	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
 
-	int cx = WIDTH_SCREEN + BORDER_CX * 2;
-	int cy = HEIGHT_SCREEN + BORDER_UP_CY + BORDER_DW_CY;
+	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2 + 100;
+	int posY = (GetSystemMetrics(SM_CYFULLSCREEN) - FULL_SCREEN_CY) / 2;
 
-	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - cx) / 2;
-	int posY = (GetSystemMetrics(SM_CYFULLSCREEN) - cy) / 2;
-
-	SIZE szDesiredClient = { cx, cy };
+	SIZE szDesiredClient = { FULL_SCREEN_CX, FULL_SCREEN_CY };
 
 	RECT rcNewWindowRect = CalculateWindowRect(_hWnd, szDesiredClient);
 
@@ -395,7 +416,7 @@ void CreateWindowApp()
 		instance,
 		NULL);
 
-	SetWindowText(_hWnd, "WinCPCTelera");
+	SetWindowText(_hWnd, TITLE);
 	PosWindow();
 
 	_hPal = NULL;
@@ -449,6 +470,16 @@ void FillBorder(HDC hdc)
 	DeleteObject(brush);
 }
 
+void FillScreen(HDC hdc)
+{
+	HBRUSH brush = CreateSolidBrush(_palette[2].rgb);
+
+	RECT rect = { BORDER_CX, BORDER_UP_CY, BORDER_CX + WIDTH_SCREEN, BORDER_UP_CY + HEIGHT_SCREEN };
+	FillRect(hdc, &rect, brush);
+
+	DeleteObject(brush);
+}
+
 UCHAR DecodePixel(UCHAR pPix)
 {
 	UCHAR pix0 = (pPix & 0x80) >> 7;
@@ -470,51 +501,51 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
 	WORD* pal = NULL;
 
-	FillBorder(hdc);
-
 	int widthAlignedDWORD = (((cx) * 8 + 31)  & (~31)) / 8;
-	UCHAR* alignedData;
+	UCHAR* alignedData = NULL;
+	UCHAR* sprite = NULL;
+	UCHAR* mask = NULL;
 
 	if (pMasked)
 	{
-		UCHAR* sprite = malloc(widthAlignedDWORD * cy);
+		sprite = malloc(widthAlignedDWORD * cy);
 		ZeroMemory(sprite, widthAlignedDWORD * cy);
 
-		UCHAR* mask = malloc(widthAlignedDWORD * cy);
+		mask = malloc(widthAlignedDWORD * cy);
 		ZeroMemory(mask, widthAlignedDWORD * cy);
+		
+		WORD* pix = (WORD*)data;
+		int i = 0;
+		for (yi = 0; yi < cy; yi++)
+		{
+			for (xi = 0; xi < cx; xi++)
+			{
+				mask[i] = DecodePixel((UCHAR)(*pix));
+				sprite[i] = DecodePixel((UCHAR)(*pix >> 8));
+				
+				pix++;
+				i += (widthAlignedDWORD - cx + 1);
+			}
+		}
+	}
+	else
+	{
+		alignedData = malloc(widthAlignedDWORD * cy);
+		ZeroMemory(alignedData, widthAlignedDWORD * cy);
+
+		for (yi = 0; yi < cy; yi++)
+			memcpy(alignedData + yi * widthAlignedDWORD, data + yi * cx, cx);
 
 		for (yi = 0; yi < cy; yi++)
 		{
-			WORD* pix = (WORD*)(data + yi * cx);
+			UCHAR* pix = alignedData + yi * widthAlignedDWORD;
 			for (xi = 0; xi < cx; xi++)
 			{
-				*sprite = DecodePixel((UCHAR)(*pix));
-				*mask = DecodePixel((UCHAR)(*pix << 8));
+				*pix = DecodePixel(*pix);
 				pix++;
-				mask++;
-				sprite++;
 			}
 		}
-
-		free(sprite);
-		free(mask);
 	}
-
-	alignedData = malloc(widthAlignedDWORD * cy);
-	ZeroMemory(alignedData, widthAlignedDWORD * cy);
-	for (yi = 0; yi < cy; yi++)
-		memcpy(alignedData + yi * widthAlignedDWORD, data + yi * cx, cx);
-
-	for (yi = 0; yi < cy; yi++)
-	{
-		UCHAR* pix = alignedData + yi * widthAlignedDWORD;
-		for (xi = 0; xi < cx; xi++)
-		{
-			*pix = DecodePixel(*pix);
-			pix++;
-		}
-	}
-
 
 	int cxDest = cx;
 	int coef = 1;
@@ -542,9 +573,19 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 	RealizePalette(hdc);
 
 	if (!pMasked)
-		StretchDIBits(hdc, x*2 + BORDER_CX, y + BORDER_UP_CY, cx*2, cy, 0, 0, cx, cy, alignedData, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
+	{
+		StretchDIBits(hdc, x * 2, y, cx * 2, cy, 0, 0, cx, cy, alignedData, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
+		free(alignedData);
+	}
+	else
+	{
+		StretchDIBits(hdc, x * 2, y, cx * 2, cy, 0, 0, cx, cy, sprite, bitmapInfos, DIB_PAL_COLORS, SRCINVERT);
+		StretchDIBits(hdc, x * 2, y, cx * 2, cy, 0, 0, cx, cy, mask, bitmapInfos, DIB_PAL_COLORS, SRCAND);
+		StretchDIBits(hdc, x * 2, y, cx * 2, cy, 0, 0, cx, cy, sprite, bitmapInfos, DIB_PAL_COLORS, SRCINVERT);
 
-	free(alignedData);
+		free(mask);
+		free(sprite);
+	}
 }
 
 void MsgLoop()
@@ -564,11 +605,27 @@ void MsgLoop()
 	}
 }
 
-void CPCTeleraWin()
+void StartCPC()
 {
 	ZeroMemory(&_amstrad, sizeof(_amstrad));
 	for (int i = 0; i < NB_COLORS; i++)
 		_amstrad._curPal[i] = _palette[i].hw;
+
+	_amstrad._curPal[0] = HW_BRIGHT_BLUE;
+	_amstrad._curPal[1] = HW_BRIGHT_YELLOW;
+
+	HDC hdc = GetDC(_hWnd);
+
+	_amstrad._video = CreateCompatibleBitmap(hdc, WIDTH_SCREEN, HEIGHT_SCREEN);
+
+	FillBorder(hdc);
+
+	ReleaseDC(_hWnd, hdc);
+}
+
+void CPCTeleraWin()
+{
+	StartCPC();
 
 	CreateWindowApp();
 	MsgLoop();
