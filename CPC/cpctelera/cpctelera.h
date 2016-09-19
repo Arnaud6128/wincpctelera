@@ -197,7 +197,17 @@ void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height) __z88dk_ca
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height) __z88dk_callee;
 void cpct_drawSpriteBlended(void *memory, u8 height, u8 width, void *sprite) __z88dk_callee;
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height);
+
+void cpct_drawTileAligned2x4(void* sprite, void* memory);
+void cpct_drawTileAligned2x4_f(void* sprite, void* memory);
+void cpct_drawTileAligned2x8(void* sprite, void* memory);
+void cpct_drawTileAligned2x8_f(void* sprite, void* memory);
+void cpct_drawTileAligned4x4(void* sprite, void* memory);
+void cpct_drawTileAligned4x8(void* sprite, void* memory);
+void cpct_drawTileAligned4x8_f(void* sprite, void* memory);
+
 u8 cpct_px2byteM0(u8 px0, u8 px1);
+
 
 /** Video */
 void cpct_clearScreen(u8 colour_pattern); 

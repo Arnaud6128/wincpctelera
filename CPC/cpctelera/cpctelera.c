@@ -11,6 +11,7 @@ static HPALETTE _hPal;
 static HWND _hWnd;
 static u16 _curKey;
 static u8 _curVideo;
+static BOOL _isStarted = FALSE;
 
 typedef void(*TInterrupt)(void);
 
@@ -87,6 +88,11 @@ COLORREF GetColorHW(int pHW)
 COLORREF GetColorFW(int pFW)
 {
 	return _palette[pFW].rgb;
+}
+
+u8 cpct_getHWColour(u16 pFW)
+{
+	return _palette[pFW].hw;
 }
 
 HBITMAP GetCurVideoBuff()
@@ -218,6 +224,13 @@ u8 cpct_isAnyKeyPressed_f()
 	return isKeyPressed;
 }
 
+void cpct_fw2hw(void *fw_colour_array, u16 size)
+{
+	u8* fwPal = (u8*)fw_colour_array;
+	for (u16 i = 0; i < size; i++)
+		fwPal[i] = cpct_getHWColour(fwPal[i]);
+}
+
 void cpct_setPalette(u8* ink_array, u16 ink_array_size)
 {
 	memcpy(_amstrad._curPal, ink_array, ink_array_size);
@@ -230,6 +243,41 @@ void cpct_setPALColour(u8 pen, u8 hw_ink)
 	_amstrad._curPal[pen] = hw_ink;
 	CreatePaletteCpc();
 	FillBorder();
+}
+
+void cpct_drawTileAligned2x4(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 2, 4);
+}
+
+void cpct_drawTileAligned2x4_f(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 2, 4);
+}
+
+void cpct_drawTileAligned2x8(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 2, 8);
+}
+
+void cpct_drawTileAligned2x8_f(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 2, 8);
+}
+
+void cpct_drawTileAligned4x4(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 4, 4);
+}
+
+void cpct_drawTileAligned4x8(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 4, 8);
+}
+
+void cpct_drawTileAligned4x8_f(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 4, 8);
 }
 
 HBITMAP getVideoBitmap(int pScreenAddr)
@@ -284,6 +332,11 @@ u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 void cpct_waitVSYNC()
 {
 	Sleep(30);
+}
+
+u16 cpct_count2VSYNC()
+{
+	return 0;
 }
 
 void SetPalette(int i, UCHAR pHW)
@@ -785,8 +838,13 @@ void StartCPC()
 
 void CPCTeleraWin()
 {
-	StartCPC();
+	if (!_isStarted)
+	{
+		_isStarted = TRUE;
 
-	CreateWindowApp();
-	MsgLoop();
+		StartCPC();
+
+		CreateWindowApp();
+		MsgLoop();
+	}
 }
