@@ -208,6 +208,9 @@ void cpct_drawTileAligned4x8_f(void* sprite, void* memory);
 
 u8 cpct_px2byteM0(u8 px0, u8 px1);
 
+/** String */
+void cpct_drawCharM0 (void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii);
+void cpct_drawStringM0 (void* string, void* video_memory, u8 fg_pen, u8 bg_pen);
 
 /** Video */
 void cpct_clearScreen(u8 colour_pattern); 
