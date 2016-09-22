@@ -187,6 +187,8 @@ enum cpct_e_keyID
 	Key_Del = (i16)0x8009
 };
 
+
+
 /** Firmware */
 void cpct_reenableFirmware(u16 firmware_ROM_code) __z88dk_fastcall;
 u16 cpct_disableFirmware();
