@@ -1,16 +1,16 @@
 #include <windows.h>
 #include <cpctelera.h>
 
+#define CPC_MEM_LIMIT	0xFFFF
 #define WINDOW_STYLE	WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 #define NB_COLORS		16
 #define BORDER_COLOR	16
 #define TITLE			"WinCPCTelera"			
-#define CPC_MEM_LIMIT	0xFFFF
 
 static HBITMAP _hBitmap;
 static HPALETTE _hPal;
 static HWND _hWnd;
-static u16 _curKey;
+static BOOL _curKey;
 static u8 _curVideo;
 static BOOL _isStarted = FALSE;
 
@@ -24,9 +24,9 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 void FillBorder();
 void SetCurVideo(int pVideoAddr);
 u8 GetCoordY(u8* memory);
-void DrawFont(int x, int y, int chara);
+void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara);
 
-typedef struct 
+typedef struct
 {
 	UCHAR hw;
 	COLORREF rgb;
@@ -63,9 +63,141 @@ const SCPCPalette _palette[27] =
 	HW_BRIGHT_WHITE, RGB(255,255,255)
 };
 
-UCHAR fonts[] = {
+#define FONT_SIZE		8
+#define FONT_NB_LINE	32
+#define FONT_NB_COL		3
+#define FONT_ROW		(FONT_NB_LINE*FONT_SIZE)
+#define FONT_COL		(FONT_NB_COL*FONT_SIZE)
+UCHAR fonts[FONT_ROW*FONT_COL] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x80, 0x3B, 0x6E, 0x1E,0x3B, 0x1E, 0x3C, 0x03, 0x73, 0x1E, 0x33, 0x73, 0x1E, 0x63, 0x33, 0x1E, 0x30, 0x06, 0x78, 0x3E, 0x0E, 0x1F, 0x0C, 0x36, 0x63, 0x03, 0x3F, 0x07, 0x0C, 0x38, 0x00, 0x66, 0x00, 0x66, 0x33, 0x33, 0x66, 0x30, 0x18, 0x1F, 0x33, 0x0C, 0x33, 0x36, 0x0C, 0x6B, 0x33, 0x33, 0x3E, 0x3E, 0x30, 0x03, 0x1B, 0x33, 0x1E, 0x7F, 0x36, 0x1F, 0x19, 0x0C, 0x0C, 0x0C, 0x00, 0x19, 0x80, 0x3E, 0x33, 0x30, 0x66, 0x3F, 0x18, 0x33, 0x33, 0x0C, 0x03, 0x3C, 0x0C, 0x6B, 0x33, 0x33, 0x33, 0x66, 0x30, 0x1E, 0x18, 0x33, 0x33, 0x6B, 0x1C, 0x33, 0x0C, 0x0C, 0x0C, 0x0C, 0x00, 0x66, 0x00, 0x06, 0x33, 0x33, 0x66, 0x33, 0x3C, 0x33, 0x3B, 0x0C, 0x03, 0x36, 0x0C, 0x7F, 0x33, 0x33, 0x33, 0x66, 0x3B, 0x30, 0x18, 0x33, 0x33, 0x6B, 0x36, 0x33, 0x26, 0x38, 0x0C, 0x07, 0x00, 0x19, 0x80, 0x3C, 0x3E, 0x1E, 0x3E, 0x1E, 0x18, 0x1F, 0x36, 0x1C, 0x07, 0x33, 0x0C, 0x36, 0x6E, 0x1E, 0x6E, 0x3B, 0x6E, 0x1E, 0x3E, 0x33, 0x33, 0x63, 0x63, 0x33, 0x3F, 0x0C, 0x0C, 0x0C, 0x00, 0x66, 0x00, 0x00, 0x30, 0x00, 0x06, 0x00, 0x1B, 0x00, 0x30, 0x00, 0x00, 0x30, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x0C, 0x0C, 0x6E, 0x19, 0x80, 0x00, 0x70, 0x00, 0x0E, 0x00, 0x0E, 0x00, 0x70, 0x0C, 0x03, 0x70, 0x1C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0x0C, 0x38, 0x3B, 0x66, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7F, 0x80, 0x33, 0x7E, 0x1E, 0x7C, 0x7F, 0x78, 0x1F, 0x33, 0x3F, 0x3C, 0x73, 0x7F, 0x63, 0x63, 0x1C, 0x78, 0x3B, 0x73, 0x1E, 0x1E, 0x1E, 0x0C, 0x63, 0x63, 0x1E, 0x7F, 0x1E, 0x01, 0x1E, 0x0C, 0x00, 0x00, 0x33, 0x33, 0x33, 0x36, 0x31, 0x30, 0x33, 0x33, 0x0C, 0x66, 0x33, 0x33, 0x63, 0x63, 0x36, 0x30, 0x66, 0x33, 0x33, 0x0C, 0x33, 0x1E, 0x77, 0x63, 0x0C, 0x33, 0x18, 0x03, 0x06, 0x0C, 0x00, 0x00, 0x3F, 0x33, 0x60, 0x33, 0x34, 0x34, 0x67, 0x33, 0x0C, 0x66, 0x36, 0x31, 0x6B, 0x67, 0x63, 0x30, 0x6D, 0x36, 0x03, 0x0C, 0x33, 0x33, 0x7F, 0x36, 0x0C, 0x19, 0x18, 0x06, 0x06, 0x0C, 0x00, 0x00, 0x33, 0x3E, 0x60, 0x33, 0x3C, 0x3C, 0x60, 0x3F, 0x0C, 0x06, 0x3C, 0x30, 0x7F, 0x6F, 0x63, 0x3E, 0x63, 0x3E, 0x1E, 0x0C, 0x33, 0x33, 0x6B, 0x1C, 0x1E, 0x0C, 0x18, 0x0C, 0x06, 0x0C, 0x00, 0x00, 0x33, 0x33, 0x60, 0x33, 0x34, 0x34, 0x60, 0x33, 0x0C, 0x06, 0x36, 0x30, 0x7F, 0x7B, 0x63, 0x33, 0x63, 0x33, 0x30, 0x0C, 0x33, 0x33, 0x63, 0x1C, 0x33, 0x46, 0x18, 0x18, 0x06, 0x3F, 0x00, 0x06, 0x1E, 0x33, 0x33, 0x36, 0x31, 0x31, 0x33, 0x33, 0x0C, 0x06, 0x33, 0x30, 0x77, 0x73, 0x36, 0x33, 0x36, 0x33, 0x33, 0x2D, 0x33, 0x33, 0x63, 0x36, 0x33, 0x63, 0x18, 0x30, 0x06, 0x1E, 0x00, 0x0C, 0x0C, 0x7E, 0x1E, 0x7C, 0x7F, 0x7F, 0x1E, 0x33, 0x3F, 0x0F, 0x73, 0x78, 0x63, 0x63, 0x1C, 0x7E, 0x1C, 0x7E, 0x1E, 0x3F, 0x33, 0x33, 0x63, 0x63, 0x33, 0x7F, 0x1E, 0x60, 0x1E, 0x0C, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0C, 0x00, 0x36, 0x0C, 0x63, 0x3B, 0x00, 0x06, 0x18, 0x00, 0x00, 0x0C, 0x00, 0x0C, 0x40, 0x3E, 0x3F, 0x3F, 0x1E, 0x0F, 0x1E, 0x1E, 0x0C, 0x1E, 0x1E, 0x0C, 0x0C, 0x06, 0x00, 0x30, 0x0C, 0x3E, 0x00, 0x00, 0x36, 0x3E, 0x33, 0x66, 0x00, 0x0C, 0x0C, 0x33, 0x0C, 0x0C, 0x00, 0x0C, 0x60, 0x63, 0x0C, 0x33, 0x33, 0x06, 0x33, 0x33, 0x0C, 0x33, 0x33, 0x0C, 0x0C, 0x0C, 0x3F, 0x18, 0x00, 0x60, 0x0C, 0x00, 0x7F, 0x0D, 0x18, 0x6E, 0x00, 0x18, 0x06, 0x1E, 0x0C, 0x00, 0x00, 0x00, 0x30, 0x73, 0x0C, 0x30, 0x03, 0x7F, 0x03, 0x33, 0x0C, 0x33, 0x03, 0x00, 0x00, 0x18, 0x00, 0x0C, 0x0C, 0x6F, 0x0C, 0x00, 0x36, 0x1E, 0x0C, 0x3B, 0x00, 0x18, 0x06, 0x7F, 0xBF, 0x00, 0x3F, 0x00, 0x18, 0x6B, 0x0C, 0x1E, 0x0E, 0x66, 0x3E, 0x3E, 0x06, 0x1E, 0x1F, 0x0C, 0x0C, 0x30, 0x00, 0x06, 0x06, 0x6F, 0x0C, 0x36, 0x7F, 0x2C, 0x66, 0x1C, 0x18, 0x18, 0x06, 0x1E, 0x0C, 0x00, 0x00, 0x00, 0x0C, 0x67, 0x0C, 0x03, 0x03, 0x36, 0x30, 0x30, 0x03, 0x33, 0x33, 0x0C, 0x0C, 0x18, 0x3F, 0x0C, 0x33, 0x6F, 0x0C, 0x36, 0x36, 0x1F, 0x63, 0x36, 0x0C, 0x0C, 0x0C, 0x33, 0x0C, 0x00, 0x00, 0x00, 0x06, 0x63, 0x1C, 0x33, 0x33, 0x1E, 0x31, 0x33, 0x33, 0x33, 0x33, 0x00, 0x00, 0x0C, 0x00, 0x18, 0x33, 0x63, 0x0C, 0x36, 0x36, 0x0C, 0x00, 0x1C, 0x0C, 0x06, 0x18, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0x3E, 0x0C, 0x1E, 0x1E, 0x0E, 0x3F, 0x1E, 0x3F, 0x1E, 0x1E, 0x00, 0x00, 0x06, 0x00, 0x30, 0x1E, 0x3E
 };
+
+typedef struct
+{
+	char cpcChara;
+	u8 posBitmap;
+} SCharMapping;
+
+
+char charaMapBitmap[] = "!'\\#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\'abcdefghijklmnopqrstuvwxyz{|}~";
+
+typedef struct
+{
+	u16 cpcKeyID;
+	u16 winKeyID;
+} SKeyMapping;
+
+SKeyMapping cpctMapKey[] =
+{
+	{ Key_CursorUp, VK_UP },
+	{ Key_CursorRight, VK_RIGHT },
+	{ Key_CursorDown, VK_DOWN },
+	{ Key_F9, VK_F9 },
+	{ Key_F6, VK_F6 },
+	{ Key_F3, VK_F3 },
+	{ Key_Enter, VK_RETURN },
+	{ Key_FDot, VK_OEM_PERIOD },
+
+	{ Key_CursorLeft, VK_LEFT },
+	{ Key_Copy, VK_MENU },
+	{ Key_F7, VK_F7 },
+	{ Key_F8, VK_F8 },
+	{ Key_F5, VK_F5 },
+	{ Key_F1, VK_F1 },
+	{ Key_F2, VK_F2 },
+	{ Key_F0, VK_F10 },
+
+	{ Key_Clr,  VK_CONTROL },
+	{ Key_OpenBracket, 0 },
+	{ Key_Return, VK_RETURN },
+	{ Key_CloseBracket, 0 },
+	{ Key_F4, VK_F4 },
+	{ Key_Shift, VK_SHIFT },
+	{ Key_BackSlash, VK_BACK },
+	{ Key_Control, VK_CONTROL },
+
+	{ Key_Caret, 0 },
+	{ Key_Hyphen, 0 },
+	{ Key_At, 0 },
+	{ Key_P, 0x50 },
+	{ Key_SemiColon, 0 },
+	{ Key_Colon, 0 },
+	{ Key_Slash, 0 },
+	{ Key_Dot, VK_OEM_PERIOD },
+
+	{ Key_0, 0x30 },
+	{ Key_9, 0x39 },
+	{ Key_O, 0x39 },
+	{ Key_I, 0x39 },
+	{ Key_L, 0x4C },
+	{ Key_K, 0x4B },
+	{ Key_M, 0x4B },
+	{ Key_Comma, VK_OEM_COMMA },
+
+	{ Key_8, 0x4B },
+	{ Key_7, 0x37 },
+	{ Key_U, 0x55 },
+	{ Key_Y, 0x59 },
+	{ Key_H, 0x48 },
+	{ Key_J, 0x4A },
+	{ Key_N, 0x4E },
+	{ Key_Space, VK_SPACE },
+
+	{ Key_6, 0x36 },
+	{ Joy1_Up, VK_UP },
+	{ Key_5, 0x35 },
+	{ Joy1_Down, VK_DOWN },
+	{ Key_R, 0x52 },
+	{ Joy1_Left, VK_LEFT },
+	{ Key_T, 0x54 },
+	{ Joy1_Right, VK_RIGHT },
+	{ Key_G, 0x47 },
+	{ Joy1_Fire1, VK_SPACE },
+	{ Key_F, 0x46 },
+	{ Joy1_Fire2, VK_CONTROL },
+	{ Key_B, 0x42 },
+	{ Joy1_Fire3, VK_CONTROL },
+	{ Key_V, 0x56 },
+
+	{ Key_4, 0x34 },
+	{ Key_3, 0x33 },
+	{ Key_E, 0x45 },
+	{ Key_W, 0x57 },
+	{ Key_S, 0x53 },
+	{ Key_D, 0x44 },
+	{ Key_C, 0x43 },
+	{ Key_X, 0x58 },
+
+	{ Key_1, 0x31 },
+	{ Key_2, 0x32 },
+	{ Key_Esc, VK_ESCAPE },
+	{ Key_Q, 0x51 },
+	{ Key_Tab, VK_TAB },
+	{ Key_A, 0x41 },
+	{ Key_CapsLock, VK_CAPITAL },
+	{ Key_Z, 0x5A },
+
+	{ Joy0_Up, VK_UP },
+	{ Joy0_Down, VK_DOWN },
+	{ Joy0_Left, VK_LEFT },
+	{ Joy0_Right, VK_RIGHT },
+	{ Joy0_Fire1, VK_SPACE },
+	{ Joy0_Fire2, VK_CONTROL },
+	{ Joy0_Fire3, VK_CONTROL },
+	{ Key_Del, VK_DELETE },
+};
+
+u16 getVKey(u16 pCpcKeyID)
+{
+	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	{
+		if (cpctMapKey[i].cpcKeyID == pCpcKeyID)
+		{
+			return cpctMapKey[i].winKeyID;
+		}
+	}
+	return 0;
+}
 
 struct SAmstrad
 {
@@ -101,26 +233,24 @@ u8 cpct_getHWColour(u16 pFW)
 	return _palette[pFW].hw;
 }
 
+
 HBITMAP GetCurVideoBuff()
 {
 	switch (_curVideo)
 	{
-		case cpct_page00 :
-			return _amstrad._video[3];
+	case cpct_page00:
+		return _amstrad._video[3];
 		break;
-		
-		case cpct_page40 :
-			return _amstrad._video[2];
-			break;
-
-		case cpct_page80:
-			return _amstrad._video[1];
-			break;
-
-		case cpct_pageC0:
-		default:
-			return _amstrad._video[0];
-			break;
+	case cpct_page40:
+		return _amstrad._video[2];
+		break;
+	case cpct_page80:
+		return _amstrad._video[1];
+		break;
+	case cpct_pageC0:
+	default:
+		return _amstrad._video[0];
+		break;
 	}
 }
 
@@ -144,10 +274,10 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 		HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
 
 		int xFrom = (*(u8*)from * 4) + BORDER_CX;
-		int xTo = (*(u8*)to * 4)  + BORDER_CX;
+		int xTo = (*(u8*)to * 4) + BORDER_CX;
 		int y = GetCoordY(from) + BORDER_UP_CY;
 
-		for (u16 i = 0; i < size*4; i++)
+		for (u16 i = 0; i < size * 4; i++)
 		{
 			COLORREF src = GetPixel(memDC, xFrom + i, y);
 			SetPixel(memDC, xTo + i, y, src);
@@ -158,6 +288,16 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 	}
 	else
 		memcpy_s(to, size, from, size);
+}
+
+void cpct_memset_f64(void *array, u16 value, u16 size)
+{
+	cpct_memset(array, value, size);
+}
+
+void cpct_memset_f8(void *array, u16 value, u16 size)
+{
+	cpct_memset(array, value, size);
 }
 
 void cpct_memset(void *array, u8  value, u16 size)
@@ -185,7 +325,7 @@ u8 cpct_rand8()
 	return (u8)rand();
 }
 
-VOID CALLBACK MyTimerProc(
+VOID CALLBACK InternalTimer(
 	HWND hwnd,
 	UINT message,
 	UINT idTimer,
@@ -197,6 +337,7 @@ VOID CALLBACK MyTimerProc(
 	_amstrad._internalTimer++;
 
 	InvalidateRect(_hWnd, NULL, FALSE);
+	MsgLoop();
 }
 
 void cpct_setInterruptHandler(void(*intHandler)(void))
@@ -217,33 +358,33 @@ u16 cpct_disableFirmware()
 
 void cpct_scanKeyboard_f()
 {
+	_curKey = FALSE;
 	MsgLoop();
 }
 
 void cpct_scanKeyboard_if()
 {
+	_curKey = FALSE;
 	MsgLoop();
 }
 
 void cpct_scanKeyboard()
 {
+	_curKey = FALSE;
 	MsgLoop();
 }
 
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
 	MsgLoop();
-	BOOL isKeyPressed = (_curKey == key);
-	if (isKeyPressed)
-		_curKey = 0;
-
-	return isKeyPressed;
+	u16 keyVKey = getVKey(key);
+	return GetAsyncKeyState(keyVKey) != 0 ? TRUE : FALSE;
 }
 
 u8 cpct_isAnyKeyPressed_f()
 {
 	MsgLoop();
-	BOOL isKeyPressed = (_curKey != 0);
+	BOOL isKeyPressed = (_curKey != FALSE);
 	return isKeyPressed;
 }
 
@@ -319,7 +460,17 @@ void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 	u8* x = (u8*)video_memory;
 	u8 y = GetCoordY(video_memory);
 
-	DrawFont(*x, y, ascii);
+	DrawFont(*x, y, fg_pen, bg_pen, ascii);
+}
+
+int FindCharaIndex(char pChara)
+{
+	for (int i = 0; i < sizeof(charaMapBitmap); i++)
+	{
+		if (charaMapBitmap[i] == pChara)
+			return i;
+	}
+	return 0;
 }
 
 void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
@@ -330,9 +481,9 @@ void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 
 	for (UCHAR i = 0; i < strlen(str); i++)
 	{
-		if (*str != ' ')
+		if (str[i] != ' ')
 		{
-			DrawFont(x + i * 4, y, str[i]);
+			DrawFont(x + i * 4, y, fg_pen, bg_pen, str[i]);
 		}
 	}
 }
@@ -341,15 +492,15 @@ HBITMAP getVideoBitmap(int pScreenAddr)
 {
 	switch (pScreenAddr)
 	{
-		case 0x0000:
-			return _amstrad._video[3];
-		case 0x4000:
-			return _amstrad._video[2];
-		case 0x8000:
-			return _amstrad._video[1];
-		case 0xC000:
-		default:
-			return _amstrad._video[0];
+	case 0x0000:
+		return _amstrad._video[3];
+	case 0x4000:
+		return _amstrad._video[2];
+	case 0x8000:
+		return _amstrad._video[1];
+	case 0xC000:
+	default:
+		return _amstrad._video[0];
 	}
 }
 
@@ -357,19 +508,19 @@ void SetCurVideo(int pVideoAddr)
 {
 	switch (pVideoAddr)
 	{
-		case 0x0000:
-			_curVideo = cpct_page00;
-			break;
-		case 0x4000:
-			_curVideo = cpct_page40;
-			break;
-		case 0x8000:
-			_curVideo = cpct_page80;
-			break;
-		case 0xC000:
-		default:
-			_curVideo = cpct_pageC0;
-			break;
+	case 0x0000:
+		_curVideo = cpct_page00;
+		break;
+	case 0x4000:
+		_curVideo = cpct_page40;
+		break;
+	case 0x8000:
+		_curVideo = cpct_page80;
+		break;
+	case 0xC000:
+	default:
+		_curVideo = cpct_pageC0;
+		break;
 	}
 }
 
@@ -404,13 +555,12 @@ void fillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 	int hw = _amstrad._curPal[pix0];
 	COLORREF rgb = GetColorHW(hw);
 	HBRUSH brush = CreateSolidBrush(rgb);
-	
+
 	if (cx > 80)
 		cx = 80;
 
 	if (cy > 200)
 		cy = 200;
-
 	if (_amstrad._mode == 0)
 	{
 		x *= 4;
@@ -432,7 +582,7 @@ void drawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
 	HDC memDC = CreateCompatibleDC(hdc);
 
 	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
-	
+
 	DisplayBitmap(memDC, x, y, cx, cy, sprite, pMasked);
 
 	SelectObject(memDC, oldBitmap);
@@ -495,40 +645,6 @@ void cpc_UnExo(const u8 *source, u8* dest)
 
 }
 
-void HandleKeyboard(UINT key)
-{
-	switch (key)
-	{
-	case VK_UP:
-		_curKey = Key_CursorUp;
-		break;
-
-	case VK_DOWN:
-		_curKey = Key_CursorDown;
-		break;
-
-	case VK_LEFT:
-		_curKey = Key_CursorLeft;
-		break;
-
-	case VK_RIGHT:
-		_curKey = Key_CursorRight;
-		break;
-
-	case VK_SPACE:
-		_curKey = Key_Space;
-		break;
-
-	case VK_CONTROL:
-		_curKey = Key_Copy;
-		break;
-
-	default:
-		_curKey = 0;
-		break;
-	}
-}
-
 void Redraw(HWND pWnd)
 {
 	PAINTSTRUCT ps;
@@ -549,7 +665,7 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	switch (message)
 	{
 		case WM_KEYDOWN:
-			HandleKeyboard((UINT)wParam);
+			_curKey = TRUE;
 			break;
 
 		case WM_PAINT:
@@ -718,7 +834,6 @@ UCHAR DecodePixel(UCHAR pPix)
 	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 }
 
-
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
 	UCHAR bit0 = (px0 & 0x01);
@@ -747,7 +862,7 @@ u8 M0byte2px(u8 pPix)
 	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pix0 << 4 | pixc << 2 | pixb << 1 | pixa << 0);
 }
 
-void DisplayFont(HDC hdc, int x, int y, int chara)
+void DisplayFont(HDC hdc, int x, int y, u8 fgPen, u8 bgPen, char pChara)
 {
 	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + 2 * sizeof(WORD);
 	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
@@ -767,25 +882,27 @@ void DisplayFont(HDC hdc, int x, int y, int chara)
 	bitmapInfos->bmiHeader.biClrUsed = 2;
 
 	WORD* pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < 2; i++)
-		pal[i] = i;
+	pal[0] = bgPen;
+	pal[1] = fgPen;
 
 	SelectPalette(hdc, _hPal, FALSE);
 	RealizePalette(hdc);
 
-	//StretchDIBits(hdc, 0, 0, 256, 24, 0, 0, 256, 24, fonts, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
-	
-	StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, 8*2, 8, 0, 0, 8, 8, fonts, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
+	int index = FindCharaIndex(pChara);
+	int fontx = (index % FONT_NB_LINE - 1) * FONT_SIZE;
+	int fonty = (FONT_NB_COL - index / FONT_NB_LINE - 1) * FONT_SIZE;
+
+	StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, FONT_SIZE*2, FONT_SIZE, fontx, fonty, FONT_SIZE, FONT_SIZE, fonts, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
 }
 
-void DrawFont(int x, int y, int chara)
+void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara)
 {
 	HDC hdc = GetDC(_hWnd);
 	HDC memDC = CreateCompatibleDC(hdc);
 
 	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
 
-	DisplayFont(memDC, x, y, chara);
+	DisplayFont(memDC, x, y, fgPen, bgPen, chara);
 
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
@@ -811,7 +928,7 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 
 		mask = malloc(widthAlignedDWORD * cy);
 		ZeroMemory(mask, widthAlignedDWORD * cy);
-		
+
 		WORD* pix = (WORD*)data;
 		int i = 0;
 		for (yi = 0; yi < cy; yi++)
@@ -820,8 +937,8 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 			{
 				mask[i] = DecodePixel((UCHAR)(*pix));
 				sprite[i] = DecodePixel((UCHAR)(*pix >> 8));
-				
-				pix++;	
+
+				pix++;
 				i++;
 			}
 			i += (widthAlignedDWORD - cx);
@@ -850,7 +967,7 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 	int coef = 1;
 	if (_amstrad._mode == 0)
 	{
-	//	coef = 2;
+		//	coef = 2;
 		x *= 2;
 		cx *= 2;
 	}
@@ -892,7 +1009,8 @@ void MsgLoop()
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
-	for (int i = 0; i < 10; i++)
+	//for (int i = 0; i < 10; i++)
+	while (TRUE)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
@@ -935,7 +1053,7 @@ void StartCPC()
 	for (int i = 0; i < 4; i++)
 		_amstrad._video[i] = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
 
-	SetTimer(_hWnd, 10000, 33, MyTimerProc);
+	SetTimer(_hWnd, 10000, 33, InternalTimer);
 
 	ReleaseDC(_hWnd, hdc);
 }
