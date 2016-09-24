@@ -2,13 +2,14 @@
 #include <cpctelera.h>
 
 #define WINDOW_STYLE	WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
+#define NB_PAL_COLOR	27
 #define NB_COLORS		16
 #define BORDER_COLOR	16
 #define TITLE			"WinCPCTelera"	
 
 typedef void(*TInterrupt)(void);
 
-typedef struct 
+typedef struct tagSAmstrad
 {
 	u8 _mode;
 	u8 _currentPage;
@@ -21,13 +22,13 @@ typedef struct
 	UCHAR _memVideo[200][82];
 } SAmstrad;
 
-typedef struct
+typedef struct tagSCPCPalette
 {
 	UCHAR hw;
 	COLORREF rgb;
 } SCPCPalette;
 
-extern const SCPCPalette _palette[27];
+extern const SCPCPalette _palette[NB_PAL_COLOR];
 extern HWND _hWnd;
 extern BOOL _curKey;
 extern SAmstrad _amstrad;
