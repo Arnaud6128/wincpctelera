@@ -18,7 +18,6 @@
 #define cpct_page40 0x10
 #define cpct_page00 0x00
 
-
 #define BORDER_CX		32
 #define BORDER_UP_CY	48
 #define BORDER_DW_CY	40
@@ -26,8 +25,6 @@
 #define HEIGHT_SCREEN	200
 #define FULL_SCREEN_CX	(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
 #define FULL_SCREEN_CY	(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
-
-void CPCTeleraWin();
 
 /** Memory */
 void cpct_memset(void *array, u8  value, u16 size) __z88dk_callee;
@@ -187,8 +184,6 @@ enum cpct_e_keyID
 	Key_Del = (i16)0x8009
 };
 
-
-
 /** Firmware */
 void cpct_reenableFirmware(u16 firmware_ROM_code) __z88dk_fastcall;
 u16 cpct_disableFirmware();
@@ -243,5 +238,24 @@ u32 cpct_getRandom_mxor_u32();
 
 #define CPCT_ABSOLUTE_LOCATION_AREA(x)	
 #define CPCT_RELOCATABLE_AREA()
+
+/** Audio */
+extern void cpct_akp_musicInit(void* songdata);
+extern void cpct_akp_musicPlay();
+extern void cpct_akp_stop();
+extern void cpct_akp_SFXInit(void* sfx_song_data);
+extern void cpct_akp_SFXStopAll();
+extern void cpct_akp_SFXStop(u8 stop_bitmask);
+extern void cpct_akp_SFXPlay(u8 sfx_num, u8 volume, u8 note, u8 speed, u16 inverted_pitch, u8 channel_bitmask);
+extern  u16 cpct_akp_SFXGetInstrument(u8 channel_bitmask);
+extern void cpct_akp_setFadeVolume(u8 volume);
+
+extern u8 cpct_akp_digidrumStatus;
+extern u8 cpct_akp_songLoopTimes;
+
+#define AY_CHANNEL_A    0b00000001
+#define AY_CHANNEL_B    0b00000010
+#define AY_CHANNEL_C    0b00000100
+#define AY_CHANNEL_ALL  0b00000111
 
 #endif
