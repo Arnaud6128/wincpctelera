@@ -281,6 +281,8 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
 	ReleaseDC(_hWnd, hdc);
+
+	//u8* vidBuff = GetCurVideoBuff((int)memory);
 }
 
 void cpct_setVideoMode(u8 videoMode)

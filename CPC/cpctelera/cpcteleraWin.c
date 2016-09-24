@@ -235,9 +235,9 @@ HBITMAP GetCurVideoBitmap()
 	return GetVideoBitmap(_curVideo);
 }
 
-u8* GetCurVideoBuff()
+u8* GetVideoBuff(int pScreenAddr)
 {
-	switch (_curVideo)
+	switch (pScreenAddr)
 	{
 	case cpct_page00:
 		return _amstrad._buffVideo[3];
@@ -253,6 +253,12 @@ u8* GetCurVideoBuff()
 		return _amstrad._buffVideo[0];
 		break;
 	}
+
+}
+
+u8* GetCurVideoBuff()
+{
+	return GetVideoBuff(_curVideo);
 }
 
 void SetCurVideo(int pVideoAddr)
