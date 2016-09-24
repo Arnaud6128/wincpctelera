@@ -11,7 +11,7 @@ static BOOL _isStarted = FALSE;
 
 #define SCREEN_CX_BYTES	80
 
-const SCPCPalette _palette[27] =
+const SCPCPalette _palette[NB_PAL_COLOR] =
 {
 	HW_BLACK, RGB(0,0,0),
 	HW_BLUE, RGB(0,0,128),
@@ -172,7 +172,7 @@ void SetPalette(int i, UCHAR pHW)
 
 COLORREF GetColorHW(int pHW)
 {
-	for (int i = 0; i < 27; i++)
+	for (int i = 0; i < NB_PAL_COLOR; i++)
 	{
 		if (_palette[i].hw == pHW)
 			return _palette[i].rgb;
@@ -210,6 +210,7 @@ void FillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 	DeleteObject(brush);
 }
 
+
 HBITMAP GetVideoBitmap(int pScreenAddr)
 {
 	switch (pScreenAddr)
@@ -223,6 +224,31 @@ HBITMAP GetVideoBitmap(int pScreenAddr)
 	case 0xC000:
 	default:
 		return _amstrad._video[0];
+	}
+}
+
+HBITMAP GetCurVideoBitmap()
+{
+	return GetVideoBitmap(_curVideo);
+}
+
+HBITMAP GetCurVideoBuff()
+{
+	switch (_curVideo)
+	{
+	case cpct_page00:
+		return _amstrad._video[3];
+		break;
+	case cpct_page40:
+		return _amstrad._video[2];
+		break;
+	case cpct_page80:
+		return _amstrad._video[1];
+		break;
+	case cpct_pageC0:
+	default:
+		return _amstrad._video[0];
+		break;
 	}
 }
 
@@ -297,26 +323,6 @@ VOID CALLBACK InternalTimer(
 COLORREF GetColorFW(int pFW)
 {
 	return _palette[pFW].rgb;
-}
-
-HBITMAP GetCurVideoBuff()
-{
-	switch (_curVideo)
-	{
-	case cpct_page00:
-		return _amstrad._video[3];
-		break;
-	case cpct_page40:
-		return _amstrad._video[2];
-		break;
-	case cpct_page80:
-		return _amstrad._video[1];
-		break;
-	case cpct_pageC0:
-	default:
-		return _amstrad._video[0];
-		break;
-	}
 }
 
 BOOL IsVideoMem(void* pAddress)
