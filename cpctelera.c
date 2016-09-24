@@ -263,7 +263,7 @@ void cpct_clearScreen(u8 colour_pattern)
 	u8 x = 0;
 
 	_curVideo = cpct_pageC0;
-	cpct_drawSolidBox(&x, colour_pattern, 80, 200);
+	cpct_drawSolidBox(&x, colour_pattern, SCREEN_CX_BYTES, HEIGHT_SCREEN);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)

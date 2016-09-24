@@ -18,6 +18,7 @@
 #define cpct_page40 0x10
 #define cpct_page00 0x00
 
+#define SCREEN_CX_BYTES	80
 #define BORDER_CX		32
 #define BORDER_UP_CY	48
 #define BORDER_DW_CY	40
