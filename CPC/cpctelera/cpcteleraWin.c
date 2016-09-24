@@ -9,6 +9,8 @@ static HBITMAP _hBitmap;
 static HPALETTE _hPal;
 static BOOL _isStarted = FALSE;
 
+#define SCREEN_CX_BYTES	80
+
 const SCPCPalette _palette[27] =
 {
 	HW_BLACK, RGB(0,0,0),
@@ -55,7 +57,7 @@ typedef struct
 	u8 posBitmap;
 } SCharMapping;
 
-char charaMapBitmap[] = "!'\\#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\'abcdefghijklmnopqrstuvwxyz{|}~";
+const char charaMapBitmap[] = "!'\\#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\'abcdefghijklmnopqrstuvwxyz{|}~";
 
 typedef struct
 {
@@ -187,11 +189,12 @@ void FillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 	COLORREF rgb = GetColorHW(hw);
 	HBRUSH brush = CreateSolidBrush(rgb);
 
-	if (cx > 80)
-		cx = 80;
+	if (cx > SCREEN_CX_BYTES)
+		cx = SCREEN_CX_BYTES;
 
-	if (cy > 200)
-		cy = 200;
+	if (cy > HEIGHT_SCREEN)
+		cy = HEIGHT_SCREEN;
+
 	if (_amstrad._mode == 0)
 	{
 		x *= 4;
@@ -358,22 +361,20 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }
+
 RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
 {
-	// Declare a RECT to hold the results of our calculations
 	RECT rcDesiredWindowRect;
-
-	// Get the current window rect and its client rect
 	RECT rcCurrentWindowRect;
 	RECT rcCurrentClientRect;
 
 	GetWindowRect(hWindow, &rcCurrentWindowRect);
 	GetClientRect(hWindow, &rcCurrentClientRect);
 
-	// Get the difference between the current and desired client areas
+	/** Get the difference between the current and desired client areas */
 	SIZE szClientDifference = { rcCurrentClientRect.right - szDesiredClient.cx, rcCurrentClientRect.bottom - szDesiredClient.cy };
 
-	// Get the difference between the current window rect and the desired window rect
+	/** Get the difference between the current window rect and the desired window rect */
 	SetRect(&rcDesiredWindowRect, rcCurrentWindowRect.left, rcCurrentWindowRect.top, rcCurrentWindowRect.right - szClientDifference.cx, rcCurrentWindowRect.bottom - szClientDifference.cy);
 	return rcDesiredWindowRect;
 }
@@ -429,6 +430,26 @@ void CreateWindowApp()
 
 	_hPal = NULL;
 	CreatePaletteCpc();
+}
+
+LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
+{
+	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + pNbColor * sizeof(WORD);
+	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
+	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
+	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitmapInfos->bmiHeader.biWidth = cx;
+	bitmapInfos->bmiHeader.biHeight = -cy;
+	bitmapInfos->bmiHeader.biPlanes = 1;
+	bitmapInfos->bmiHeader.biBitCount = pBitCount;
+	bitmapInfos->bmiHeader.biCompression = BI_RGB;
+	bitmapInfos->bmiHeader.biClrUsed = pNbColor;
+
+	WORD* pal = (WORD*)bitmapInfos->bmiColors;
+	for (int i = 0; i < pNbColor; i++)
+		pal[i] = i;
+
+	return bitmapInfos;
 }
 
 void CreatePaletteCpc()
@@ -530,23 +551,12 @@ u8 M0byte2px(u8 pPix)
 
 void DisplayFont(HDC hdc, int x, int y, u8 fgPen, u8 bgPen, char pChara)
 {
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + 2 * sizeof(WORD);
-	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-
 	if (_amstrad._mode == 0)
 	{
 		x *= 2;
 	}
 
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
-	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfos->bmiHeader.biWidth = 256;
-	bitmapInfos->bmiHeader.biHeight = 24;
-	bitmapInfos->bmiHeader.biPlanes = 1;
-	bitmapInfos->bmiHeader.biBitCount = 1;
-	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = 2;
-
+	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(2, 1, FONT_ROW, FONT_COL);
 	WORD* pal = (WORD*)bitmapInfos->bmiColors;
 	pal[0] = bgPen;
 	pal[1] = fgPen;
@@ -559,6 +569,8 @@ void DisplayFont(HDC hdc, int x, int y, u8 fgPen, u8 bgPen, char pChara)
 	int fonty = (FONT_NB_COL - index / FONT_NB_LINE - 1) * FONT_SIZE;
 
 	StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, FONT_SIZE * 2, FONT_SIZE, fontx, fonty, FONT_SIZE, FONT_SIZE, fonts, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
+
+	free(bitmapInfos);
 }
 
 void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara)
@@ -578,9 +590,6 @@ void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara)
 void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMasked)
 {
 	int xi, yi;
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + 16 * sizeof(WORD);
-	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-	WORD* pal = NULL;
 
 	int widthAlignedDWORD = (((cx) * 8 + 31)  & (~31)) / 8;
 	UCHAR* alignedData = NULL;
@@ -638,18 +647,7 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 		cx *= 2;
 	}
 
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
-	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfos->bmiHeader.biWidth = cx;
-	bitmapInfos->bmiHeader.biHeight = -cy;
-	bitmapInfos->bmiHeader.biPlanes = 1;
-	bitmapInfos->bmiHeader.biBitCount = 4;
-	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = NB_COLORS;
-
-	pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < NB_COLORS; i++)
-		pal[i] = i;
+	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(NB_COLORS, 4, cx, cy);
 
 	SelectPalette(hdc, _hPal, FALSE);
 	RealizePalette(hdc);
@@ -668,6 +666,8 @@ void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMask
 		free(mask);
 		free(sprite);
 	}
+
+	free(bitmapInfos);
 }
 
 void DrawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
@@ -710,7 +710,7 @@ void StartCPC()
 	for (int i = 0; i < NB_COLORS; i++)
 		_amstrad._curPal[i] = _palette[i].hw;
 
-	for (u8 y = 0; y < 200; y++)
+	for (u8 y = 0; y < HEIGHT_SCREEN; y++)
 	{
 		for (u8 x = 0; x < 82; x++)
 		{
@@ -730,8 +730,12 @@ void StartCPC()
 
 	HDC hdc = GetDC(_hWnd);
 
+	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(NB_COLORS, 4, FULL_SCREEN_CX, FULL_SCREEN_CY);
+
 	for (int i = 0; i < 4; i++)
-		_amstrad._video[i] = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
+		_amstrad._video[i] = CreateDIBitmap(hdc, &bitmapInfos->bmiHeader, 0, NULL, bitmapInfos, DIB_PAL_COLORS);
+
+	free(bitmapInfos);
 
 	SetTimer(_hWnd, 10000, 33, InternalTimer);
 
