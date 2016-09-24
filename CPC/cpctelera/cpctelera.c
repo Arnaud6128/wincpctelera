@@ -13,7 +13,7 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 		HDC memDC = CreateCompatibleDC(hdc);
 		ReleaseDC(_hWnd, hdc);
 
-		HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
+		HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
 
 		int xFrom = (*(u8*)from * 4) + BORDER_CX;
 		int xTo = (*(u8*)to * 4) + BORDER_CX;
@@ -270,7 +270,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
 	HDC hdc = GetDC(_hWnd);
 	HDC memDC = CreateCompatibleDC(hdc);
-	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBuff());
+	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
 
 	u8* x = (u8*)memory;
 	u8 y = GetCoordY(memory);

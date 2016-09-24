@@ -17,6 +17,7 @@ typedef struct tagSAmstrad
 	TInterrupt _interruptFunction;
 
 	HBITMAP _video[4];
+	u8* _buffVideo[4];
 
 	UCHAR _curPal[NB_COLORS + 1];
 	UCHAR _memVideo[200][82];
@@ -45,7 +46,8 @@ BOOL IsVideoMem(void* pAddress);
 void SetCurVideo(int pVideoAddr);
 void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara);
 HBITMAP GetVideoBitmap(int pScreenAddr);
-HBITMAP GetCurVideoBuff();
+HBITMAP GetCurVideoBitmap();
+u8* GetCurVideoBuffer();
 u16 GetVKey(u16 pCpcKeyID);
 void CreatePaletteCpc();
 u8 M0byte2px(u8 pPix);
