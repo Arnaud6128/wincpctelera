@@ -4,6 +4,7 @@
 
 u8 cpct_akp_songLoopTimes;
 u8 cpct_akp_digidrumStatus;
+u8 cpct_keyboardStatusBuffer[10];
 
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
@@ -96,20 +97,17 @@ u16 cpct_disableFirmware()
 
 void cpct_scanKeyboard_f()
 {
-	_curKey = FALSE;
-	MsgLoop();
+	ScanKeyboard();
 }
 
 void cpct_scanKeyboard_if()
 {
-	_curKey = FALSE;
-	MsgLoop();
+	ScanKeyboard();
 }
 
 void cpct_scanKeyboard()
 {
-	_curKey = FALSE;
-	MsgLoop();
+	ScanKeyboard();
 }
 
 u8 cpct_isKeyPressed(cpct_keyID key)
