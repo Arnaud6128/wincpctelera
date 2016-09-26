@@ -10,7 +10,8 @@
 #define __z88dk_fastcall	
 #define __z88dk_callee	
 #define __naked 
-#define __at 
+#define __at(X) \
+/* X */
 
 #define CPCT_VMEM_START (u8*)0xC000
 #define cpct_pageC0 0x30
@@ -35,6 +36,7 @@ void cpct_memcpy(void *to, const void *from, u16 size) __z88dk_callee;
 void cpct_setStackLocation(void* memory) __z88dk_fastcall;
 
 /** Keyboard */
+extern u8 cpct_keyboardStatusBuffer[10];
 enum cpct_e_keyID;
 typedef enum cpct_e_keyID cpct_keyID;
 

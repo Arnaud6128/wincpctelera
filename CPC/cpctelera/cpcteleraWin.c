@@ -183,6 +183,26 @@ COLORREF GetColorHW(int pHW)
 	return _palette[0].rgb;
 }
 
+LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
+{
+	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + pNbColor * sizeof(WORD);
+	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
+	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
+	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitmapInfos->bmiHeader.biWidth = cx;
+	bitmapInfos->bmiHeader.biHeight = -cy;
+	bitmapInfos->bmiHeader.biPlanes = 1;
+	bitmapInfos->bmiHeader.biBitCount = pBitCount;
+	bitmapInfos->bmiHeader.biCompression = BI_RGB;
+	bitmapInfos->bmiHeader.biClrUsed = pNbColor;
+
+	WORD* pal = (WORD*)bitmapInfos->bmiColors;
+	for (int i = 0; i < pNbColor; i++)
+		pal[i] = i;
+
+	return bitmapInfos;
+}
+
 void FillBox(HDC hdc, u8 pattern, int x, int y, int cx, int cy)
 {
 	//u8 pix1 = pattern & 0xF0 >> 4;
@@ -256,7 +276,7 @@ u8* GetVideoBuff(int pScreenAddr)
 
 }
 
-u8* GetCurVideoBuff()
+u8* GetCurVideoBuffer()
 {
 	return GetVideoBuff(_curVideo);
 }
@@ -314,6 +334,19 @@ u16 GetVKey(u16 pCpcKeyID)
 	return 0;
 }
 
+u16 GetCpcKey(u16 pVKeyID)
+{
+	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	{
+		if (cpctMapKey[i].winKeyID == pVKeyID)
+		{
+			return cpctMapKey[i].cpcKeyID;
+		}
+	}
+	return 0;
+}
+
+
 VOID CALLBACK InternalTimer(
 	HWND hwnd,
 	UINT message,
@@ -350,10 +383,21 @@ void Redraw(HWND pWnd)
 	HDC memDC = CreateCompatibleDC(hdc);
 	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
 
+	/*HBITMAP temp = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
+	HBITMAP oldBitmap = SelectObject(memDC, temp);
+	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(NB_COLORS, 4, FULL_SCREEN_CX, FULL_SCREEN_CY);
+
+	SelectPalette(hdc, _hPal, FALSE);
+	RealizePalette(hdc);
+
+	StretchDIBits(hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, GetCurVideoBuffer(), bitmapInfos, DIB_PAL_COLORS, SRCCOPY);*/
+	
+
 	BitBlt(hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, memDC, 0, 0, SRCCOPY);
 
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
+	//DeleteObject(temp);
 
 	EndPaint(pWnd, &ps);
 }
@@ -426,26 +470,6 @@ void CreateWindowApp()
 
 	_hPal = NULL;
 	CreatePaletteCpc();
-}
-
-LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
-{
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + pNbColor * sizeof(WORD);
-	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
-	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfos->bmiHeader.biWidth = cx;
-	bitmapInfos->bmiHeader.biHeight = -cy;
-	bitmapInfos->bmiHeader.biPlanes = 1;
-	bitmapInfos->bmiHeader.biBitCount = pBitCount;
-	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = pNbColor;
-
-	WORD* pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < pNbColor; i++)
-		pal[i] = i;
-
-	return bitmapInfos;
 }
 
 void CreatePaletteCpc()
@@ -565,7 +589,8 @@ void DisplayFont(HDC hdc, int x, int y, u8 fgPen, u8 bgPen, char pChara)
 	int fonty = (FONT_NB_COL - index / FONT_NB_LINE - 1) * FONT_SIZE;
 
 	StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, FONT_SIZE * 2, FONT_SIZE, fontx, fonty, FONT_SIZE, FONT_SIZE, fonts, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
-
+	
+	GetDIBits(hdc, GetCurVideoBitmap(), 0, FULL_SCREEN_CY, GetCurVideoBuffer(), bitmapInfos, DIB_PAL_COLORS);
 	free(bitmapInfos);
 }
 
@@ -580,6 +605,7 @@ void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara)
 
 	SelectObject(memDC, oldBitmap);
 	DeleteDC(memDC);
+
 	ReleaseDC(_hWnd, hdc);
 }
 
@@ -670,12 +696,12 @@ void DrawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked)
 {
 	HDC hdc = GetDC(_hWnd);
 	HDC memDC = CreateCompatibleDC(hdc);
-
 	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
 
 	DisplayBitmap(memDC, x, y, cx, cy, sprite, pMasked);
 
 	SelectObject(memDC, oldBitmap);
+
 	DeleteDC(memDC);
 	ReleaseDC(_hWnd, hdc);
 }
@@ -685,7 +711,6 @@ void MsgLoop()
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
-	//for (int i = 0; i < 10; i++)
 	while (TRUE)
 	{
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -733,9 +758,7 @@ void StartCPC()
 	for (int i = 0; i < 4; i++)
 	{
 		_amstrad._video[i] = CreateDIBitmap(hdc, &bitmapInfos->bmiHeader, 0, NULL, bitmapInfos, DIB_PAL_COLORS);
-
 		_amstrad._buffVideo[i] = malloc(widthAlignedDWORD*FULL_SCREEN_CY);
-		GetDIBits(hdc, _amstrad._video[i], FULL_SCREEN_CX, FULL_SCREEN_CY, &_amstrad._buffVideo[i], bitmapInfos, DIB_PAL_COLORS);
 	}
 
 	free(bitmapInfos);
@@ -743,6 +766,13 @@ void StartCPC()
 	SetTimer(_hWnd, 10000, 33, InternalTimer);
 
 	ReleaseDC(_hWnd, hdc);
+}
+
+void ScanKeyboard()
+{
+	ZeroMemory(cpct_keyboardStatusBuffer, sizeof(cpct_keyboardStatusBuffer));
+	_curKey = FALSE;
+	MsgLoop();
 }
 
 void CPCTeleraWin()
@@ -773,6 +803,7 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	{
 	case WM_KEYDOWN:
 		_curKey = TRUE;
+		cpct_keyboardStatusBuffer[9] = (u8)(GetCpcKey(wParam) >> 8);
 		break;
 
 	case WM_PAINT:

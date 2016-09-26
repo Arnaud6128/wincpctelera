@@ -34,10 +34,12 @@ extern HWND _hWnd;
 extern BOOL _curKey;
 extern SAmstrad _amstrad;
 extern u8 _curVideo;
+extern u8 cpct_keyboardStatusBuffer[10];
 
 void CPCTeleraWin();
 void MsgLoop();
 
+void ScanKeyboard();
 u8 GetCoordY(u8* memory);
 void FillBorder();
 void DrawSprite(void *sprite, int x, int y, int cx, int cy, BOOL pMasked);
@@ -47,7 +49,7 @@ void SetCurVideo(int pVideoAddr);
 void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara);
 HBITMAP GetVideoBitmap(int pScreenAddr);
 HBITMAP GetCurVideoBitmap();
-u8* GetCurVideoBuff();
+u8* GetCurVideoBuffer();
 u8* GetVideoBuff(int pScreenAddr);
 u16 GetVKey(u16 pCpcKeyID);
 void CreatePaletteCpc();
