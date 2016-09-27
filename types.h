@@ -1,3 +1,6 @@
+#define __at(X) \
+/* X */
+
 /** Type */
 typedef unsigned char       u8;
 typedef signed char         i8;

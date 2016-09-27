@@ -8,10 +8,10 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 {
 	if (IsCpcMem(to))
 		to = (u8*)(_amstrad._memVideo) + (int)to;
-
-	if (IsCpcMem((void*)from))
+		
+	if (IsCpcMem(from))
 		from = (u8*)(_amstrad._memVideo) + (int)from;
-
+		
 	memcpy_s(to, size, from, size);
 }
 
@@ -89,8 +89,7 @@ void cpct_scanKeyboard()
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
 	MsgLoop();
-	u16 keyVKey = GetVKey(key);
-	return GetAsyncKeyState(keyVKey) != 0 ? TRUE : FALSE;
+	return GetAsyncKeyState(GetVKey(key)) != 0 ? TRUE : FALSE;
 }
 
 u8 cpct_isAnyKeyPressed()
@@ -116,14 +115,14 @@ void cpct_setPalette(u8* ink_array, u16 ink_array_size)
 {
 	memcpy(_amstrad._curPal, ink_array, ink_array_size);
 	CreatePaletteCpc();
-	FillBorder();
+	FillBorder(NULL);
 }
 
 void cpct_setPALColour(u8 pen, u8 hw_ink)
 {
 	_amstrad._curPal[pen] = hw_ink;
 	CreatePaletteCpc();
-	FillBorder();
+	FillBorder(NULL);
 }
 
 void cpct_drawTileAligned2x4(void* sprite, void* memory)
@@ -211,7 +210,7 @@ u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 
 void cpct_waitVSYNC()
 {
-	Sleep(30);
+	Sleep(100);
 }
 
 u16 cpct_count2VSYNC()
@@ -231,7 +230,7 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	cpct_drawSolidBox(GetVideoBuffer(0xC000), colour_pattern, SCREEN_CX_BYTES, HEIGHT_SCREEN);
+	memset(GetVideoBuffer(0xC000), M0byte2px(colour_pattern), 0x4000);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
@@ -265,7 +264,7 @@ void cpct_akp_musicInit(void* songdata)
 {
 }
 
-void cpct_akp_musicPlay()
+void cpct_akp_musicPlay() 
 {
 }
 
@@ -273,7 +272,7 @@ void cpct_akp_stop()
 {
 }
 
-void cpct_akp_SFXInit(void* sfx_song_data)
+void cpct_akp_SFXInit(void* sfx_song_data) 
 {
 }
 
@@ -294,6 +293,6 @@ u16 cpct_akp_SFXGetInstrument(u8 channel_bitmask)
 	return 0;
 }
 
-void cpct_akp_setFadeVolume(u8 volume)
+void cpct_akp_setFadeVolume(u8 volume) 
 {
 }

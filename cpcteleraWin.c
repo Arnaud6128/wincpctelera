@@ -232,14 +232,14 @@ u8* GetVideoBuffer(int pScreenAddr)
 	switch (pScreenAddr)
 	{
 		case cpct_page00:
-			return _amstrad._memVideo[3];
+			return _amstrad._memVideo[0];
 		case cpct_page40:
-			return _amstrad._memVideo[2];
-		case cpct_page80:
 			return _amstrad._memVideo[1];
+		case cpct_page80:
+			return _amstrad._memVideo[2];
 		case cpct_pageC0:
 		default:
-			return _amstrad._memVideo[0];
+			return _amstrad._memVideo[3];
 	}
 }
 
@@ -430,12 +430,16 @@ void CreatePaletteCpc()
 	free(logPalette);
 }
 
-void FillBorder()
+void FillBorder(HDC pHdc)
 {
 	int hw = _amstrad._curPal[BORDER_COLOR];
 	HBRUSH brush = CreateSolidBrush(GetColorHW(hw));
 
-	HDC hdc = GetDC(_hWnd);
+	HDC hdc;
+	if (pHdc == NULL)
+		hdc = GetDC(_hWnd);
+	else
+		hdc = pHdc;
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -453,7 +457,9 @@ void FillBorder()
 	}
 
 	DeleteObject(brush);
-	ReleaseDC(_hWnd, hdc);
+	
+	if (pHdc == NULL)
+		ReleaseDC(_hWnd, hdc);
 }
 
 void FillScreen(HDC hdc, u8 pVal)
@@ -663,6 +669,8 @@ void Redraw(HWND pWnd)
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(pWnd, &ps);
 	
+	FillBorder(hdc);
+
 	SelectPalette(hdc, _hPal, FALSE);
 	RealizePalette(hdc);
 
