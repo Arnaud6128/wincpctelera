@@ -1,36 +1,18 @@
 #include "cpcteleraWin.h"
 
-#define CPC_MEM_LIMIT	0xFFFF
-
 u8 cpct_akp_songLoopTimes;
 u8 cpct_akp_digidrumStatus;
 u8 cpct_keyboardStatusBuffer[10];
 
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
-	if (IsVideoMem(to) && IsVideoMem(from))
-	{
-		HDC hdc = GetDC(_hWnd);
-		HDC memDC = CreateCompatibleDC(hdc);
-		ReleaseDC(_hWnd, hdc);
-
-		HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
-
-		int xFrom = (*(u8*)from * 4) + BORDER_CX;
-		int xTo = (*(u8*)to * 4) + BORDER_CX;
-		int y = GetCoordY(from) + BORDER_UP_CY;
-
-		for (u16 i = 0; i < size * 4; i++)
-		{
-			COLORREF src = GetPixel(memDC, xFrom + i, y);
-			SetPixel(memDC, xTo + i, y, src);
-		}
-
-		SelectObject(memDC, oldBitmap);
-		DeleteDC(memDC);
-	}
-	else
-		memcpy_s(to, size, from, size);
+	if (IsCpcMem(to))
+		to = (u8*)(_amstrad._memVideo) + (int)to;
+		
+	if (IsCpcMem(from))
+		from = (u8*)(_amstrad._memVideo) + (int)from;
+		
+	memcpy_s(to, size, from, size);
 }
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
@@ -43,19 +25,13 @@ void cpct_memset_f8(void *array, u16 value, u16 size)
 	cpct_memset(array, value, size);
 }
 
-void cpct_memset(void *array, u8  value, u16 size)
+void cpct_memset(void *array, u8 value, u16 size)
 {
-	int address = (int)array;
-	if (address < CPC_MEM_LIMIT)
-	{
-		u8 x = 0;
-		int addr = (int)array;
-		SetCurVideo(addr);
+	u8* data = (u8*)array;
+	if (IsCpcMem(array))
+		data = (u8*)(_amstrad._memVideo) + (int)array;
 
-		cpct_drawSolidBox(&x, value, 80, size / 80);
-	}
-	else
-		memset(array, value, size);
+	memset(data, value, size);
 }
 
 void cpct_setStackLocation(void* memory)
@@ -224,12 +200,8 @@ void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	WORD addr = (WORD)screen_start;
-	SetCurVideo(addr);
-
-	HBITMAP bitmap = GetVideoBitmap(addr);
-
-	return &_amstrad._memVideo[y][x];
+	u8* memory = GetVideoBuffer((WORD)screen_start);
+	return memory + y * SCREEN_CX_BYTES + x;
 }
 
 void cpct_waitVSYNC()
@@ -244,43 +216,33 @@ u16 cpct_count2VSYNC()
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
-	u8* x = (u8*)memory;
-	u8 y = GetCoordY(memory);
-	DrawSprite(sprite, *x, y, width, height, FALSE);
+	DrawSprite(sprite, memory, width, height, FALSE);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
-	u8* x = (u8*)memory;
-	u8 y = GetCoordY(memory);
-	DrawSprite(sprite, *x, y, width, height, TRUE);
+	DrawSprite(sprite, memory, width, height, TRUE);
 }
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	u8 x = 0;
-
-	_curVideo = cpct_pageC0;
-	cpct_drawSolidBox(&x, colour_pattern, SCREEN_CX_BYTES, HEIGHT_SCREEN);
+	cpct_drawSolidBox(GetVideoBuffer(0xC000), colour_pattern, SCREEN_CX_BYTES, HEIGHT_SCREEN);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
-	HDC hdc = GetDC(_hWnd);
-	HDC memDC = CreateCompatibleDC(hdc);
-	HBITMAP oldBitmap = SelectObject(memDC, GetCurVideoBitmap());
+	UCHAR* video = (UCHAR*)memory;
+	colour_pattern = M0byte2px(colour_pattern);
 
-	u8* x = (u8*)memory;
-	u8 y = GetCoordY(memory);
-
-	u8 pix = M0byte2px(colour_pattern);
-	FillBox(memDC, pix, *x, y, width, height);
-
-	SelectObject(memDC, oldBitmap);
-	DeleteDC(memDC);
-	ReleaseDC(_hWnd, hdc);
-
-	//u8* vidBuff = GetCurVideoBuff((int)memory);
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width; xi++)
+		{
+			*video = colour_pattern;
+			video++;
+		}
+		video += (SCREEN_CX_BYTES - width);
+	}
 }
 
 void cpct_setVideoMode(u8 videoMode)
