@@ -45,6 +45,7 @@ void cpct_scanKeyboard_f();
 void cpct_scanKeyboard_if();
 u8 cpct_isKeyPressed(cpct_keyID key) __z88dk_fastcall;
 u8 cpct_isAnyKeyPressed_f();
+u8 cpct_isAnyKeyPressed();
 
 enum CPCT_HW_Colour 
 {

@@ -44,7 +44,7 @@ BOOL IsCpcMem(void* pAddress);
 
 void ScanKeyboard();
 u8 GetCoordY(u8* memory);
-void FillBorder();
+void FillBorder(HDC pHdc);
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);
 BOOL IsCpcMem(void* pAddress);
 void SetVideoPage(int pVideoAddr);
