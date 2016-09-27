@@ -8,10 +8,10 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 {
 	if (IsCpcMem(to))
 		to = (u8*)(_amstrad._memVideo) + (int)to;
-		
-	if (IsCpcMem(from))
+
+	if (IsCpcMem((void*)from))
 		from = (u8*)(_amstrad._memVideo) + (int)from;
-		
+
 	memcpy_s(to, size, from, size);
 }
 
@@ -93,11 +93,16 @@ u8 cpct_isKeyPressed(cpct_keyID key)
 	return GetAsyncKeyState(keyVKey) != 0 ? TRUE : FALSE;
 }
 
-u8 cpct_isAnyKeyPressed_f()
+u8 cpct_isAnyKeyPressed()
 {
 	MsgLoop();
 	BOOL isKeyPressed = (_curKey != FALSE);
 	return isKeyPressed;
+}
+
+u8 cpct_isAnyKeyPressed_f()
+{
+	return cpct_isAnyKeyPressed();
 }
 
 void cpct_fw2hw(void *fw_colour_array, u16 size)
@@ -260,7 +265,7 @@ void cpct_akp_musicInit(void* songdata)
 {
 }
 
-void cpct_akp_musicPlay() 
+void cpct_akp_musicPlay()
 {
 }
 
@@ -268,7 +273,7 @@ void cpct_akp_stop()
 {
 }
 
-void cpct_akp_SFXInit(void* sfx_song_data) 
+void cpct_akp_SFXInit(void* sfx_song_data)
 {
 }
 
@@ -289,6 +294,6 @@ u16 cpct_akp_SFXGetInstrument(u8 channel_bitmask)
 	return 0;
 }
 
-void cpct_akp_setFadeVolume(u8 volume) 
+void cpct_akp_setFadeVolume(u8 volume)
 {
 }
