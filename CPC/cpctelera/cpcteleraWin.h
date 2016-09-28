@@ -43,12 +43,11 @@ void MsgLoop();
 BOOL IsCpcMem(void* pAddress);
 
 void ScanKeyboard();
-u8 GetCoordY(u8* memory);
 void FillBorder(HDC pHdc);
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);
 BOOL IsCpcMem(void* pAddress);
 void SetVideoPage(int pVideoAddr);
-void DrawFont(int x, int y, u8 fgPen, u8 bgPen, char chara);
+void DisplayFont(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
 u8* GetCurVideoBuffer();
 u8* GetVideoBuffer(int pScreenAddr);
 u16 GetVKey(u16 pCpcKeyID);
