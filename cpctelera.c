@@ -181,23 +181,19 @@ u8 cpct_px2byteM0(u8 px0, u8 px1)
 
 void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 {
-	u8* x = (u8*)video_memory;
-	u8 y = GetCoordY(video_memory);
-
-	DrawFont(*x, y, fg_pen, bg_pen, ascii);
+	DisplayFont(video_memory, fg_pen, bg_pen, ascii);
 }
 
 void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
-	char* str = (char*)string;
-	u8 x = *((u8*)video_memory);
-	u8 y = GetCoordY(video_memory);
+	u8* str = (u8*)string;
+	u8* video = (u8*)video_memory;
 
 	for (UCHAR i = 0; i < strlen(str); i++)
 	{
 		if (str[i] != ' ')
 		{
-			DrawFont(x + i * 4, y, fg_pen, bg_pen, str[i]);
+			DisplayFont(video + i*4, fg_pen, bg_pen, str[i]);
 		}
 	}
 }
