@@ -215,6 +215,8 @@ void cpct_drawStringM0 (void* string, void* video_memory, u8 fg_pen, u8 bg_pen);
 
 /** Video */
 void cpct_clearScreen(u8 colour_pattern); 
+#define cpct_clearScreen_f64(COL) cpct_clearScreen(COL)
+#define cpct_clearScreen_f8(COL) cpct_clearScreen(COL)
 #define cpct_setBorder(HWC) cpct_setPALColour (16, (HWC))
 
 void cpct_setVideoMode(u8 videoMode) __z88dk_fastcall;

@@ -206,7 +206,7 @@ u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 
 void cpct_waitVSYNC()
 {
-	Sleep(100);
+	Sleep(20);
 }
 
 u16 cpct_count2VSYNC()
@@ -216,6 +216,9 @@ u16 cpct_count2VSYNC()
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
+	if (IsCpcMem(memory))
+		memory = GetVideoBufferFromAddress((int)memory);
+
 	DrawSprite(sprite, memory, width, height, FALSE);
 }
 
