@@ -181,7 +181,7 @@ u8 cpct_px2byteM0(u8 px0, u8 px1)
 
 void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 {
-	DisplayFont(video_memory, fg_pen, bg_pen, ascii);
+	DisplayFontM0(video_memory, fg_pen, bg_pen, ascii);
 }
 
 void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
@@ -193,14 +193,14 @@ void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 	{
 		if (str[i] != ' ')
 		{
-			DisplayFont(video + i*4, fg_pen, bg_pen, str[i]);
+			DisplayFontM0(video + i*4, fg_pen, bg_pen, str[i]);
 		}
 	}
 }
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	u8* memory = GetVideoBuffer((WORD)screen_start);
+	u8* memory = GetVideoBufferFromAddress((WORD)screen_start);
 	return memory + y * SCREEN_CX_BYTES + x;
 }
 
@@ -226,7 +226,7 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	memset(GetVideoBuffer(0xC000), M0byte2px(colour_pattern), 0x4000);
+	memset(GetVideoBufferFromAddress(0xC000), M0byte2px(colour_pattern), 0x4000);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)

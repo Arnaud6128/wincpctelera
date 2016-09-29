@@ -2,7 +2,6 @@
 
 HWND _hWnd;
 BOOL _curKey;
-u8 _curVideo;
 SAmstrad _amstrad;
 
 static int _widthVideo;
@@ -44,6 +43,9 @@ const SCPCPalette _palette[NB_PAL_COLOR] =
 	HW_PASTEL_YELLOW, RGB(255,255,128),
 	HW_BRIGHT_WHITE, RGB(255,255,255)
 };
+
+UCHAR iconDataFile[] = { 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 0x10, 0x00, 0x00, 0x00, 0x04, 0x00, 0x28, 0x01, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00, 0x01, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x80, 0x00, 0x80, 0x00, 0x00, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x80, 0x00, 0x00, 0xC0, 0xC0, 0xC0, 0x00, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x0B, 0xBB, 0x0A, 0xAA, 0x00, 0x00, 0x00, 0x00, 0xB9, 0xB0, 0xFF, 0xFF, 0xF0, 0x00, 0x00, 0x00, 0xBB, 0x00, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0xB9, 0xB9, 0x0F, 0x07, 0x0F, 0x00, 0x00, 0x00, 0x0B, 0xBB, 0x0F, 0xF0, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x0F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC, 0x1F, 0x00, 0x00, 0xFE, 0x3F, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00, 0xE2, 0x3F, 0x00, 0x00, 0xC0, 0x1F, 0x00, 0x00, 0x80, 0x0F, 0x00, 0x00, 0x80, 0x07, 0x00, 0x00, 0x80, 0x03, 0x00, 0x00, 0xC0, 0x01, 0x00, 0x00, 0xE2, 0x03, 0x00, 0x00, 0xFF, 0x07, 0x00, 0x00, 0xFF, 0x8F, 0x00, 0x00, 0xFF, 0xDF, 0x00, 0x00 };
+
 
 #define FONT_SIZE		8
 #define FONT_NB_LINE	32
@@ -252,9 +254,25 @@ LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
 	return bitmapInfos;
 }
 
-u8* GetVideoBuffer(int pScreenAddr)
+u8* GetVideoBufferFromAddress(int pScreenAddr)
 {
 	switch (pScreenAddr)
+	{
+	case 0x0000:
+		return _amstrad._memVideo[0];
+	case 0x4000:
+		return _amstrad._memVideo[1];
+	case 0x8000:
+		return _amstrad._memVideo[2];
+	case 0xC000:
+	default:
+		return _amstrad._memVideo[3];
+	}
+}
+
+u8* GetVideoBufferFromPage(int pPage)
+{
+	switch (pPage)
 	{
 		case cpct_page00:
 			return _amstrad._memVideo[0];
@@ -270,27 +288,7 @@ u8* GetVideoBuffer(int pScreenAddr)
 
 u8* GetCurVideoBuffer()
 {
-	return GetVideoBuffer(_curVideo);
-}
-
-void SetVideoPage(int pVideoAddr)
-{
-	switch (pVideoAddr)
-	{
-		case 0x0000:
-			_curVideo = cpct_page00;
-			break;
-		case 0x4000:
-			_curVideo = cpct_page40;
-			break;
-		case 0x8000:
-			_curVideo = cpct_page80;
-			break;
-		case 0xC000:
-		default:
-			_curVideo = cpct_pageC0;
-			break;
-	}
+	return GetVideoBufferFromPage(_amstrad._currentPage);
 }
 
 int FindCharaIndex(char pChara)
@@ -383,9 +381,22 @@ void PosWindow()
 	MoveWindow(_hWnd, posX, posY, size.cx, size.cy, TRUE);
 }
 
+HICON createIcon(PBYTE iconData, int iconSize)
+{
+	HICON hIcon = NULL;    
+	int offset = LookupIconIdFromDirectoryEx(iconData, TRUE, iconSize, iconSize, LR_DEFAULTCOLOR);
+
+	if (offset != 0)
+		hIcon = CreateIconFromResourceEx(iconData + offset, 0, TRUE, 0x30000, iconSize, iconSize, LR_DEFAULTCOLOR);
+
+	return hIcon;
+}
+
 void CreateWindowApp()
 {
 	HINSTANCE instance = GetModuleHandle(NULL);
+
+	HICON icon = createIcon(iconDataFile, 16);
 
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -393,7 +404,7 @@ void CreateWindowApp()
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = instance;
-	wc.hIcon = NULL;
+	wc.hIcon = icon;
 	wc.hCursor = NULL;
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpszMenuName = TITLE;
@@ -514,7 +525,7 @@ u8 M0byte2px(u8 pPix)
 	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pix0 << 4 | pixc << 2 | pixb << 1 | pixa << 0);
 }
 
-void DisplayFont(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
+void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 {
 	int index = FindCharaIndex(pChara);
 	int fontx = (index % FONT_NB_LINE-1);
@@ -548,96 +559,6 @@ void DisplayFont(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 	}
 }
 
-void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
-{
-
-
-}
-
-/*
-void DisplayBitmap(HDC hdc, int x, int y, int cx, int cy, char* data, BOOL pMasked)
-{
-	int xi, yi;
-
-	int widthAlignedDWORD = ALIGNED_DWORD(cx);
-	UCHAR* alignedData = NULL;
-	UCHAR* sprite = NULL;
-	UCHAR* mask = NULL;
-
-	if (pMasked)
-	{
-		sprite = malloc(widthAlignedDWORD * cy);
-		ZeroMemory(sprite, widthAlignedDWORD * cy);
-
-		mask = malloc(widthAlignedDWORD * cy);
-		ZeroMemory(mask, widthAlignedDWORD * cy);
-
-		WORD* pix = (WORD*)data;
-		int i = 0;
-		for (yi = 0; yi < cy; yi++)
-		{
-			for (xi = 0; xi < cx; xi++)
-			{
-				mask[i] = DecodePixel((UCHAR)(*pix));
-				sprite[i] = DecodePixel((UCHAR)(*pix >> 8));
-
-				pix++;
-				i++;
-			}
-			i += (widthAlignedDWORD - cx);
-		}
-	}
-	else
-	{
-		alignedData = malloc(widthAlignedDWORD * cy);
-		ZeroMemory(alignedData, widthAlignedDWORD * cy);
-
-		for (yi = 0; yi < cy; yi++)
-			memcpy(alignedData + yi * widthAlignedDWORD, data + yi * cx, cx);
-
-		for (yi = 0; yi < cy; yi++)
-		{
-			UCHAR* pix = alignedData + yi * widthAlignedDWORD;
-			for (xi = 0; xi < cx; xi++)
-			{
-				*pix = DecodePixel(*pix);
-				pix++;
-			}
-		}
-	}
-
-	int cxDest = cx;
-	int coef = 1;
-	if (_amstrad._mode == 0)
-	{
-		//	coef = 2;
-		x *= 2;
-		cx *= 2;
-	}
-
-	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(NB_COLORS, 4, cx, cy);
-
-	SelectPalette(hdc, _hPal, FALSE);
-	RealizePalette(hdc);
-
-	if (!pMasked)
-	{
-		StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, cx * 2, cy, 0, 0, cx, cy, alignedData, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
-		free(alignedData);
-	}
-	else
-	{
-		StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, cx * 2, cy, 0, 0, cx, cy, sprite, bitmapInfos, DIB_PAL_COLORS, SRCINVERT);
-		StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, cx * 2, cy, 0, 0, cx, cy, mask, bitmapInfos, DIB_PAL_COLORS, SRCAND);
-		StretchDIBits(hdc, x * 2 + BORDER_CX, y + BORDER_UP_CY, cx * 2, cy, 0, 0, cx, cy, sprite, bitmapInfos, DIB_PAL_COLORS, SRCINVERT);
-
-		free(mask);
-		free(sprite);
-	}
-
-	free(bitmapInfos);
-}*/
-
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 {
 	UCHAR* video = (UCHAR*)memory;
@@ -645,7 +566,6 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 	if (pMasked)
 	{
 		WORD* pix = (WORD*)sprite;
-		int i = 0;
 		for (int yi = 0; yi < cy; yi++)
 		{
 			for (int xi = 0; xi < cx; xi++)
@@ -711,7 +631,7 @@ void MsgLoop()
 			return;
 	}
 
-	Sleep(30);
+	Sleep(10);
 }
 
 void StartCPC()
@@ -725,7 +645,7 @@ void StartCPC()
 
 	_amstrad._curPal[0] = HW_BRIGHT_BLUE;
 	_amstrad._curPal[1] = HW_BRIGHT_YELLOW;
-	_amstrad._currentPage = _curVideo = cpct_pageC0;
+	_amstrad._currentPage = cpct_pageC0;
 
 	_widthVideo = ALIGNED_DWORD(FULL_SCREEN_CX);
 
