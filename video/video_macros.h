@@ -183,7 +183,7 @@
 //    This function takes *98331 microseconds* to fill the screen.
 //    This is *4.924 VSYNCs* on a 50Hz display.
 //
-#define cpct_clearScreen(COL) cpct_clearScreen(COL)
+void cpct_clearScreen(u8 colour_pattern);
 
 //
 // Macro: cpct_clearScreen_f8
