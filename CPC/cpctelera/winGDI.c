@@ -219,6 +219,7 @@ void CreateWindowApp()
 
 	_hPal = NULL;
 	CreatePaletteCpc();
+	MsgLoop();
 }
 
 void MsgLoop()

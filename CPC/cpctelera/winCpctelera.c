@@ -8,15 +8,10 @@ HWND _hWnd;
 BOOL _curKey;
 SAmstrad _amstrad;
 
-static int _widthVideo;
 static HBITMAP _hBitmap;
 static BOOL _isStarted = FALSE;
 
-#define ALIGNED_DWORD(CX) (((CX) * 8 + 31)  & (~31)) / 8
-
-//LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 extern void CreateWindowApp();
-
 
 const SCPCPalette _palette[NB_PAL_COLOR] =
 {
@@ -566,8 +561,6 @@ void StartCPC()
 
 	_amstrad._currentPage = cpct_pageC0;
 
-	_widthVideo = ALIGNED_DWORD(FULL_SCREEN_CX);
-
 	StartInterrupt();
 }
 
@@ -587,6 +580,5 @@ void CPCTeleraWin()
 		StartCPC();
 
 		CreateWindowApp();
-		MsgLoop();
 	}
 }
