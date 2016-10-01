@@ -1,4 +1,4 @@
-#include "cpcteleraWin.h"
+#include "winCpctelera.h"
 
 void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 {

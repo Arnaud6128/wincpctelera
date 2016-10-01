@@ -1,4 +1,4 @@
-#include "cpcteleraWin.h"
+#include "winCpctelera.h"
 
 #ifdef _USEWINGDI
 

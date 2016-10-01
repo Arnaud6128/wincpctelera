@@ -1,4 +1,4 @@
-#include "cpcteleraWin.h"
+#include "winCpctelera.h"
 
 void cpct_fw2hw(void *fw_colour_array, u16 size)
 {

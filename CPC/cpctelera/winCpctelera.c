@@ -1,4 +1,4 @@
-#include "cpcteleraWin.h"
+#include "winCpctelera.h"
 
 #include <stdio.h>
 #include <string.h>
