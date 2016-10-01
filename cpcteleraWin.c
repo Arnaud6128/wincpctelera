@@ -195,23 +195,37 @@ SKeyMapping cpctMapKey[] =
 	{ Key_Del, VK_DELETE },
 };
 
+int GetPixelBit()
+{
+	switch (_amstrad._mode)
+	{
+		case MODE_2	: return 1;
+		case MODE_1	: return 4; // Hack BMP not handle 2bits bitmap
+		case MODE_0	:
+		default		: return 4;
+	}
+}
+
 int GetScreenWidth()
 {
 	switch (_amstrad._mode)
 	{
-		case 2 :	return 640;
-		case 1 :	return 320;
-		case 0 : 
-		default:	return 160;		
+		case MODE_2	: return 640;
+		case MODE_1	: return 320;
+		case MODE_0	:
+		default		: return 160;		
 	}
 }
 
-int ConvertPos(int x)
+int ConvertPixelPos(int x)
 {
-	if (_amstrad._mode == 0)
-		return x * 2;
-	else
-		return x;
+	switch (_amstrad._mode)
+	{
+		case MODE_2	: return x;
+		case MODE_1	: return x * 2;
+		case MODE_0	:
+		default		: return x * 4;
+	}
 }
 
 BOOL IsCpcMem(void* pAddress)
@@ -234,9 +248,13 @@ COLORREF GetColorHW(int pHW)
 	return _palette[0].rgb;
 }
 
-LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
+LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
 {
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + pNbColor * sizeof(WORD);
+	int nbColor = 1;
+	for (int i = 0; i < pBitCount; i++)
+		nbColor *= 2;
+
+	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
 	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
 	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
 	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -245,10 +263,10 @@ LPBITMAPINFO CreateBitmapInfo(int pNbColor, int pBitCount, int cx, int cy)
 	bitmapInfos->bmiHeader.biPlanes = 1;
 	bitmapInfos->bmiHeader.biBitCount = pBitCount;
 	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = pNbColor;
+	bitmapInfos->bmiHeader.biClrUsed = nbColor;
 
 	WORD* pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < pNbColor; i++)
+	for (int i = 0; i < nbColor; i++)
 		pal[i] = i;
 
 	return bitmapInfos;
@@ -396,15 +414,13 @@ void CreateWindowApp()
 {
 	HINSTANCE instance = GetModuleHandle(NULL);
 
-	HICON icon = createIcon(iconDataFile, 16);
-
 	WNDCLASS wc;
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	wc.lpfnWndProc = WindowProc;
 	wc.cbClsExtra = 0;
 	wc.cbWndExtra = 0;
 	wc.hInstance = instance;
-	wc.hIcon = icon;
+	wc.hIcon = createIcon(iconDataFile, 16);
 	wc.hCursor = NULL;
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpszMenuName = TITLE;
@@ -531,31 +547,113 @@ void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 	int fontx = (index % FONT_NB_LINE-1);
 	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
 
-	u8* pix = fonts + fonty * FONT_NB_LINE + fontx;
+	u8* pixChara = fonts + fonty * FONT_NB_LINE + fontx;
 
+	/** 2 pixels per Byte */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
-		u8 val = *pix;
+		u8 val = *pixChara;
 
-		u8 pix3 = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
-		pix3 |= ((val & 0b00000010) << 3) == 0 ? bgPen << 4 : fgPen << 4;
+		/* 1111 0000 */
+		u8 pix3 =	((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
+		pix3 |=		((val & 0b00000010) << 3) == 0 ? bgPen << 4 : fgPen << 4;
 		
-		u8 pix2 =  ((val & 0b00000100) >> 2) == 0 ? bgPen : fgPen;
-		pix2 |= ((val & 0b00001000) << 1) == 0 ? bgPen << 4 : fgPen << 4;
+		u8 pix2 =	((val & 0b00000100) >> 2) == 0 ? bgPen : fgPen;
+		pix2 |=		((val & 0b00001000) << 1) == 0 ? bgPen << 4 : fgPen << 4;
 		
-		u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
-		pix1 |= ((val & 0b00100000) >> 1) == 0 ? bgPen << 4 : fgPen << 4;
+		u8 pix1 =	((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
+		pix1 |=		((val & 0b00100000) >> 1) == 0 ? bgPen << 4 : fgPen << 4;
 		
-		u8 pix0 = ((val & 0b01000000) >> 6) == 0 ? bgPen : fgPen;
-		pix0 |= ((val & 0b10000000) >> 3) == 0 ? bgPen << 4 : fgPen << 4;
+		u8 pix0 =	((val & 0b01000000) >> 6) == 0 ? bgPen : fgPen;
+		pix0 |=		((val & 0b10000000) >> 3) == 0 ? bgPen << 4 : fgPen << 4;
 
 		*pVideo++ = pix0;
 		*pVideo++ = pix1;
 		*pVideo++ = pix2;
 		*pVideo++ = pix3;
 
-		pix -= FONT_NB_LINE;
-		pVideo += (SCREEN_CX_BYTES-4);
+		pixChara -= FONT_NB_LINE;
+		pVideo += (CPC_SCR_CX_BYTES - 4);
+	}
+
+	MsgLoop();
+}
+
+
+void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
+{
+	int index = FindCharaIndex(pChara);
+	int fontx = (index % FONT_NB_LINE - 1);
+	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
+
+	u8* pixChara = fonts + fonty * FONT_NB_LINE + fontx;
+
+	/** 4 pixels per Byte */
+	for (int yi = 0; yi < FONT_SIZE; yi++)
+	{
+		u8 val = *pixChara;
+
+		/* 33 22 11 00 */
+		u8 pix0 =	((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
+		pix0 |=		((val & 0b00000010) << 1) == 0 ? bgPen << 2 : fgPen << 2;
+		pix0 |=		((val & 0b00000100) << 2) == 0 ? bgPen << 4 : fgPen << 4;
+		pix0 |=		((val & 0b00001000) << 3) == 0 ? bgPen << 6 : fgPen << 6;
+
+		u8 pix1 =	((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
+		pix1 |=		((val & 0b00100000) >> 3) == 0 ? bgPen << 2 : fgPen << 2;
+		pix1 |=		((val & 0b01000000) >> 2) == 0 ? bgPen << 4 : fgPen << 4;
+		pix1 |=		((val & 0b10000000) >> 1) == 0 ? bgPen << 6 : fgPen << 6;
+
+		*pVideo++ = pix0;
+		*pVideo++ = pix1;
+
+		pixChara -= FONT_NB_LINE;
+		pVideo += (CPC_SCR_CX_BYTES - 2);
+	}
+
+	MsgLoop();
+}
+
+
+void DisplayFontM2(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
+{
+	int index = FindCharaIndex(pChara);
+	int fontx = (index % FONT_NB_LINE - 1);
+	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
+
+	u8* pixChara = fonts + fonty * FONT_NB_LINE + fontx;
+
+	/** 8 pixels per Byte */
+	for (int yi = 0; yi < FONT_SIZE; yi++)
+	{
+
+		*pVideo++ = *pixChara;
+		pixChara -= FONT_NB_LINE;
+		pVideo += (CPC_SCR_CX_BYTES - 1);
+	}
+
+	MsgLoop();
+}
+
+void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode)
+{
+	if (IsCpcMem(video_memory))
+		video_memory = GetVideoBufferFromAddress((int)video_memory);
+
+	u8* str = (u8*)string;
+	u8* video = (u8*)video_memory;
+
+	for (UCHAR i = 0; i < strlen(str); i++)
+	{
+		if (str[i] != ' ')
+		{
+			switch (pMode)
+			{
+				case MODE_0	: DisplayFontM0(video + i * 4, fg_pen, bg_pen, str[i]);	break;
+				case MODE_1 : DisplayFontM1(video + i * 2, fg_pen, bg_pen, str[i]);	break;
+				case MODE_2 : DisplayFontM2(video + i * 1, fg_pen, bg_pen, str[i]);	break;
+			}
+		}
 	}
 }
 
@@ -579,7 +677,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 				video++;
 				pix++;
 			}
-			video += (SCREEN_CX_BYTES - cx);
+			video += (CPC_SCR_CX_BYTES - cx);
 		}
 	}
 	else
@@ -593,10 +691,52 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 				video++;
 				pix++;
 			}
-			video += (SCREEN_CX_BYTES - cx);
+			video += (CPC_SCR_CX_BYTES - cx);
 		}
 	}
+
+	MsgLoop();
 }
+
+
+UCHAR* GetRenderingBuffer()
+{
+	UCHAR *buff = GetCurVideoBuffer();
+
+	/** Convert mode 0 to mode 1 4bits */
+	if (_amstrad._mode == 1)
+	{
+		UCHAR* buffMode1 = _amstrad._mode1Video;
+		
+		int i = 0, j = 0;
+		while (i < 0x4000)
+		{
+			UCHAR valPix = buff[i++];
+
+			UCHAR pix3 = (valPix & 0b00000011);
+			UCHAR pix2 = (valPix & 0b00001100) << 2;
+			UCHAR pix1 = (valPix & 0b00110000) >> 4;
+			UCHAR pix0 = (valPix & 0b11000000) >> 2;
+
+			valPix = buff[i++];
+
+			UCHAR pix7 = (valPix & 0b00000011);
+			UCHAR pix6 = (valPix & 0b00001100) << 2;
+			UCHAR pix5 = (valPix & 0b00110000) >> 4;
+			UCHAR pix4 = (valPix & 0b11000000) >> 2;
+
+			buffMode1[j++] = pix5 | pix4;
+			buffMode1[j++] = pix7 | pix6;
+			buffMode1[j++] = pix1 | pix0;
+			buffMode1[j++] = pix3 | pix2;
+		}
+
+		buff = buffMode1;
+	}
+
+	return buff;
+}
+
 
 void Redraw(HWND pWnd)
 {
@@ -608,8 +748,8 @@ void Redraw(HWND pWnd)
 	SelectPalette(hdc, _hPal, FALSE);
 	RealizePalette(hdc);
 
-	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(NB_COLORS, 4, GetScreenWidth(), SCREEN_CY_LINE);
-	StretchDIBits(hdc, BORDER_CX, BORDER_UP_CY, ConvertPos(GetScreenWidth()), SCREEN_CY_LINE, 0, 0, GetScreenWidth(), SCREEN_CY_LINE, GetCurVideoBuffer(), bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
+	LPBITMAPINFO bitmapInfos = CreateBitmapInfo(GetPixelBit(), GetScreenWidth(), CPC_SCR_CY_LINE);
+	int r = StretchDIBits(hdc, BORDER_CX, BORDER_UP_CY, WIDTH_SCREEN, HEIGHT_SCREEN, 0, 0, GetScreenWidth(), CPC_SCR_CY_LINE, GetRenderingBuffer(), bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
 	free(bitmapInfos);
 
 	EndPaint(pWnd, &ps);
@@ -641,10 +781,13 @@ void StartCPC()
 		_amstrad._curPal[i] = _palette[i].hw;
 
 	for (int i = 0; i < 4; i++)
-		memset(&_amstrad._memVideo[i], 0, SCREEN_CX_BYTES * SCREEN_CY_LINE);
+		memset(&_amstrad._memVideo[i], 0, CPC_SCR_CX_BYTES * CPC_SCR_CY_LINE);
 
+	_amstrad._mode = 1;
 	_amstrad._curPal[0] = HW_BRIGHT_BLUE;
 	_amstrad._curPal[1] = HW_BRIGHT_YELLOW;
+	_amstrad._curPal[BORDER_COLOR] = HW_BRIGHT_BLUE;
+
 	_amstrad._currentPage = cpct_pageC0;
 
 	_widthVideo = ALIGNED_DWORD(FULL_SCREEN_CX);

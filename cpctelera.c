@@ -181,27 +181,47 @@ u8 cpct_px2byteM0(u8 px0, u8 px1)
 
 void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 {
+	if (IsCpcMem(video_memory))
+		video_memory = GetVideoBufferFromAddress((int)video_memory);
+
 	DisplayFontM0(video_memory, fg_pen, bg_pen, ascii);
 }
 
 void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
-	u8* str = (u8*)string;
-	u8* video = (u8*)video_memory;
+	DrawString(string, video_memory, fg_pen, bg_pen, 0);
+}
 
-	for (UCHAR i = 0; i < strlen(str); i++)
-	{
-		if (str[i] != ' ')
-		{
-			DisplayFontM0(video + i*4, fg_pen, bg_pen, str[i]);
-		}
-	}
+void cpct_drawCharM1(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
+{
+	if (IsCpcMem(video_memory))
+		video_memory = GetVideoBufferFromAddress((int)video_memory);
+
+	DisplayFontM1(video_memory, fg_pen, bg_pen, ascii);
+}
+
+void cpct_drawStringM1(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
+{
+	DrawString(string, video_memory, fg_pen, bg_pen, 1);
+}
+
+void cpct_drawCharM2(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
+{
+	if (IsCpcMem(video_memory))
+		video_memory = GetVideoBufferFromAddress((int)video_memory);
+
+	DisplayFontM2(video_memory, fg_pen, bg_pen, ascii);
+}
+
+void cpct_drawStringM2(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
+{
+	DrawString(string, video_memory, fg_pen, bg_pen, 2);
 }
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
 	u8* memory = GetVideoBufferFromAddress((WORD)screen_start);
-	return memory + y * SCREEN_CX_BYTES + x;
+	return memory + y * CPC_SCR_CX_BYTES + x;
 }
 
 void cpct_waitVSYNC()
@@ -234,6 +254,9 @@ void cpct_clearScreen(u8 colour_pattern)
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
+	if (IsCpcMem(memory))
+		memory = GetVideoBufferFromAddress((int)memory);
+
 	UCHAR* video = (UCHAR*)memory;
 	colour_pattern = M0byte2px(colour_pattern);
 
@@ -244,7 +267,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 			*video = colour_pattern;
 			video++;
 		}
-		video += (SCREEN_CX_BYTES - width);
+		video += (CPC_SCR_CX_BYTES - width);
 	}
 }
 
