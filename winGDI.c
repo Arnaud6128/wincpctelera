@@ -1,5 +1,7 @@
 #include "cpcteleraWin.h"
 
+#ifdef _USEWINGDI
+
 extern u16 GetCpcKey(u16 pVKeyID);
 extern COLORREF GetColorHW(int pHW);
 extern int GetPixelBit();
@@ -14,56 +16,6 @@ void Close()
 {
 	if (_hPal != NULL)
 		DeleteObject(_hPal);
-}
-
-void CreatePaletteCpc()
-{
-	NPLOGPALETTE logPalette = (NPLOGPALETTE)malloc(sizeof(LOGPALETTE) + NB_COLORS * sizeof(PALETTEENTRY));
-
-	logPalette->palNumEntries = NB_COLORS;
-	logPalette->palVersion = 0x300;
-
-	for (int i = 0; i < NB_COLORS; i++)
-	{
-		int hw = _amstrad._curPal[i];
-		COLORREF rgb = GetColorHW(hw);
-
-		logPalette->palPalEntry[i].peBlue = GetBValue(rgb);
-		logPalette->palPalEntry[i].peRed = GetRValue(rgb);
-		logPalette->palPalEntry[i].peGreen = GetGValue(rgb);
-		logPalette->palPalEntry[i].peFlags = 0;
-	}
-
-	if (_hPal != NULL)
-		DeleteObject(_hPal);
-
-	_hPal = CreatePalette(logPalette);
-
-	free(logPalette);
-}
-
-LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
-{
-	int nbColor = 1;
-	for (int i = 0; i < pBitCount; i++)
-		nbColor *= 2;
-
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
-	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
-	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfos->bmiHeader.biWidth = cx;
-	bitmapInfos->bmiHeader.biHeight = -cy;
-	bitmapInfos->bmiHeader.biPlanes = 1;
-	bitmapInfos->bmiHeader.biBitCount = pBitCount;
-	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = nbColor;
-
-	WORD* pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < nbColor; i++)
-		pal[i] = i;
-
-	return bitmapInfos;
 }
 
 void FillBorder(HDC pHdc)
@@ -96,6 +48,58 @@ void FillBorder(HDC pHdc)
 
 	if (pHdc == NULL)
 		ReleaseDC(_hWnd, hdc);
+}
+
+void CreatePaletteCpc()
+{
+	NPLOGPALETTE logPalette = (NPLOGPALETTE)malloc(sizeof(LOGPALETTE) + NB_COLORS * sizeof(PALETTEENTRY));
+
+	logPalette->palNumEntries = NB_COLORS;
+	logPalette->palVersion = 0x300;
+
+	for (int i = 0; i < NB_COLORS; i++)
+	{
+		int hw = _amstrad._curPal[i];
+		COLORREF rgb = GetColorHW(hw);
+
+		logPalette->palPalEntry[i].peBlue = GetBValue(rgb);
+		logPalette->palPalEntry[i].peRed = GetRValue(rgb);
+		logPalette->palPalEntry[i].peGreen = GetGValue(rgb);
+		logPalette->palPalEntry[i].peFlags = 0;
+	}
+
+	if (_hPal != NULL)
+		DeleteObject(_hPal);
+
+	_hPal = CreatePalette(logPalette);
+
+	free(logPalette);
+
+	FillBorder(NULL);
+}
+
+LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
+{
+	int nbColor = 1;
+	for (int i = 0; i < pBitCount; i++)
+		nbColor *= 2;
+
+	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
+	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
+	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
+	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bitmapInfos->bmiHeader.biWidth = cx;
+	bitmapInfos->bmiHeader.biHeight = -cy;
+	bitmapInfos->bmiHeader.biPlanes = 1;
+	bitmapInfos->bmiHeader.biBitCount = pBitCount;
+	bitmapInfos->bmiHeader.biCompression = BI_RGB;
+	bitmapInfos->bmiHeader.biClrUsed = nbColor;
+
+	WORD* pal = (WORD*)bitmapInfos->bmiColors;
+	for (int i = 0; i < nbColor; i++)
+		pal[i] = i;
+
+	return bitmapInfos;
 }
 
 void Redraw(HWND pWnd)
@@ -235,3 +239,5 @@ void MsgLoop()
 
 	Sleep(10);
 }
+
+#endif

@@ -11,21 +11,18 @@ void cpct_setPalette(u8* ink_array, u16 ink_array_size)
 {
 	memcpy(_amstrad._curPal, ink_array, ink_array_size);
 	CreatePaletteCpc();
-	FillBorder(NULL);
 }
 
 void cpct_setPALColour(u8 pen, u8 hw_ink)
 {
 	_amstrad._curPal[pen] = hw_ink;
 	CreatePaletteCpc();
-	FillBorder(NULL);
 }
 
 u8 cpct_getHWColour(u16 pFW)
 {
 	return _palette[pFW].hw;
 }
-
 
 void cpct_waitVSYNC()
 {
