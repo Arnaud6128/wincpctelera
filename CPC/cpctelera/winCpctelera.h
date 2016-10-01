@@ -2,6 +2,11 @@
 #include <cpctelera.h>
 
 #define	_USEWINGDI			1
+//#define _USESDL				1
+
+#ifdef _USESDL
+	#include <sdl.h>
+#endif
 
 #define WINDOW_STYLE		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 #define NB_PAL_COLOR		27
@@ -51,7 +56,6 @@ typedef struct tagSCPCPalette
 } SCPCPalette;
 
 extern const SCPCPalette _palette[NB_PAL_COLOR];
-extern HWND _hWnd;
 extern BOOL _curKey;
 extern SAmstrad _amstrad;
 extern u8 cpct_keyboardStatusBuffer[10];

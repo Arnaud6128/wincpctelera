@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-HWND _hWnd;
 BOOL _curKey;
 SAmstrad _amstrad;
 
@@ -543,7 +542,6 @@ UCHAR* GetRenderingBuffer()
 
 	return buff;
 }
-
 
 void StartCPC()
 {
