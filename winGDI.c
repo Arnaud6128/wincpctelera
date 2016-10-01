@@ -240,4 +240,29 @@ void MsgLoop()
 	Sleep(10);
 }
 
+void Refresh()
+{
+	InvalidateRect(_hWnd, NULL, FALSE);
+}
+
+VOID CALLBACK InternalTimer(
+	HWND hwnd,
+	UINT message,
+	UINT idTimer,
+	DWORD dwTime)
+{
+	if (_amstrad._interruptFunction != NULL)
+		_amstrad._interruptFunction();
+
+	_amstrad._internalTimer++;
+
+	Refresh();
+	MsgLoop();
+}
+
+void StartInterrupt()
+{
+	SetTimer(_hWnd, WM_USER + 464, INTERRUPT_MS, InternalTimer);
+}
+
 #endif

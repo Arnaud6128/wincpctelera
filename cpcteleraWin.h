@@ -26,6 +26,8 @@
 #define MODE_1				1
 #define MODE_2				2
 
+#define INTERRUPT_MS		33
+
 typedef void(*TInterrupt)(void);
 
 typedef struct tagSAmstrad
@@ -56,15 +58,20 @@ extern u8 cpct_keyboardStatusBuffer[10];
 
 void CPCTeleraWin();
 void MsgLoop();
+void Refresh();
+void StartInterrupt();
+BOOL IsCpcMem(const void* pAddress);
 
-void ScanKeyboard();
+void CreatePaletteCpc();
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);
-BOOL IsCpcMem(const void* pAddress);
+
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
 void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
 void DisplayFontM2(u8* pVideo, u8 pPen, char pChara);
-u8* GetVideoBufferFromAddress(int pScreenAddr);
+void ScanKeyboard();
 u16 GetVKey(u16 pCpcKeyID);
-void CreatePaletteCpc();
+
+u8* GetVideoBufferFromAddress(int pScreenAddr);
 u8 M0byte2px(u8 pPix);
+u8 M1byte2px(u8 px0, u8 px1, u8 px2, u8 px3);

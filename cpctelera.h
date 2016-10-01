@@ -1,10 +1,6 @@
 #ifndef CPCTELERA_H
 #define CPCTELERA_H
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #define __z88dk_fastcall	
 #define __z88dk_callee	
 #define __naked 
