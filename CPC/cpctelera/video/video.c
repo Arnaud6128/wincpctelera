@@ -47,7 +47,7 @@ void cpct_setVideoMode(u8 videoMode)
 void cpct_setVideoMemoryPage(u8 page_6LSb)
 {
 	_amstrad._currentPage = page_6LSb;
-	InvalidateRect(_hWnd, NULL, FALSE);
+	Refresh();
 }
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)

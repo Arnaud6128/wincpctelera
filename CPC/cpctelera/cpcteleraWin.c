@@ -1,5 +1,9 @@
 #include "cpcteleraWin.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
 HWND _hWnd;
 BOOL _curKey;
 SAmstrad _amstrad;
@@ -320,20 +324,7 @@ u16 GetCpcKey(u16 pVKeyID)
 }
 
 
-VOID CALLBACK InternalTimer(
-	HWND hwnd,
-	UINT message,
-	UINT idTimer,
-	DWORD dwTime)
-{
-	if (_amstrad._interruptFunction != NULL)
-		_amstrad._interruptFunction();
 
-	_amstrad._internalTimer++;
-
-	InvalidateRect(_hWnd, NULL, FALSE);
-	MsgLoop();
-}
 
 COLORREF GetColorFW(int pFW)
 {
@@ -366,6 +357,12 @@ u8 M0byte2px(u8 pPix)
 	UCHAR pixd = (pPix & 0x01);
 
 	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pix0 << 4 | pixc << 2 | pixb << 1 | pixa << 0);
+}
+
+u8 M1byte2px(u8 px0, u8 px1, u8 px2, u8 px3)
+{
+
+
 }
 
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
@@ -591,7 +588,7 @@ void StartCPC()
 
 	_widthVideo = ALIGNED_DWORD(FULL_SCREEN_CX);
 
-	SetTimer(_hWnd, 10000, 33, InternalTimer);
+	StartInterrupt();
 }
 
 void ScanKeyboard()
