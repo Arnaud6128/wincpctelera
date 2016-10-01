@@ -1,6 +1,8 @@
 #include <windows.h>
 #include <cpctelera.h>
 
+#define	_USEWINGDI			1
+
 #define WINDOW_STYLE		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 #define NB_PAL_COLOR		27
 #define NB_COLORS			16

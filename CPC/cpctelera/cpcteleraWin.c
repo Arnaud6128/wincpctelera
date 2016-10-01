@@ -441,7 +441,6 @@ void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 	MsgLoop();
 }
 
-
 void DisplayFontM2(u8* pVideo, u8 pPen, char pChara)
 {
 	int index = FindCharaIndex(pChara);
@@ -453,8 +452,18 @@ void DisplayFontM2(u8* pVideo, u8 pPen, char pChara)
 	/** 8 pixels per Byte */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
+		u8 val = *pixChara;
 
-		*pVideo++ = *pixChara;
+		u8 pix0 =	((val & 0b00000001) == 0) ? 0 : pPen << 0;
+		pix0 |=		((val & 0b00000010) == 0) ? 0 : pPen << 1;
+		pix0 |=		((val & 0b00000100) == 0) ? 0 : pPen << 2;
+		pix0 |=		((val & 0b00001000) == 0) ? 0 : pPen << 3;
+		pix0 |=		((val & 0b00010000) == 0) ? 0 : pPen << 4;
+		pix0 |=		((val & 0b00100000) == 0) ? 0 : pPen << 5;
+		pix0 |=		((val & 0b01000000) == 0) ? 0 : pPen << 6;
+		pix0 |=		((val & 0b10000000) == 0) ? 0 : pPen << 7;
+
+		*pVideo++ = pix0;
 		pixChara -= FONT_NB_LINE;
 		pVideo += (CPC_SCR_CX_BYTES - 1);
 	}
