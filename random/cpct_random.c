@@ -1,4 +1,4 @@
-#include "cpcteleraWin.h"
+#include "winCpctelera.h"
 
 u8 cpct_getRandom_mxor_u8()
 {

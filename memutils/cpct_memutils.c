@@ -1,4 +1,4 @@
-#include <cpcteleraWin.h>
+#include <winCpctelera.h>
 
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
