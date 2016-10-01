@@ -73,5 +73,3 @@ void ScanKeyboard();
 u16 GetVKey(u16 pCpcKeyID);
 
 u8* GetVideoBufferFromAddress(int pScreenAddr);
-u8 M0byte2px(u8 pPix);
-u8 M1byte2px(u8 px0, u8 px1, u8 px2, u8 px3);

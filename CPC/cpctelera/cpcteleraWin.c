@@ -345,26 +345,6 @@ UCHAR DecodePixel(UCHAR pPix)
 	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 }
 
-u8 M0byte2px(u8 pPix)
-{
-	UCHAR pix0 = (pPix & 0x80) >> 7;
-	UCHAR pixa = (pPix & 0x40) >> 6;
-	UCHAR pix2 = (pPix & 0x20) >> 5;
-	UCHAR pixc = (pPix & 0x10) >> 4;
-	UCHAR pix1 = (pPix & 0x08) >> 3;
-	UCHAR pixb = (pPix & 0x04) >> 2;
-	UCHAR pix3 = (pPix & 0x02) >> 1;
-	UCHAR pixd = (pPix & 0x01);
-
-	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pix0 << 4 | pixc << 2 | pixb << 1 | pixa << 0);
-}
-
-u8 M1byte2px(u8 px0, u8 px1, u8 px2, u8 px3)
-{
-
-
-}
-
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 {
 	int index = FindCharaIndex(pChara);
