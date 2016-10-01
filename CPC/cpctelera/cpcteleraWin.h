@@ -56,7 +56,6 @@ void CPCTeleraWin();
 void MsgLoop();
 
 void ScanKeyboard();
-void FillBorder(HDC pHdc);
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);
 BOOL IsCpcMem(const void* pAddress);
