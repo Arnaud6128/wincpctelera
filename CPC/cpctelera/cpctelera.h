@@ -19,14 +19,14 @@
 #define cpct_page40 0x10
 #define cpct_page00 0x00
 
-#define SCREEN_CX_BYTES	80
-#define BORDER_CX		32
-#define BORDER_UP_CY	48
-#define BORDER_DW_CY	40
-#define WIDTH_SCREEN	320
-#define HEIGHT_SCREEN	200
-#define FULL_SCREEN_CX	(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
-#define FULL_SCREEN_CY	(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
+#define CPC_SCR_CX_BYTES	80
+#define BORDER_CX			64
+#define BORDER_UP_CY		96
+#define BORDER_DW_CY		80
+#define WIDTH_SCREEN		640
+#define HEIGHT_SCREEN		400
+#define FULL_SCREEN_CX		(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
+#define FULL_SCREEN_CY		(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
 
 /** Memory */
 void cpct_memset(void *array, u8  value, u16 size) __z88dk_callee;
@@ -212,6 +212,10 @@ u8 cpct_px2byteM0(u8 px0, u8 px1);
 /** String */
 void cpct_drawCharM0 (void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii);
 void cpct_drawStringM0 (void* string, void* video_memory, u8 fg_pen, u8 bg_pen);
+void cpct_drawCharM1(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii);
+void cpct_drawStringM1(void* string, void* video_memory, u8 fg_pen, u8 bg_pen);
+void cpct_drawCharM2(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii);
+void cpct_drawStringM2(void* string, void* video_memory, u8 fg_pen, u8 bg_pen);
 
 /** Video */
 void cpct_clearScreen(u8 colour_pattern); 
