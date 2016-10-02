@@ -50,8 +50,13 @@ void cpct_setVideoMemoryPage(u8 page_6LSb)
 	Refresh();
 }
 
+void cpct_setVideoMemoryOffset(u8 offset)
+{
+	_amstrad._memOffset = offset;
+}
+
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	u8* memory = GetVideoBufferFromAddress((WORD)screen_start);
+	u8* memory = GetVideoBufferFromAddress((int)screen_start);
 	return memory + y * CPC_SCR_CX_BYTES + x;
 }

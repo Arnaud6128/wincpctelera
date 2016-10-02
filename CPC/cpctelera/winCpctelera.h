@@ -25,7 +25,8 @@
 
 #define CPC_SCR_CX_BYTES	80
 #define CPC_SCR_CY_LINE		200
-#define CPC_MEM_LIMIT		0xFFFF
+
+#define CPC_MEM_SIZE		0xFFFF
 
 #define MODE_0				0
 #define MODE_1				1
@@ -43,8 +44,10 @@ typedef struct tagSAmstrad
 	TInterrupt _interruptFunction;
 
 	UCHAR _curPal[NB_COLORS + 1];
-	UCHAR _memVideo[4][0x4000];
 
+	u8 _memOffset;
+
+	UCHAR _memCPC[CPC_MEM_SIZE];
 	UCHAR _mode1Video[0x8000];
 
 } SAmstrad;
