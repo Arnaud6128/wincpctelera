@@ -27,6 +27,7 @@ u8 cpct_isAnyKeyPressed()
 {
 	MsgLoop();
 	BOOL isKeyPressed = (_curKey != FALSE);
+	_curKey = FALSE;
 	return isKeyPressed;
 }
 
