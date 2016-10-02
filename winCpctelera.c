@@ -248,18 +248,7 @@ COLORREF GetColorHW(int pHW)
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
 {
-	switch (pScreenAddr)
-	{
-	case 0x0000:
-		return _amstrad._memVideo[0];
-	case 0x4000:
-		return _amstrad._memVideo[1];
-	case 0x8000:
-		return _amstrad._memVideo[2];
-	case 0xC000:
-	default:
-		return _amstrad._memVideo[3];
-	}
+	return _amstrad._memCPC + pScreenAddr;
 }
 
 u8* GetVideoBufferFromPage(int pPage)
@@ -267,14 +256,14 @@ u8* GetVideoBufferFromPage(int pPage)
 	switch (pPage)
 	{
 		case cpct_page00:
-			return _amstrad._memVideo[0];
+			return _amstrad._memCPC;
 		case cpct_page40:
-			return _amstrad._memVideo[1];
+			return _amstrad._memCPC + 0x4000;
 		case cpct_page80:
-			return _amstrad._memVideo[2];
+			return _amstrad._memCPC + 0x8000;
 		case cpct_pageC0:
 		default:
-			return _amstrad._memVideo[3];
+			return _amstrad._memCPC + 0xC000;
 	}
 }
 
@@ -507,7 +496,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 
 UCHAR* GetRenderingBuffer()
 {
-	UCHAR *buff = GetCurVideoBuffer();
+	UCHAR *buff = GetCurVideoBuffer() + _amstrad._memOffset;
 
 	/** Convert mode 0 to mode 1 4bits */
 	if (_amstrad._mode == 1)
@@ -549,8 +538,7 @@ void StartCPC()
 	for (int i = 0; i < NB_COLORS; i++)
 		_amstrad._curPal[i] = _palette[i].hw;
 
-	for (int i = 0; i < 4; i++)
-		memset(&_amstrad._memVideo[i], 0, CPC_SCR_CX_BYTES * CPC_SCR_CY_LINE);
+	memset(&_amstrad._memCPC, 0, CPC_MEM_SIZE);
 
 	_amstrad._mode = 1;
 	_amstrad._curPal[0] = HW_BRIGHT_BLUE;

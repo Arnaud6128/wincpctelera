@@ -3,10 +3,10 @@
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
 	if (IsCpcMem(to))
-		to = (u8*)(_amstrad._memVideo) + (int)to;
+		to = (u8*)(_amstrad._memCPC) + (int)to;
 
 	if (IsCpcMem(from))
-		from = (u8*)(_amstrad._memVideo) + (int)from;
+		from = (u8*)(_amstrad._memCPC) + (int)from;
 
 	memcpy_s(to, size, from, size);
 }
@@ -25,7 +25,7 @@ void cpct_memset(void *array, u8 value, u16 size)
 {
 	u8* data = (u8*)array;
 	if (IsCpcMem(array))
-		data = (u8*)(_amstrad._memVideo) + (int)array;
+		data = (u8*)(_amstrad._memCPC) + (int)array;
 
 	memset(data, value, size);
 }
