@@ -13,7 +13,7 @@
 #include "firmware/firmware.h"
 #include "memutils/memutils.h"
 #include "keyboard/keyboard.h"
-//#include "bitarray/bitarray.h"
+#include "bitarray/bitarray.h"
 #include "sprites/sprites.h"
 #include "strings/strings.h"
 #include "video/videomode.h"

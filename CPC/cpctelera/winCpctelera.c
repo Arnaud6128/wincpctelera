@@ -244,10 +244,32 @@ COLORREF GetColorHW(int pHW)
 }
 
 
+int ConvertScreenAddress(int pScreenAddr)
+{
+	int address = pScreenAddr - 0xC000;
+
+	int col = address / 0x800;
+	int line = (address % 0x800) / 10;
+
+	int lineAddress = (address % 0x800) -  line * 10 + 1;
+
+	int t = line * CPC_SCR_CX_BYTES;/// +col + lineAddress;
+
+	return pScreenAddr;
+
+	//return pScreenAddr;
+}
+
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
 {
-	return _amstrad._memCPC + pScreenAddr;
+	if (IsCpcMem(pScreenAddr))
+	{
+		int address = ConvertScreenAddress(pScreenAddr);
+		return _amstrad._memCPC + address;
+	}
+	else
+		return (u8*)pScreenAddr;
 }
 
 u8* GetVideoBufferFromPage(int pPage)
@@ -576,7 +598,6 @@ void StartCPC()
 void ScanKeyboard()
 {
 	ZeroMemory(cpct_keyboardStatusBuffer, sizeof(cpct_keyboardStatusBuffer));
-	_curKey = FALSE;
 	MsgLoop();
 }
 
