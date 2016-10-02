@@ -171,7 +171,7 @@ RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
 
 void PosWindow()
 {
-	SetWindowLong(_hWnd, GWL_STYLE, WINDOW_STYLE);
+	SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE);
 	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
 
 	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2 + 100;
@@ -189,6 +189,8 @@ void PosWindow()
 
 void CreateWindowApp()
 {
+	#define TITLE	"WinCPCTelera"	
+
 	HINSTANCE instance = GetModuleHandle(NULL);
 
 	WNDCLASS wc;

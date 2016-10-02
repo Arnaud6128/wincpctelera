@@ -7,7 +7,6 @@
 BOOL _curKey;
 SAmstrad _amstrad;
 
-static HBITMAP _hBitmap;
 static BOOL _isStarted = FALSE;
 
 extern void CreateWindowApp();
@@ -49,7 +48,7 @@ const SCPCPalette _palette[NB_PAL_COLOR] =
 #define FONT_COL		(FONT_NB_COL*FONT_SIZE)
 
 /** Bottom - Top */
-const UCHAR fonts[] = 
+const u8 fonts[] = 
 {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x78, 0x0F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	0x3E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x19, 0x80, 
 	0x3B, 0x6E, 0x1E, 0x3B, 0x1E, 0x3C, 0x03, 0x73, 0x1E, 0x33, 0x73, 0x1E, 0x63, 0x33, 0x1E, 0x30, 0x06, 0x78, 0x3E, 0x0E, 0x1F, 0x0C, 0x36, 0x63, 0x03, 0x3F, 0x07, 0x0C, 0x38, 0x00, 0x66, 0x00,
@@ -229,7 +228,7 @@ BOOL IsCpcMem(const void* pAddress)
 	return ((int)pAddress < 0xFFFF);
 }
 
-void SetPalette(int i, UCHAR pHW)
+void SetPalette(int i, u8 pHW)
 {
 	_amstrad._curPal[i] = pHW;
 }
@@ -311,41 +310,41 @@ COLORREF GetColorFW(int pFW)
 	return _palette[pFW].rgb;
 }
 
-UCHAR DecodePixel(UCHAR pPix)
+u8 DecodePixel(u8 pPix)
 {
 	if (pPix == 0x00 || pPix == 0xFF)
 		return pPix;
 
 	if (_amstrad._mode == MODE_0)
 	{
-		UCHAR pix0 = (pPix & 0x80) >> 7;
-		UCHAR pixa = (pPix & 0x40) >> 6;
-		UCHAR pix2 = (pPix & 0x20) >> 5;
-		UCHAR pixc = (pPix & 0x10) >> 4;
+		u8 pix0 = (pPix & 0x80) >> 7;
+		u8 pixa = (pPix & 0x40) >> 6;
+		u8 pix2 = (pPix & 0x20) >> 5;
+		u8 pixc = (pPix & 0x10) >> 4;
 
-		UCHAR pix1 = (pPix & 0x08) >> 3;
-		UCHAR pixb = (pPix & 0x04) >> 2;
-		UCHAR pix3 = (pPix & 0x02) >> 1;
-		UCHAR pixd = (pPix & 0x01);
+		u8 pix1 = (pPix & 0x08) >> 3;
+		u8 pixb = (pPix & 0x04) >> 2;
+		u8 pix3 = (pPix & 0x02) >> 1;
+		u8 pixd = (pPix & 0x01);
 
 		return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 	}
 
 	if (_amstrad._mode == MODE_1)
 	{
-		UCHAR pix0 = (pPix & 0x80) >> 7;
-		UCHAR pix2 = (pPix & 0x40) >> 6;
+		u8 pix0 = (pPix & 0x80) >> 7;
+		u8 pix2 = (pPix & 0x40) >> 6;
 
-		UCHAR pix4 = (pPix & 0x20) >> 5;
-		UCHAR pix6 = (pPix & 0x10) >> 4;
+		u8 pix4 = (pPix & 0x20) >> 5;
+		u8 pix6 = (pPix & 0x10) >> 4;
 
-		UCHAR pix1 = (pPix & 0x08) >> 3;
-		UCHAR pix3 = (pPix & 0x04) >> 2;
+		u8 pix1 = (pPix & 0x08) >> 3;
+		u8 pix3 = (pPix & 0x04) >> 2;
 
-		UCHAR pix5 = (pPix & 0x02) >> 1;
-		UCHAR pix7 = (pPix & 0x01);
+		u8 pix5 = (pPix & 0x02) >> 1;
+		u8 pix7 = (pPix & 0x01);
 	
-		UCHAR val = (pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6 | pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4);
+		u8 val = (pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6 | pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4);
 		return val;
 	}
 
@@ -463,7 +462,7 @@ void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMod
 	u8* str = (u8*)string;
 	u8* video = (u8*)video_memory;
 
-	for (UCHAR i = 0; i < strlen(str); i++)
+	for (u8 i = 0; i < strlen(str); i++)
 	{
 		if (str[i] != ' ')
 		{
@@ -479,7 +478,7 @@ void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMod
 
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 {
-	UCHAR* video = (UCHAR*)memory;
+	u8* video = (u8*)memory;
 	
 	if (pMasked)
 	{
@@ -488,8 +487,8 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				UCHAR mask = DecodePixel((UCHAR)(*pix));
-				UCHAR sprite = DecodePixel((UCHAR)(*pix >> 8));
+				u8 mask = DecodePixel((u8)(*pix));
+				u8 sprite = DecodePixel((u8)(*pix >> 8));
 				*video = *video ^ sprite;
 				*video = *video & mask;
 				*video = *video ^ sprite;
@@ -502,7 +501,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 	}
 	else
 	{
-		UCHAR* pix = (UCHAR*)sprite;
+		u8* pix = (u8*)sprite;
 		for (int yi = 0; yi < cy; yi++)
 		{
 			for (int xi = 0; xi < cx; xi++)
@@ -518,31 +517,31 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 	MsgLoop();
 }
 
-UCHAR* GetRenderingBuffer()
+u8* GetRenderingBuffer()
 {
-	UCHAR *buff = GetCurVideoBuffer() + _amstrad._memOffset;
+	u8 *buff = GetCurVideoBuffer() + _amstrad._memOffset;
 
 	/** Convert mode 0 to mode 1 4bits */
 	if (_amstrad._mode == 1)
 	{
-		UCHAR* buffMode1 = _amstrad._mode1Video;
+		u8* buffMode1 = _amstrad._mode1Video;
 		
 		int i = 0, j = 0;
 		while (i < 0x4000)
 		{
-			UCHAR valPix = buff[i++];
+			u8 valPix = buff[i++];
 
-			UCHAR pix3 = (valPix & 0b00000011);
-			UCHAR pix2 = (valPix & 0b00001100) << 2;
-			UCHAR pix1 = (valPix & 0b00110000) >> 4;
-			UCHAR pix0 = (valPix & 0b11000000) >> 2;
+			u8 pix3 = (valPix & 0b00000011);
+			u8 pix2 = (valPix & 0b00001100) << 2;
+			u8 pix1 = (valPix & 0b00110000) >> 4;
+			u8 pix0 = (valPix & 0b11000000) >> 2;
 
 			valPix = buff[i++];
 
-			UCHAR pix7 = (valPix & 0b00000011);
-			UCHAR pix6 = (valPix & 0b00001100) << 2;
-			UCHAR pix5 = (valPix & 0b00110000) >> 4;
-			UCHAR pix4 = (valPix & 0b11000000) >> 2;
+			u8 pix7 = (valPix & 0b00000011);
+			u8 pix6 = (valPix & 0b00001100) << 2;
+			u8 pix5 = (valPix & 0b00110000) >> 4;
+			u8 pix4 = (valPix & 0b11000000) >> 2;
 			
 			buffMode1[j++] = pix1 | pix0;
 			buffMode1[j++] = pix3 | pix2;
