@@ -245,6 +245,7 @@ void MsgLoop()
 void Refresh()
 {
 	InvalidateRect(_hWnd, NULL, FALSE);
+	MsgLoop();
 }
 
 VOID CALLBACK InternalTimer(
