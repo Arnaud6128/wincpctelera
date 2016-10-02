@@ -6,6 +6,8 @@
 #define __naked 
 #define __at(X) \
 		/* X */
+#define __asm__(X) \
+		/* X */
 
 #include "types.h"
 #include "firmware/firmware.h"

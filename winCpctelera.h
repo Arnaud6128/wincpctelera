@@ -8,11 +8,9 @@
 	#include <sdl.h>
 #endif
 
-#define WINDOW_STYLE		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE
 #define NB_PAL_COLOR		27
 #define NB_COLORS			16
 #define BORDER_COLOR		16
-#define TITLE				"WinCPCTelera"	
 
 #define FULL_SCREEN_CX		(BORDER_CX + WIDTH_SCREEN + BORDER_CX)
 #define FULL_SCREEN_CY		(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY)
@@ -43,18 +41,18 @@ typedef struct tagSAmstrad
 	u8 _internalTimer;
 	TInterrupt _interruptFunction;
 
-	UCHAR _curPal[NB_COLORS + 1];
+	u8 _curPal[NB_COLORS + 1];
 
 	u8 _memOffset;
 
-	UCHAR _memCPC[CPC_MEM_SIZE];
-	UCHAR _mode1Video[0x8000];
+	u8 _memCPC[CPC_MEM_SIZE];
+	u8 _mode1Video[0x8000];
 
 } SAmstrad;
 
 typedef struct tagSCPCPalette
 {
-	UCHAR hw;
+	u8 hw;
 	COLORREF rgb;
 } SCPCPalette;
 
@@ -68,6 +66,7 @@ void MsgLoop();
 void Refresh();
 void StartInterrupt();
 BOOL IsCpcMem(const void* pAddress);
+int ConvertPixelPos(int x);
 
 void CreatePaletteCpc();
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);

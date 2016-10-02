@@ -63,7 +63,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	if (IsCpcMem(memory))
 		memory = GetVideoBufferFromAddress((int)memory);
 
-	UCHAR* video = (UCHAR*)memory;
+	u8* video = (u8*)memory;
 
 	for (int yi = 0; yi < height; yi++)
 	{
