@@ -306,9 +306,6 @@ u16 GetCpcKey(u16 pVKeyID)
 	return 0;
 }
 
-
-
-
 COLORREF GetColorFW(int pFW)
 {
 	return _palette[pFW].rgb;
@@ -316,16 +313,43 @@ COLORREF GetColorFW(int pFW)
 
 UCHAR DecodePixel(UCHAR pPix)
 {
-	UCHAR pix0 = (pPix & 0x80) >> 7;
-	UCHAR pixa = (pPix & 0x40) >> 6;
-	UCHAR pix2 = (pPix & 0x20) >> 5;
-	UCHAR pixc = (pPix & 0x10) >> 4;
-	UCHAR pix1 = (pPix & 0x08) >> 3;
-	UCHAR pixb = (pPix & 0x04) >> 2;
-	UCHAR pix3 = (pPix & 0x02) >> 1;
-	UCHAR pixd = (pPix & 0x01);
+	if (pPix == 0x00 || pPix == 0xFF)
+		return pPix;
 
-	return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
+	if (_amstrad._mode == MODE_0)
+	{
+		UCHAR pix0 = (pPix & 0x80) >> 7;
+		UCHAR pixa = (pPix & 0x40) >> 6;
+		UCHAR pix2 = (pPix & 0x20) >> 5;
+		UCHAR pixc = (pPix & 0x10) >> 4;
+
+		UCHAR pix1 = (pPix & 0x08) >> 3;
+		UCHAR pixb = (pPix & 0x04) >> 2;
+		UCHAR pix3 = (pPix & 0x02) >> 1;
+		UCHAR pixd = (pPix & 0x01);
+
+		return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
+	}
+
+	if (_amstrad._mode == MODE_1)
+	{
+		UCHAR pix0 = (pPix & 0x80) >> 7;
+		UCHAR pix2 = (pPix & 0x40) >> 6;
+
+		UCHAR pix4 = (pPix & 0x20) >> 5;
+		UCHAR pix6 = (pPix & 0x10) >> 4;
+
+		UCHAR pix1 = (pPix & 0x08) >> 3;
+		UCHAR pix3 = (pPix & 0x04) >> 2;
+
+		UCHAR pix5 = (pPix & 0x02) >> 1;
+		UCHAR pix7 = (pPix & 0x01);
+	
+		UCHAR val = (pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6 | pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4);
+		return val;
+	}
+
+	return pPix;
 }
 
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
@@ -391,8 +415,8 @@ void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 		pix1 |=		((val & 0b01000000) >> 2) == 0 ? bgPen << 4 : fgPen << 4;
 		pix1 |=		((val & 0b10000000) >> 1) == 0 ? bgPen << 6 : fgPen << 6;
 
-		*pVideo++ = pix0;
 		*pVideo++ = pix1;
+		*pVideo++ = pix0;
 
 		pixChara -= FONT_NB_LINE;
 		pVideo += (CPC_SCR_CX_BYTES - 2);
@@ -519,11 +543,11 @@ UCHAR* GetRenderingBuffer()
 			UCHAR pix6 = (valPix & 0b00001100) << 2;
 			UCHAR pix5 = (valPix & 0b00110000) >> 4;
 			UCHAR pix4 = (valPix & 0b11000000) >> 2;
-
-			buffMode1[j++] = pix5 | pix4;
-			buffMode1[j++] = pix7 | pix6;
+			
 			buffMode1[j++] = pix1 | pix0;
 			buffMode1[j++] = pix3 | pix2;
+			buffMode1[j++] = pix5 | pix4;
+			buffMode1[j++] = pix7 | pix6;
 		}
 
 		buff = buffMode1;
