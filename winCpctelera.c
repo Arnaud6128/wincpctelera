@@ -243,23 +243,34 @@ COLORREF GetColorHW(int pHW)
 	return _palette[0].rgb;
 }
 
-
 int ConvertScreenAddress(int pScreenAddr)
 {
-	int address = pScreenAddr - 0xC000;
+	int videoAddress = 0;
+
+	if (pScreenAddr >= 0 && pScreenAddr < 0x4000)
+		videoAddress = 0x0000;
+	else
+	if (pScreenAddr >= 0x4000 && pScreenAddr < 0x8000)
+		videoAddress = 0x4000;
+	else
+	if (pScreenAddr >= 0x8000 && pScreenAddr < 0xC000)
+		videoAddress = 0x8000;
+	else
+		videoAddress = 0xC000;
+
+	int address = pScreenAddr - videoAddress;
 
 	int col = address / 0x800;
-	int line = (address % 0x800) / 10;
+	int line = (address % 0x800) / 0x50;
 
-	int lineAddress = (address % 0x800) -  line * 10 + 1;
+	int bytes = address - col * 0x800 + line * 0x50;
 
-	int t = line * CPC_SCR_CX_BYTES;/// +col + lineAddress;
+	int nbLine = line * 8 + col;
 
-	return pScreenAddr;
+	int buffAddress = videoAddress + nbLine * CPC_SCR_CX_BYTES + bytes;
 
-	//return pScreenAddr;
+	return buffAddress; // + _amstrad._memOffset ?
 }
-
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
 {
