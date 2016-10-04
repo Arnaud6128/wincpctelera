@@ -68,6 +68,7 @@ void StartInterrupt();
 BOOL IsCpcMem(const void* pAddress);
 int ConvertPixelPos(int x);
 
+u8 DecodePixel(u8 pPix);
 void CreatePaletteCpc();
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);

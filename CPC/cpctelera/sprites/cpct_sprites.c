@@ -17,29 +17,31 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 	{
 		for (int x = 0; x < width; x++)
 		{
+			u8 pixSrc = DecodePixel(*src);
+
 			switch (_blendMode)
 			{
 			case CPCT_BLEND_XOR:
 			{
-				*dst ^= *src;
+				*dst ^= pixSrc;
 			}
 			break;
 
 			case CPCT_BLEND_AND:
 			{
-				*dst &= *src;
+				*dst &= pixSrc;
 			}
 			break;
 
 			case CPCT_BLEND_OR:
 			{
-				*dst |= *src;
+				*dst |= pixSrc;
 			}
 			break;
 
 			case CPCT_BLEND_ADD:
 			{
-				int dstWithCarry = *dst + *src;
+				int dstWithCarry = *dst + pixSrc;
 				*dst = (u8)dstWithCarry;
 				if (dstWithCarry > 0xFF)
 					_carry = dstWithCarry - 0xFF;
@@ -48,7 +50,7 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 			case CPCT_BLEND_ADC:
 			{
-				int dstWithCarry = *dst + *src + _carry;
+				int dstWithCarry = *dst + pixSrc + _carry;
 				*dst = (u8)dstWithCarry;
 				if (dstWithCarry > 0xFF)
 					_carry = dstWithCarry - 0xFF;
@@ -57,7 +59,7 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 			case CPCT_BLEND_SUB:
 			{
-				int dstWithCarry = *dst - *src;
+				int dstWithCarry = *dst - pixSrc;
 				*dst = (u8)dstWithCarry;
 				if (dstWithCarry < 0)
 					_carry = -dstWithCarry;
@@ -66,7 +68,7 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 			case CPCT_BLEND_SBC:
 			{
-				int dstWithCarry = *dst - *src + _carry;
+				int dstWithCarry = *dst - pixSrc + _carry;
 				*dst = (u8)dstWithCarry;
 				if (dstWithCarry < 0)
 					_carry = -dstWithCarry;
@@ -75,13 +77,13 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 			case CPCT_BLEND_LDI:
 			{
-				*dst = *dst;
+				*dst = pixSrc;
 			}
 			break;
 
 			case CPCT_BLEND_NOP:
 			{
-				dst = 0;
+				*dst = *dst;
 			}
 			break;
 			}
@@ -176,7 +178,7 @@ void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 
 	// TODO
 }
 
-void cpct_hflipSprite(u8 width, u8 height, u8* sprite)
+static void hflipByte(u8 width, u8 height, u8* sprite)
 {
 	for (int y = 0; y < height; y++)
 	{
@@ -195,35 +197,83 @@ void cpct_hflipSprite(u8 width, u8 height, u8* sprite)
 
 void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	u8* data = (u8*)sprite;
+	hflipByte(width, height, data);
+
+	data = sprite;
+	for (int i = 0; i < width*height; i++)
+	{
+		u8 pix0 = (*data & 0x80) >> 7;
+		u8 pixa = (*data & 0x40) >> 6;
+		u8 pix2 = (*data & 0x20) >> 5;
+		u8 pixc = (*data & 0x10) >> 4;
+		u8 pix1 = (*data & 0x08) >> 3;
+		u8 pixb = (*data & 0x04) >> 2;
+		u8 pix3 = (*data & 0x02) >> 1;
+		u8 pixd = (*data & 0x01);
+	
+		*data++ = (pix0 << 6 | pixa << 7 | pix2 << 4 | pixc << 5 | pix1 << 2 | pixb << 3 | pix3 << 0 | pixd << 1); 
+	}
 }
 
 void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	cpct_hflipSpriteM0(width, height, (u8*)sprite);
 }
 
 void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	u8* data = (u8*)sprite;
+	hflipByte(width, height, data);
+
+	data = sprite;
+	for (int i = 0; i < width*height; i++)
+	{
+		u8 pix0 = (*data & 0x80) >> 7;
+		u8 pix1 = (*data & 0x40) >> 6;
+		u8 pix2 = (*data & 0x20) >> 5;
+		u8 pix3 = (*data & 0x10) >> 4;
+		u8 pixa = (*data & 0x08) >> 3;
+		u8 pixb = (*data & 0x04) >> 2;
+		u8 pixc = (*data & 0x02) >> 1;
+		u8 pixd = (*data & 0x01);
+
+		*data++ = (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
+	}
 }
 
 void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	cpct_hflipSpriteM1(width, height, (u8*)sprite);
 }
 
 void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	u8* data = (u8*)sprite;
+	hflipByte(width, height, data);
+
+	data = sprite;
+	for (int i = 0; i < width*height; i++)
+	{
+		u8 pix0 = (*data & 0x80) >> 7;
+		u8 pix1 = (*data & 0x40) >> 6;
+		u8 pix2 = (*data & 0x20) >> 5;
+		u8 pix3 = (*data & 0x10) >> 4;
+		u8 pix4 = (*data & 0x08) >> 3;
+		u8 pix5 = (*data & 0x04) >> 2;
+		u8 pix6 = (*data & 0x02) >> 1;
+		u8 pix7 = (*data & 0x01);
+
+		*data++ = (pix7 << 7 | pix6 << 6 | pix5 << 5 | pix4 << 4 | pix3 << 3 | pix2 << 2 | pix1 << 1 | pix0 << 0);
+	}
 }
 
 void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSprite(width, height, (u8*)sprite);
+	cpct_hflipSpriteM2(width, height, (u8*)sprite);
 }
 
-void cpct_hflipSpriteMasked(u8 width, u8 height, u16* sprite)
+static void hflipWord(u8 width, u8 height, u16* sprite)
 {
 	for (int y = 0; y < height; y++)
 	{
@@ -242,15 +292,18 @@ void cpct_hflipSpriteMasked(u8 width, u8 height, u16* sprite)
 
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+	u16* data = (u16*)sprite;
+	hflipWord(width, height, data);
 }
 
 void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+	u16* data = (u16*)sprite;
+	hflipWord(width, height, data);
 }
 
 void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 {
-	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+	u16* data = (u16*)sprite;
+	hflipWord(width, height, data);
 }
