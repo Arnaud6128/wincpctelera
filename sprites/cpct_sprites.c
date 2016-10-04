@@ -1,5 +1,100 @@
 #include <winCpctelera.h>
 
+static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
+static int _carry;
+
+void cpct_setBlendMode(CPCT_BlendMode mode)
+{
+	_blendMode = mode;
+}
+
+void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
+{
+	u8* dst = (u8*)memory;
+	u8* src = (u8*)sprite;
+
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width; x++)
+		{
+			switch (_blendMode)
+			{
+			case CPCT_BLEND_XOR:
+			{
+				*dst ^= *src;
+			}
+			break;
+
+			case CPCT_BLEND_AND:
+			{
+				*dst &= *src;
+			}
+			break;
+
+			case CPCT_BLEND_OR:
+			{
+				*dst |= *src;
+			}
+			break;
+
+			case CPCT_BLEND_ADD:
+			{
+				int dstWithCarry = *dst + *src;
+				*dst = (u8)dstWithCarry;
+				if (dstWithCarry > 0xFF)
+					_carry = dstWithCarry - 0xFF;
+			}
+			break;
+
+			case CPCT_BLEND_ADC:
+			{
+				int dstWithCarry = *dst + *src + _carry;
+				*dst = (u8)dstWithCarry;
+				if (dstWithCarry > 0xFF)
+					_carry = dstWithCarry - 0xFF;
+			}
+			break;
+
+			case CPCT_BLEND_SUB:
+			{
+				int dstWithCarry = *dst - *src;
+				*dst = (u8)dstWithCarry;
+				if (dstWithCarry < 0)
+					_carry = -dstWithCarry;
+			}
+			break;
+
+			case CPCT_BLEND_SBC:
+			{
+				int dstWithCarry = *dst - *src + _carry;
+				*dst = (u8)dstWithCarry;
+				if (dstWithCarry < 0)
+					_carry = -dstWithCarry;
+			}
+			break;
+
+			case CPCT_BLEND_LDI:
+			{
+				*dst = *dst;
+			}
+			break;
+
+			case CPCT_BLEND_NOP:
+			{
+				dst = 0;
+			}
+			break;
+			}
+
+			dst++;
+			src++;
+		}
+
+		dst += CPC_SCR_CX_BYTES - width;
+	}
+}
+
+
 void cpct_drawTileAligned2x4(void* sprite, void* memory)
 {
 	cpct_drawSprite(sprite, memory, 2, 4);
