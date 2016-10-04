@@ -274,7 +274,7 @@ int ConvertScreenAddress(int pScreenAddr)
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
 {
-	if (IsCpcMem(pScreenAddr))
+	if (IsCpcMem((void*)pScreenAddr))
 	{
 		int address = ConvertScreenAddress(pScreenAddr);
 		return _amstrad._memCPC + address;

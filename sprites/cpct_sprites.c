@@ -75,3 +75,87 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		video += (CPC_SCR_CX_BYTES - width);
 	}
 }
+
+void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
+{
+	// TODO
+}
+
+void cpct_hflipSprite(u8 width, u8 height, u8* sprite)
+{
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width / 2; x++)
+		{
+			u8* dest = sprite + width - x - 1;
+			u8* src = sprite + x;
+
+			u8 temp = *dest;
+			*dest = *src;
+			*src = temp;
+		}
+		sprite += width;
+	}
+}
+
+void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSprite(width, height, (u8*)sprite);
+}
+
+void cpct_hflipSpriteMasked(u8 width, u8 height, u16* sprite)
+{
+	for (int y = 0; y < height; y++)
+	{
+		for (int x = 0; x < width / 2; x++)
+		{
+			u16* dest = sprite + width - x - 1;
+			u16* src = sprite + x;
+
+			u16 temp = *dest;
+			*dest = *src;
+			*src = temp;
+		}
+		sprite += width;
+	}
+}
+
+void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+}
+
+void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+}
+
+void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
+{
+	cpct_hflipSpriteMasked(width, height, (u16*)sprite);
+}
