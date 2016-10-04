@@ -235,6 +235,9 @@ void SetPalette(int i, u8 pHW)
 
 COLORREF GetColorHW(int pHW)
 {
+	if (pHW >= 0x40)
+		pHW -= 0x40;
+
 	for (int i = 0; i < NB_PAL_COLOR; i++)
 	{
 		if (_palette[i].hw == pHW)
@@ -507,6 +510,8 @@ void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMod
 			}
 		}
 	}
+
+	MsgLoop();
 }
 
 void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
@@ -547,7 +552,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 		}
 	}
 
-	MsgLoop();
+	Refresh();
 }
 
 u8* GetRenderingBuffer()
@@ -609,7 +614,7 @@ void StartCPC()
 void ScanKeyboard()
 {
 	ZeroMemory(cpct_keyboardStatusBuffer, sizeof(cpct_keyboardStatusBuffer));
-	MsgLoop();
+	Refresh();
 }
 
 void CPCTeleraWin()
