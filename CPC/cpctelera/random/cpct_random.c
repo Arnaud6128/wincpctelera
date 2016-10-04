@@ -1,5 +1,7 @@
 #include "winCpctelera.h"
 
+static u16 _seed;
+
 u8 cpct_getRandom_mxor_u8()
 {
 	return (u8)rand();
