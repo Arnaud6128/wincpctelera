@@ -12,7 +12,6 @@ void cpct_reenableFirmware(u16 firmware_ROM_code)
 
 u16 cpct_disableFirmware()
 {
-	srand(GetTickCount());
 	CPCTeleraWin();
 	return 0;
 }

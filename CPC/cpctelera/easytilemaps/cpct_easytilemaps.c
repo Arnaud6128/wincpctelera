@@ -3,7 +3,6 @@
 #define TILE_CX	2
 #define TILE_CY	4
 
-
 static u8** _curTilset;
 
 void cpct_etm_setTileset2x4(const void* ptileset)
@@ -13,16 +12,15 @@ void cpct_etm_setTileset2x4(const void* ptileset)
 
 void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideomem, const void* ptilemap)
 {
-	u8* screen = (u8*)pvideomem;
+	u8* screen = GetCurVideoBuffer() + (u8*)(int)pvideomem - GetVideoArea((int)pvideomem);
 	u8* tilemap = ((u8*)ptilemap) + y*w + x;
 
 	for (int iy = 0; iy < h; iy++)
 	{
 		for (int ix = 0; ix < w; ix++)
 		{
-			u8 tileIndex = *tilemap++;
-			u8* tileSprite = _curTilset[tileIndex];
-			cpct_drawSprite(tileSprite, screen, TILE_CX, TILE_CY);
+			u8* tileSprite = _curTilset[*tilemap++];
+			DrawSprite(tileSprite, screen, TILE_CX, TILE_CY, FALSE);
 
 			screen += TILE_CX;
 		}
