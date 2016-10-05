@@ -67,6 +67,7 @@ void Refresh();
 void StartInterrupt();
 BOOL IsCpcMem(const void* pAddress);
 int ConvertPixelPos(int x);
+int GetVideoArea(int pScreenAddr);
 
 u8 DecodePixel(u8 pPix);
 void CreatePaletteCpc();

@@ -23,7 +23,7 @@ const SCPCPalette _palette[NB_PAL_COLOR] =
 	HW_PURPLE, RGB(255,0,128),
 	HW_BRIGHT_MAGENTA, RGB(255,0,255),
 	HW_GREEN, RGB(0,128,0),
-	HW_CYAN, RGB(128,0,128),
+	HW_CYAN, RGB(0,128,128),
 	HW_SKY_BLUE, RGB(0,128,255),
 	HW_YELLOW, RGB(128,128,0),
 	HW_WHITE, RGB(128,128,128),
@@ -246,7 +246,7 @@ COLORREF GetColorHW(int pHW)
 	return _palette[0].rgb;
 }
 
-int ConvertScreenAddress(int pScreenAddr)
+int GetVideoArea(int pScreenAddr)
 {
 	int videoAddress = 0;
 
@@ -261,18 +261,21 @@ int ConvertScreenAddress(int pScreenAddr)
 	else
 		videoAddress = 0xC000;
 
+	return videoAddress;
+}
+
+int ConvertScreenAddress(int pScreenAddr)
+{
+	int videoAddress = GetVideoArea(pScreenAddr);
 	int address = pScreenAddr - videoAddress;
 
-	int col = address / 0x800;
-	int line = (address % 0x800) / 0x50;
+	int line = (address / 0x800);
+	int lineChar = (address - line * 0x800) / 0x50;
+	int bytes = (address - line * 0x800) % 0x50;
 
-	int bytes = address - col * 0x800 + line * 0x50;
+	int buffAddress = (lineChar * 8 + line) * CPC_SCR_CX_BYTES + bytes;
 
-	int nbLine = line * 8 + col;
-
-	int buffAddress = videoAddress + nbLine * CPC_SCR_CX_BYTES + bytes;
-
-	return buffAddress; // + _amstrad._memOffset ?
+	return videoAddress + buffAddress; // + _amstrad._memOffset ?
 }
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
