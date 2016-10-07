@@ -275,7 +275,7 @@ int ConvertScreenAddress(int pScreenAddr)
 
 	int buffAddress = (lineChar * 8 + line) * CPC_SCR_CX_BYTES + bytes;
 
-	return videoAddress + buffAddress; // + _amstrad._memOffset ?
+	return videoAddress + buffAddress;
 }
 
 u8* GetVideoBufferFromAddress(int pScreenAddr)
@@ -554,13 +554,11 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 			video += (CPC_SCR_CX_BYTES - cx);
 		}
 	}
-
-	Refresh();
 }
 
 u8* GetRenderingBuffer()
 {
-	u8 *buff = GetCurVideoBuffer() + _amstrad._memOffset;
+	u8 *buff = GetCurVideoBuffer();
 
 	/** Convert mode 0 to mode 1 4bits */
 	if (_amstrad._mode == 1)
@@ -593,7 +591,25 @@ u8* GetRenderingBuffer()
 		buff = buffMode1;
 	}
 
-	return buff;
+	/*if (_amstrad._memOffset != 0)
+	{
+		int src = 0;
+		int dst = 0x4000 - _amstrad._memOffset*4 + 1;
+
+		for (int y = 0; y < CPC_SCR_CY_LINE; y++)
+		{
+			for (int x = 0; x < CPC_SCR_CX_BYTES; x++)
+			{
+				_amstrad._mode02Video[dst++] = buff[src++];
+				if (dst > 0x4000)
+					dst = 0;
+			}
+		}
+
+		return _amstrad._mode02Video;
+	}*/
+
+	return buff + _amstrad._memOffset * 2;
 }
 
 void StartCPC()

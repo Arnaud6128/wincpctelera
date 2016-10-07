@@ -46,6 +46,8 @@ typedef struct tagSAmstrad
 	u8 _memOffset;
 
 	u8 _memCPC[CPC_MEM_SIZE];
+
+	u8 _mode02Video[0x4000];
 	u8 _mode1Video[0x8000];
 
 } SAmstrad;
