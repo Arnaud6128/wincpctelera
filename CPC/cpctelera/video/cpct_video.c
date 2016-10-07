@@ -26,7 +26,7 @@ u8 cpct_getHWColour(u16 pFW)
 
 void cpct_waitVSYNC()
 {
-	Sleep(20);
+	Sleep(1);
 	Refresh();
 }
 
@@ -53,8 +53,7 @@ void cpct_setVideoMemoryPage(u8 page_6LSb)
 
 void cpct_setVideoMemoryOffset(u8 offset)
 {
-	_amstrad._memOffset = ConvertPixelPos(offset);
-	Refresh();
+	_amstrad._memOffset = offset;
 }
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
