@@ -118,6 +118,8 @@ void Redraw(HWND pWnd)
 	free(bitmapInfos);
 
 	EndPaint(pWnd, &ps);
+
+	Sleep(5);
 }
 
 LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
