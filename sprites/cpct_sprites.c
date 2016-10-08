@@ -2,6 +2,7 @@
 
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
 static int _carry;
+static u8 _transparentColor;
 
 void cpct_setBlendMode(CPCT_BlendMode mode)
 {
@@ -21,71 +22,71 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 			switch (_blendMode)
 			{
-			case CPCT_BLEND_XOR:
-			{
-				*dst ^= pixSrc;
-			}
-			break;
+				case CPCT_BLEND_XOR:
+				{
+					*dst ^= pixSrc;
+				}
+				break;
 
-			case CPCT_BLEND_AND:
-			{
-				*dst &= pixSrc;
-			}
-			break;
+				case CPCT_BLEND_AND:
+				{
+					*dst &= pixSrc;
+				}
+				break;
 
-			case CPCT_BLEND_OR:
-			{
-				*dst |= pixSrc;
-			}
-			break;
+				case CPCT_BLEND_OR:
+				{
+					*dst |= pixSrc;
+				}
+				break;
 
-			case CPCT_BLEND_ADD:
-			{
-				int dstWithCarry = *dst + pixSrc;
-				*dst = (u8)dstWithCarry;
-				if (dstWithCarry > 0xFF)
-					_carry = dstWithCarry - 0xFF;
-			}
-			break;
+				case CPCT_BLEND_ADD:
+				{
+					int dstWithCarry = *dst + pixSrc;
+					*dst = (u8)dstWithCarry;
+					if (dstWithCarry > 0xFF)
+						_carry = dstWithCarry - 0xFF;
+				}
+				break;
 
-			case CPCT_BLEND_ADC:
-			{
-				int dstWithCarry = *dst + pixSrc + _carry;
-				*dst = (u8)dstWithCarry;
-				if (dstWithCarry > 0xFF)
-					_carry = dstWithCarry - 0xFF;
-			}
-			break;
+				case CPCT_BLEND_ADC:
+				{
+					int dstWithCarry = *dst + pixSrc + _carry;
+					*dst = (u8)dstWithCarry;
+					if (dstWithCarry > 0xFF)
+						_carry = dstWithCarry - 0xFF;
+				}
+				break;
 
-			case CPCT_BLEND_SUB:
-			{
-				int dstWithCarry = *dst - pixSrc;
-				*dst = (u8)dstWithCarry;
-				if (dstWithCarry < 0)
-					_carry = -dstWithCarry;
-			}
-			break;
+				case CPCT_BLEND_SUB:
+				{
+					int dstWithCarry = *dst - pixSrc;
+					*dst = (u8)dstWithCarry;
+					if (dstWithCarry < 0)
+						_carry = -dstWithCarry;
+				}
+				break;
 
-			case CPCT_BLEND_SBC:
-			{
-				int dstWithCarry = *dst - pixSrc + _carry;
-				*dst = (u8)dstWithCarry;
-				if (dstWithCarry < 0)
-					_carry = -dstWithCarry;
-			}
-			break;
+				case CPCT_BLEND_SBC:
+				{
+					int dstWithCarry = *dst - pixSrc + _carry;
+					*dst = (u8)dstWithCarry;
+					if (dstWithCarry < 0)
+						_carry = -dstWithCarry;
+				}
+				break;
 
-			case CPCT_BLEND_LDI:
-			{
-				*dst = pixSrc;
-			}
-			break;
+				case CPCT_BLEND_LDI:
+				{
+					*dst = pixSrc;
+				}
+				break;
 
-			case CPCT_BLEND_NOP:
-			{
-				*dst = *dst;
-			}
-			break;
+				case CPCT_BLEND_NOP:
+				{
+					*dst = *dst;
+				}
+				break;
 			}
 
 			dst++;
@@ -147,12 +148,12 @@ void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 	if (IsCpcMem(memory))
 		memory = GetVideoBufferFromAddress((int)memory);
 
-	DrawSprite(sprite, memory, width, height, FALSE);
+	DrawSprite(sprite, memory, width, height, SPRITE_NORMAL);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
-	DrawSprite(sprite, memory, width, height, TRUE);
+	DrawSprite(sprite, memory, width, height, SPRITE_MASKED);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
@@ -175,7 +176,8 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 
 void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
 {
-	// TODO
+	_transparentColor = ((u8*)pmasktable)[0];
+	DrawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
 }
 
 static void hflipByte(u8 width, u8 height, u8* sprite)
@@ -273,7 +275,7 @@ void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM2(width, height, (u8*)sprite);
 }
 
-static void hflipWord(u8 width, u8 height, u16* sprite)
+static void hflipMasked(u8 width, u8 height, u16* sprite)
 {
 	for (int y = 0; y < height; y++)
 	{
@@ -293,17 +295,73 @@ static void hflipWord(u8 width, u8 height, u16* sprite)
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 {
 	u16* data = (u16*)sprite;
-	hflipWord(width, height, data);
+	hflipMasked(width, height, data);
 }
 
 void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 {
 	u16* data = (u16*)sprite;
-	hflipWord(width, height, data);
+	hflipMasked(width, height, data);
 }
 
 void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 {
 	u16* data = (u16*)sprite;
-	hflipWord(width, height, data);
+	hflipMasked(width, height, data);
+}
+
+void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
+{
+	u8* video = (u8*)memory;
+
+	if (pSpriteMode == SPRITE_MASKED)
+	{
+		WORD* pix = (WORD*)sprite;
+		for (int yi = 0; yi < cy; yi++)
+		{
+			for (int xi = 0; xi < cx; xi++)
+			{
+				u8 mask = DecodePixel((u8)(*pix));
+				u8 sprite = DecodePixel((u8)(*pix >> 8));
+				*video = *video ^ sprite;
+				*video = *video & mask;
+				*video = *video ^ sprite;
+
+				video++;
+				pix++;
+			}
+			video += (CPC_SCR_CX_BYTES - cx);
+		}
+	}
+	else if (pSpriteMode == SPRITE_NORMAL)
+	{
+		u8* pix = (u8*)sprite;
+		for (int yi = 0; yi < cy; yi++)
+		{
+			for (int xi = 0; xi < cx; xi++)
+			{
+				*video = DecodePixel(*pix);
+				video++;
+				pix++;
+			}
+			video += (CPC_SCR_CX_BYTES - cx);
+		}
+	}
+	else if (pSpriteMode == SPRITE_ALIGNEDTABLE)
+	{
+		u8* pix = (u8*)sprite;
+		for (int yi = 0; yi < cy; yi++)
+		{
+			for (int xi = 0; xi < cx; xi++)
+			{
+				u8 pixel = DecodePixel(*pix);
+				if (pixel != _transparentColor)
+					*video = pixel;
+
+				video++;
+				pix++;
+			}
+			video += (CPC_SCR_CX_BYTES - cx);
+		}
+	}
 }

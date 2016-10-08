@@ -26,11 +26,22 @@
 
 #define CPC_MEM_SIZE		0xFFFF
 
-#define MODE_0				0
-#define MODE_1				1
-#define MODE_2				2
-
 #define INTERRUPT_MS		33
+
+enum
+{
+	MODE_0,
+	MODE_1,
+	MODE_2
+};
+
+enum
+{
+	SPRITE_NORMAL,
+	SPRITE_MASKED,
+	SPRITE_ALIGNEDTABLE
+};
+
 
 typedef void(*TInterrupt)(void);
 
@@ -46,9 +57,10 @@ typedef struct tagSAmstrad
 	u8 _memOffset;
 
 	u8 _memCPC[CPC_MEM_SIZE];
-
-	u8 _mode02Video[0x4000];
 	u8 _mode1Video[0x8000];
+
+	u8 _renderVideo[0x4000];
+	u8 _renderMode1Video[0x8000];
 
 } SAmstrad;
 
@@ -61,25 +73,17 @@ typedef struct tagSCPCPalette
 extern const SCPCPalette _palette[NB_PAL_COLOR];
 extern BOOL _curKey;
 extern SAmstrad _amstrad;
-extern u8 cpct_keyboardStatusBuffer[10];
 
 void CPCTeleraWin();
 void MsgLoop();
 void Refresh();
 void StartInterrupt();
+
 BOOL IsCpcMem(const void* pAddress);
 int ConvertPixelPos(int x);
 int GetVideoArea(int pScreenAddr);
-
+u8* GetVideoBufferFromAddress(int pScreenAddr);
 u8 DecodePixel(u8 pPix);
 void CreatePaletteCpc();
-void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
-void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked);
+void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
 
-void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
-void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
-void DisplayFontM2(u8* pVideo, u8 pPen, char pChara);
-void ScanKeyboard();
-u16 GetVKey(u16 pCpcKeyID);
-
-u8* GetVideoBufferFromAddress(int pScreenAddr);

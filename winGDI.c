@@ -242,8 +242,6 @@ void MsgLoop()
 		else
 			return;
 	}
-
-	Sleep(10);
 }
 
 void Refresh()

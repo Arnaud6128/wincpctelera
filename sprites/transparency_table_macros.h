@@ -114,7 +114,7 @@
 // recommended that you put your explicitly located data items first, previous to the starting
 // memory address of your program. That's easier to manage.
 //
-#define cpctm_createTransparentMaskTable(TABLENAME,ADDRESS,MODE,PEN)	u8 TABLENAME_MODE[] = { PEN } 
+#define cpctm_createTransparentMaskTable(TABLENAME,ADDRESS,MODE,PEN)	u8 TABLENAME[] = { PEN } 
 
 //
 // Macro: cpctm_declareMaskTable
@@ -175,6 +175,6 @@
 //    }
 // (end code)
 //
-#define cpctm_declareMaskTable (TABLENAME)	
+#define cpctm_declareMaskTable(MASKTABLE)	
 
 #endif
