@@ -15,14 +15,14 @@ void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideom
 	u8* videoAddress = (u8*)pvideomem + 0x50 * (y / 2) + 0x2000 * (y % 2) + 2 * x;
 
 	u8* screen = GetVideoBufferFromAddress((int)videoAddress);
-	u8* tilemap = ((u8*)ptilemap) + y*w + x;
+	u8* tilemap = ((u8*)ptilemap) + y*map_width + x;
 
 	for (int iy = 0; iy < h; iy++)
 	{
 		for (int ix = 0; ix < w; ix++)
 		{
 			u8* tileSprite = _curTilset[*tilemap++];
-			DrawSprite(tileSprite, screen, TILE_CX, TILE_CY, FALSE);
+			DrawSprite(tileSprite, screen, TILE_CX, TILE_CY, SPRITE_NORMAL);
 
 			screen += TILE_CX;
 		}
