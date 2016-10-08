@@ -558,7 +558,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, BOOL pMasked)
 
 u8* GetRenderingBuffer()
 {
-	u8 *buff = GetCurVideoBuffer();
+	u8 *buffVideo = GetCurVideoBuffer();
 
 	/** Convert mode 0 to mode 1 4bits */
 	if (_amstrad._mode == 1)
@@ -568,14 +568,14 @@ u8* GetRenderingBuffer()
 		int i = 0, j = 0;
 		while (i < 0x4000)
 		{
-			u8 valPix = buff[i++];
+			u8 valPix = buffVideo[i++];
 
 			u8 pix3 = (valPix & 0b00000011);
 			u8 pix2 = (valPix & 0b00001100) << 2;
 			u8 pix1 = (valPix & 0b00110000) >> 4;
 			u8 pix0 = (valPix & 0b11000000) >> 2;
 
-			valPix = buff[i++];
+			valPix = buffVideo[i++];
 
 			u8 pix7 = (valPix & 0b00000011);
 			u8 pix6 = (valPix & 0b00001100) << 2;
@@ -588,28 +588,34 @@ u8* GetRenderingBuffer()
 			buffMode1[j++] = pix7 | pix6;
 		}
 
-		buff = buffMode1;
+		buffVideo = buffMode1;
 	}
 
-	/*if (_amstrad._memOffset != 0)
-	{
-		int src = 0;
-		int dst = 0x4000 - _amstrad._memOffset*4 + 1;
+	if (_amstrad._memOffset != 0)
+	{		
+		u8* destVideo = _amstrad._mode02Video;
+		int dstIndex = 0x4000 - _amstrad._memOffset * 2;
 
-		for (int y = 0; y < CPC_SCR_CY_LINE; y++)
+		for (int i = 0; i < CPC_SCR_CY_LINE*CPC_SCR_CX_BYTES; i++)
 		{
-			for (int x = 0; x < CPC_SCR_CX_BYTES; x++)
+			destVideo[dstIndex++] = *buffVideo++;
+			if (dstIndex > 0x3FFF)
+				dstIndex = 0;
+		}
+
+		for (int x = 0; x <  _amstrad._memOffset * 2 ; x++)
+		{
+			for (int y = 7; y < CPC_SCR_CY_LINE + 7; y++)
 			{
-				_amstrad._mode02Video[dst++] = buff[src++];
-				if (dst > 0x4000)
-					dst = 0;
+				int offsetX = CPC_SCR_CX_BYTES - x - 1;
+				*(destVideo + (y - 7)*CPC_SCR_CX_BYTES + offsetX) = *(destVideo + y*CPC_SCR_CX_BYTES + offsetX);
 			}
 		}
 
-		return _amstrad._mode02Video;
-	}*/
+		buffVideo = destVideo;
+	}
 
-	return buff + _amstrad._memOffset * 2;
+	return buffVideo;
 }
 
 void StartCPC()
