@@ -59,8 +59,9 @@ u8 cpct_getHWColour(u16 pFW)
 
 void cpct_waitVSYNC()
 {
-	Sleep(1);
-	Refresh();
+	Sleep(10);
+	_amstrad._internalTimer = 0;
+	MsgLoop();
 }
 
 u16 cpct_count2VSYNC()
@@ -81,7 +82,6 @@ void cpct_setVideoMode(u8 videoMode)
 void cpct_setVideoMemoryPage(u8 page_6LSb)
 {
 	_amstrad._currentPage = page_6LSb;
-	Refresh();
 }
 
 void cpct_setVideoMemoryOffset(u8 offset)
@@ -122,10 +122,10 @@ int GetPixelBit()
 {
 	switch (_amstrad._mode)
 	{
-	case MODE_2: return 1;
-	case MODE_1: return 4; // Hack BMP not handle 2bits bitmap
-	case MODE_0:
-	default: return 4;
+		case MODE_2: return 1;
+		case MODE_1: return 4; // BMP not handle 2bits bitmap
+		case MODE_0:
+		default: return 4;
 	}
 }
 
@@ -133,10 +133,10 @@ int GetScreenWidth()
 {
 	switch (_amstrad._mode)
 	{
-	case MODE_2: return 640;
-	case MODE_1: return 320;
-	case MODE_0:
-	default: return 160;
+		case MODE_2: return 640;
+		case MODE_1: return 320;
+		case MODE_0:
+		default: return 160;
 	}
 }
 
@@ -144,16 +144,11 @@ int ConvertPixelPos(int x)
 {
 	switch (_amstrad._mode)
 	{
-	case MODE_2: return x;
-	case MODE_1: return x * 2;
-	case MODE_0:
-	default: return x * 4;
+		case MODE_2: return x;
+		case MODE_1: return x * 2;
+		case MODE_0:
+		default: return x * 4;
 	}
-}
-
-BOOL IsCpcMem(const void* pAddress)
-{
-	return ((int)pAddress < 0xFFFF);
 }
 
 int GetVideoArea(int pScreenAddr)
@@ -203,15 +198,15 @@ u8* GetVideoBufferFromPage(int pPage)
 {
 	switch (pPage)
 	{
-	case cpct_page00:
-		return _amstrad._memCPC;
-	case cpct_page40:
-		return _amstrad._memCPC + 0x4000;
-	case cpct_page80:
-		return _amstrad._memCPC + 0x8000;
-	case cpct_pageC0:
-	default:
-		return _amstrad._memCPC + 0xC000;
+		case cpct_page00:
+			return _amstrad._memCPC;
+		case cpct_page40:
+			return _amstrad._memCPC + 0x4000;
+		case cpct_page80:
+			return _amstrad._memCPC + 0x8000;
+		case cpct_pageC0:
+		default:
+			return _amstrad._memCPC + 0xC000;
 	}
 }
 
