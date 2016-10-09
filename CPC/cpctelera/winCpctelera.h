@@ -23,6 +23,7 @@
 
 #define CPC_SCR_CX_BYTES	80
 #define CPC_SCR_CY_LINE		200
+#define CPC_INTERRUPT_LINE	(CPC_SCR_CY_LINE/6)
 
 #define CPC_MEM_SIZE		0xFFFF
 
