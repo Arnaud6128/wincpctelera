@@ -249,7 +249,7 @@ u8 DecodePixel(u8 pPix)
 		u8 pix5 = (pPix & 0x02) >> 1;
 		u8 pix7 = (pPix & 0x01);
 
-		u8 val = (pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6 | pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4);
+		u8 val = (pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4 | pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6);
 		return val;
 	}
 

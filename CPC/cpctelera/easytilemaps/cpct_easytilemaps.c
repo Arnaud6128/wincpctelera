@@ -29,6 +29,10 @@ void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideom
 		tilemap += map_width - w;
 		screen += CPC_SCR_CX_BYTES * TILE_CY - w * TILE_CX;
 	}
+
+	Sleep(50);
+
+	MsgLoop();
 }
 
 void cpct_etm_drawTilemap2x4_f(u8 map_width, u8 map_height, u8* pvideomem, u8* ptilemap)
