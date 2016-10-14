@@ -28,6 +28,7 @@
 #define CPC_MEM_SIZE		0xFFFF
 
 #define INTERRUPT_MS		33
+#define REFRESH_RATE		20
 
 enum
 {

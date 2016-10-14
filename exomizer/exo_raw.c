@@ -27,6 +27,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
 #include "membuf.h"
 #include "exo_helper.h"
 
@@ -50,7 +52,7 @@ void read_file(const char *name, struct membuf *buf)
     fclose(in);
 }
 
-void write_file(const char *name, struct membuf *buf)
+/*void write_file(const char *name, struct membuf *buf)
 {
     FILE *out;
     out = fopen(name, "wb");
@@ -60,26 +62,34 @@ void write_file(const char *name, struct membuf *buf)
     }
     fwrite(membuf_get(buf), 1, membuf_memlen(buf), out);
     fclose(out);
-}
+}*/
 
-int
-main(void)
+int unexo(char* in, char* out)
 {
 	struct membuf inbuf[1];
 	struct membuf outbuf[1];
 
+	//unsigned short size = *(unsigned short*)(in + 3) + 2;
+
+	//char block[1024];
+	//memcpy(block, in, size);
+
 	membuf_init(inbuf);
+
+	//read_file("compress.exo", inbuf);
+	//membuf_append(inbuf, in, size);
+
 	membuf_init(outbuf);
 
 	int backwards_mode = 0;
 	int seems_backward = 0;
 	int seems_forward = 0;
 	unsigned char *p;
-
-	read_file("icon.exo", inbuf);
 	
 	p = membuf_get(inbuf);
-	if (p[0] == 0x80 && p[1] == 0x0)
+	p = in;
+
+	/*if (p[0] == 0x80 && p[1] == 0x0)
 	{
 		seems_backward = 1;
 	}
@@ -87,25 +97,25 @@ main(void)
 	if (p[-1] == 0x80 && p[-2] == 0x0)
 	{
 		seems_forward = 1;
-	}
+	}*/
 
 	/* do we know what way it was crunched? */
-	if ((seems_backward ^ seems_forward) != 0)
-	{
+	/*if ((seems_backward ^ seems_forward) != 0)
+	{*/
 		/* yes, override option. */
-		backwards_mode = seems_backward;
-	}
+/*		backwards_mode = seems_backward;
+	}*/
 
-	if (backwards_mode)
+//	if (backwards_mode)
 	{
 		decrunch_backwards(inbuf, outbuf);
 	}
-	else
+/*	else
 	{
 		decrunch(inbuf, outbuf);
-	}
+	}*/
 	
-	write_file("icon.c", outbuf);
+	//write_file("icon.c", outbuf);
 
 	membuf_free(outbuf);
 	membuf_free(inbuf);
