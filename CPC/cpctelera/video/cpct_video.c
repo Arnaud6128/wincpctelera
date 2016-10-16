@@ -59,7 +59,7 @@ u8 cpct_getHWColour(u16 pFW)
 
 void cpct_waitVSYNC()
 {
-	Sleep(10);
+	Sleep(20);
 	_amstrad._internalTimer = 0;
 	MsgLoop();
 }
