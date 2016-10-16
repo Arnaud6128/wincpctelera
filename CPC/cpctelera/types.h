@@ -1,3 +1,5 @@
+#define const	
+
 #define __at(X) \
 /* X */
 

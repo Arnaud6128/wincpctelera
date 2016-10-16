@@ -307,6 +307,8 @@ static void hflipByteMasked(u8 width, u8 height, u16* sprite)
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 {
 	u8* data = (u8*)sprite;
+
+
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
