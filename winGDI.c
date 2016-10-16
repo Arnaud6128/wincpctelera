@@ -257,13 +257,13 @@ void MsgLoop()
 void Refresh()
 {
 	DWORD elapse = timeGetTime() - _lastTime;
-
 	if (elapse > REFRESH_RATE)
 	{
-		//Sleep(REFRESH_RATE - elapse);
 		_lastTime = timeGetTime();
 		InvalidateRect(_hWnd, NULL, FALSE);
 	}
+	else
+		Sleep(REFRESH_RATE - elapse);
 
 	MsgLoop();
 }
@@ -274,13 +274,11 @@ VOID CALLBACK InternalTimer(
 	UINT idTimer,
 	DWORD dwTime)
 {
-	if (_amstrad._internalTimer == 6)
+	if (_amstrad._internalTimer++ == 6)
 		_amstrad._internalTimer = 0;
 
-	if (_amstrad._interruptFunction != NULL && _amstrad._internalTimer == 5)
+	if (_amstrad._interruptFunction != NULL)
 		_amstrad._interruptFunction();
-
-	_amstrad._internalTimer++;
 
 	Refresh();
 }
