@@ -2,7 +2,7 @@
 
 static u8* ApplyLSBOffset(u8* buffVideo);
 
-const SCPCPalette _palette[NB_PAL_COLOR] =
+SCPCPalette _palette[NB_PAL_COLOR] =
 {
 	HW_BLACK, RGB(0,0,0),
 	HW_BLUE, RGB(0,0,128),

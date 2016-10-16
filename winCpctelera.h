@@ -72,7 +72,7 @@ typedef struct tagSCPCPalette
 	COLORREF rgb;
 } SCPCPalette;
 
-extern const SCPCPalette _palette[NB_PAL_COLOR];
+extern SCPCPalette _palette[NB_PAL_COLOR];
 extern BOOL _curKey;
 extern SAmstrad _amstrad;
 

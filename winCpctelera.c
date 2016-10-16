@@ -1,5 +1,9 @@
 #include "winCpctelera.h"
 
+#ifdef const
+	#undef const
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
