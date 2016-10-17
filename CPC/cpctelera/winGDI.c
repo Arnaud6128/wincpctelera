@@ -2,6 +2,8 @@
 
 #ifdef _USEWINGDI
 
+#pragma comment(lib,"winmm.lib")
+
 extern u16 GetCpcKey(u16 pVKeyID);
 extern COLORREF GetColorHW(int pHW);
 extern int GetPixelBit();
