@@ -36,8 +36,8 @@
 //
 // Declare type for CPC keys
 //
-        enum cpct_e_keyID;
-typedef enum cpct_e_keyID cpct_keyID;
+        //enum cpct_e_keyID;
+typedef unsigned short cpct_keyID;
 
 ///
 /// Function Declarations
