@@ -129,13 +129,14 @@ void cpct_scanKeyboard()
 
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
-	MsgLoop();
+	Refresh();
+	_curKey = FALSE;
 	return GetAsyncKeyState(GetVKey(key)) != 0 ? TRUE : FALSE;
 }
 
 u8 cpct_isAnyKeyPressed()
 {
-	MsgLoop();
+	Refresh();
 	BOOL isKeyPressed = (_curKey != FALSE);
 	_curKey = FALSE;
 	return isKeyPressed;
@@ -160,7 +161,7 @@ static u16 GetVKey(u16 pCpcKeyID)
 
 static void ScanKeyboard()
 {
-	ZeroMemory(cpct_keyboardStatusBuffer, sizeof(cpct_keyboardStatusBuffer));
+	memset(cpct_keyboardStatusBuffer, 0xFF, sizeof(cpct_keyboardStatusBuffer));
 	Refresh();
 }
 
@@ -171,6 +172,18 @@ u16 GetCpcKey(u16 pVKeyID)
 		if (cpctMapKey[i].winKeyID == pVKeyID)
 		{
 			return cpctMapKey[i].cpcKeyID;
+		}
+	}
+	return 0;
+}
+
+u8 GetCpcKeyPos(u16 pVKeyID)
+{
+	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	{
+		if (cpctMapKey[i].winKeyID == pVKeyID)
+		{
+			return i;
 		}
 	}
 	return 0;

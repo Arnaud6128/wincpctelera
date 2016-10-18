@@ -4,11 +4,11 @@
 
 #pragma comment(lib,"winmm.lib")
 
-extern u16 GetCpcKey(u16 pVKeyID);
 extern COLORREF GetColorHW(int pHW);
 extern int GetPixelBit();
 extern int GetScreenWidth();
 extern UCHAR* GetRenderingBuffer();
+extern u8 GetCpcKeyPos(u16 pVKeyID);
 
 static HPALETTE _hPal;
 static HWND _hWnd;
@@ -140,7 +140,10 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 	{
 		case WM_KEYDOWN:
 			_curKey = TRUE;
-			cpct_keyboardStatusBuffer[9] = (u8)(GetCpcKey(wParam) >> 8);
+			int pos = GetCpcKeyPos(wParam);
+			int i = pos / 8;
+			int off = pos % 8 + 1;
+			cpct_keyboardStatusBuffer[i] = 0xFF ^ off;// (u8)(0xFF - (GetCpcKeyPos(wParam)));
 			break;
 
 		case WM_PAINT:
@@ -278,7 +281,7 @@ VOID CALLBACK InternalTimer(
 {
 	if (_amstrad._internalTimer++ == 6)
 		_amstrad._internalTimer = 0;
-
+	
 	if (_amstrad._interruptFunction != NULL)
 		_amstrad._interruptFunction();
 
