@@ -129,14 +129,14 @@ void cpct_scanKeyboard()
 
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
-	Refresh();
+	MsgLoop();
 	_curKey = FALSE;
 	return GetAsyncKeyState(GetVKey(key)) != 0 ? TRUE : FALSE;
 }
 
 u8 cpct_isAnyKeyPressed()
 {
-	Refresh();
+	MsgLoop();
 	BOOL isKeyPressed = (_curKey != FALSE);
 	_curKey = FALSE;
 	return isKeyPressed;
@@ -162,7 +162,7 @@ static u16 GetVKey(u16 pCpcKeyID)
 static void ScanKeyboard()
 {
 	memset(cpct_keyboardStatusBuffer, 0xFF, sizeof(cpct_keyboardStatusBuffer));
-	Refresh();
+	MsgLoop();
 }
 
 u16 GetCpcKey(u16 pVKeyID)
