@@ -242,6 +242,7 @@ void CreateWindowApp()
 
 void MsgLoop()
 {
+	Sleep(10);
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 

@@ -32,8 +32,6 @@ void SetBits(void *array, u16 pos, u16 value, int size)
 	mask = ~(mask << bitPos);
 	*byte = *byte & mask;
 	*byte |= (value << bitPos);
-
-	Sleep(5);
 }
 
 u8 cpct_getBit(void *array, u16 pos)

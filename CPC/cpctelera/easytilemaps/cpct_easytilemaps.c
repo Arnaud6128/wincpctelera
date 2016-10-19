@@ -30,8 +30,6 @@ void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideom
 		screen += CPC_SCR_CX_BYTES * TILE_CY - w * TILE_CX;
 	}
 
-	Sleep(50);
-
 	MsgLoop();
 }
 
