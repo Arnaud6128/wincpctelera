@@ -141,9 +141,7 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		case WM_KEYDOWN:
 			_curKey = TRUE;
 			int pos = GetCpcKeyPos(wParam);
-			int i = pos / 8;
-			int off = pos % 8 + 1;
-			cpct_keyboardStatusBuffer[i] = 0xFF ^ off;// (u8)(0xFF - (GetCpcKeyPos(wParam)));
+			cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
 			break;
 
 		case WM_PAINT:
@@ -261,16 +259,7 @@ void MsgLoop()
 
 void Refresh()
 {
-	DWORD elapse = timeGetTime() - _lastTime;
-	if (elapse > REFRESH_RATE)
-	{
-		_lastTime = timeGetTime();
-		InvalidateRect(_hWnd, NULL, FALSE);
-	}
-	else
-		Sleep(REFRESH_RATE - elapse);
-
-	MsgLoop();
+	InvalidateRect(_hWnd, NULL, FALSE);
 }
 
 VOID CALLBACK InternalTimer(
