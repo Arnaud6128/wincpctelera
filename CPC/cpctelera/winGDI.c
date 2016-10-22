@@ -189,7 +189,7 @@ void PosWindow()
 	SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE);
 	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
 
-	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2 + 100;
+	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2;
 	int posY = (GetSystemMetrics(SM_CYFULLSCREEN) - FULL_SCREEN_CY) / 2;
 
 	SIZE szDesiredClient = { FULL_SCREEN_CX, FULL_SCREEN_CY };
@@ -242,7 +242,6 @@ void CreateWindowApp()
 
 void MsgLoop()
 {
-	Sleep(10);
 	MSG msg;
 	memset(&msg, 0, sizeof(msg));
 
@@ -282,8 +281,7 @@ void StartInterrupt()
 {
 	TIMECAPS tc;
 	timeGetDevCaps(&tc, sizeof(TIMECAPS));
-	int timerRes = tc.wPeriodMin > 5 ? tc.wPeriodMin : 5;
-
+	int timerRes = tc.wPeriodMin > 1 ? tc.wPeriodMin : 1;
 	timeBeginPeriod(timerRes);
 
 	SetTimer(_hWnd, WM_USER + 464, INTERRUPT_MS, InternalTimer);
