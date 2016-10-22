@@ -71,6 +71,7 @@ u16 cpct_count2VSYNC()
 void cpct_clearScreen(u8 colour_pattern)
 {
 	memset(GetVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
+	Sleep(1);
 }
 
 void cpct_setVideoMode(u8 videoMode)
