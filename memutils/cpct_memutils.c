@@ -19,7 +19,6 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 	from = GetMemory(from);
 
 	memcpy_s(to, size, from, size);
-	Sleep(1);
 }
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
@@ -28,8 +27,6 @@ void cpct_memset_f64(void *array, u16 value, u16 size)
 
 	for (int i = 0; i < size; i++)
 		data[i] = value;
-
-	Sleep(1);
 }
 
 void cpct_memset_f8(void *array, u16 value, u16 size)
@@ -41,8 +38,6 @@ void cpct_memset(void *array, u8 value, u16 size)
 {
 	u8* data = (u8*)GetMemory(array);
 	memset(data, value, size);
-
-	Sleep(1);
 }
 
 void cpct_setStackLocation(void* memory)
