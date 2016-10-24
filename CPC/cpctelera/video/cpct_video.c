@@ -1,3 +1,21 @@
+//-----------------------------LICENSE NOTICE------------------------------------
+//  This file is part of CPCtelera: An Amstrad CPC Game Engine
+//  Copyright (C) 2016 Arnaud Bouche
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//-------------------------------------------------------------------------------
+
 #include "winCpctelera.h"
 
 static u8* ApplyLSBOffset(u8* buffVideo);
@@ -70,7 +88,8 @@ u16 cpct_count2VSYNC()
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	memset(GetVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
+	u8 pix = ConvPixCPCtoPC(colour_pattern);
+	memset(GetVideoBufferFromAddress(0xC000), pix, 0x4000);
 	Sleep(1);
 }
 
@@ -215,7 +234,12 @@ u8* GetCurVideoBuffer()
 	return GetVideoBufferFromPage(_amstrad._currentPage);
 }
 
-u8 DecodePixel(u8 pPix)
+/* 
+*	Convert pixel from CPC format to PC format
+*	ex mode 0 : 0a2c 1b3d -> 3210 dcba
+*	cf. cpct_px2byteM0 and cpct_px2byteM1
+*/
+u8 ConvPixCPCtoPC(u8 pPix)
 {
 	if (pPix == 0x00 || pPix == 0xFF)
 		return pPix;
