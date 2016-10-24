@@ -1,3 +1,21 @@
+//-----------------------------LICENSE NOTICE------------------------------------
+//  This file is part of CPCtelera: An Amstrad CPC Game Engine
+//  Copyright (C) 2016 Arnaud Bouche
+//
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Lesser General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public License
+//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//-------------------------------------------------------------------------------
+
 #include <winCpctelera.h>
 
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
@@ -18,7 +36,7 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 	{
 		for (int x = 0; x < width; x++)
 		{
-			u8 pixSrc = DecodePixel(*src);
+			u8 pixSrc = ConvPixCPCtoPC(*src);
 
 			switch (_blendMode)
 			{
@@ -135,9 +153,53 @@ void cpct_drawTileAligned4x8_f(void* sprite, void* memory)
 	cpct_drawSprite(sprite, memory, 4, 8);
 }
 
+/*
+*	Convert pixel from CPC format to PC format
+*	ex mode 0 : 3210 dcba -> 0a2c 1b3d
+*	cf. cpct_px2byteM0 and cpct_px2byteM1
+*/
+u8 ConvPixPCtoCPC(u8 pPix, u8 pMode)
+{
+	if (pMode == MODE_0)
+	{
+		u8 pix3 = (pPix & 0x80) >> 7;
+		u8 pix2 = (pPix & 0x40) >> 6;
+		u8 pix1 = (pPix & 0x20) >> 5;
+		u8 pix0 = (pPix & 0x10) >> 4;
+
+		u8 pixd = (pPix & 0x08) >> 3;
+		u8 pixc = (pPix & 0x04) >> 2;
+		u8 pixb = (pPix & 0x02) >> 1;
+		u8 pixa = (pPix & 0x01);
+
+		return (pix0 << 7 | pixa << 6 | pix2 << 5 | pixc << 4 | pix1 << 3 | pixb << 2 | pix3 << 1 | pixd);
+	}
+
+	if (pMode == MODE_1)
+	{
+		u8 pix1 = (pPix & 0x80) >> 7;
+		u8 pix0 = (pPix & 0x40) >> 6;
+
+		u8 pix3 = (pPix & 0x20) >> 5;
+		u8 pix2 = (pPix & 0x10) >> 4;
+
+		u8 pix5 = (pPix & 0x08) >> 3;
+		u8 pix4 = (pPix & 0x04) >> 2;
+
+		u8 pix7 = (pPix & 0x02) >> 1;
+		u8 pix6 = (pPix & 0x01);
+
+		u8 val = (pix0 << 7 | pix2 << 6 | pix4 << 5 | pix6 << 4 | pix1 << 3 | pix3 << 2 | pix5 << 1 | pix7);
+		return val;
+	}
+
+	return pPix;
+}
+
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
-	return (px1 << 4) | px0;
+	u8 pix = (px1 << 4) | (0x0F & px0);
+	return ConvPixPCtoCPC(pix, MODE_0);
 }
 
 u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
@@ -164,6 +226,8 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
+	u8 pix = ConvPixCPCtoPC(colour_pattern);
+
 	if (IsCpcMem(memory))
 		memory = GetVideoBufferFromAddress((int)memory);
 
@@ -173,7 +237,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	{
 		for (int xi = 0; xi < width; xi++)
 		{
-			*video = colour_pattern;
+			*video = pix;
 			video++;
 		}
 		video += (CPC_SCR_CX_BYTES - width);
@@ -207,7 +271,12 @@ static void hflipByte(u8 width, u8 height, u8* sprite)
 	}
 }
 
-static u8 convertPixMode0(u8 data)
+/*
+*	Convert pixel from PC format to CPC format and flip
+*	ex mode 0 : 3210 dcba -> 0a2c 1b3d -> a0c2 b1d3
+*	cf. cpct_px2byteM0 and cpct_px2byteM1
+*/
+static u8 DecodeFlipPixMode0(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pixa = (data & 0x40) >> 6;
@@ -227,7 +296,7 @@ void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
 	hflipByte(width, height, data);
 
 	for (int i = 0; i < width*height; i++)
-		*data++ = convertPixMode0(*data);
+		*data++ = DecodeFlipPixMode0(*data);
 }
 
 void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
@@ -236,7 +305,7 @@ void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
 	Sleep(1);
 }
 
-static u8 convertPixMode1(u8 data)
+static u8 DecodeFlipPixMode1(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pix1 = (data & 0x40) >> 6;
@@ -257,7 +326,7 @@ void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
-		*data++ = convertPixMode1(*data);
+		*data++ = DecodeFlipPixMode1(*data);
 
 	Sleep(1);
 }
@@ -267,7 +336,7 @@ void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM1(width, height, (u8*)sprite);
 }
 
-static u8 convertPixMode2(u8 data)
+static u8 DecodeFlipPixMode2(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pix1 = (data & 0x40) >> 6;
@@ -288,7 +357,7 @@ void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
 
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
-		*data++ = convertPixMode2(*data);
+		*data++ = DecodeFlipPixMode2(*data);
 
 	Sleep(1);
 }
@@ -321,7 +390,7 @@ void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
-		*data++ = convertPixMode0(*data);
+		*data++ = DecodeFlipPixMode0(*data);
 
 	Sleep(1);
 }
@@ -332,7 +401,7 @@ void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height*2; i++)
-		*data++ = convertPixMode1(*data);
+		*data++ = DecodeFlipPixMode1(*data);
 
 	Sleep(1);
 }
@@ -343,7 +412,7 @@ void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
-		*data++ = convertPixMode2(*data);
+		*data++ = DecodeFlipPixMode2(*data);
 
 	Sleep(1);
 }
@@ -359,8 +428,8 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 mask = DecodePixel((u8)(*pix));
-				u8 sprite = DecodePixel((u8)(*pix >> 8));
+				u8 mask = ConvPixCPCtoPC((u8)(*pix));
+				u8 sprite = ConvPixCPCtoPC((u8)(*pix >> 8));
 				*video = *video ^ sprite;
 				*video = *video & mask;
 				*video = *video ^ sprite;
@@ -378,7 +447,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				*video = DecodePixel(*pix);
+				*video = ConvPixCPCtoPC(*pix);
 				video++;
 				pix++;
 			}
@@ -392,7 +461,7 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 pixel = DecodePixel(*pix);
+				u8 pixel = ConvPixCPCtoPC(*pix);
 				if (pixel != _transparentColor)
 					*video = pixel;
 
