@@ -1,8 +1,8 @@
 //-----------------------------LICENSE NOTICE------------------------------------
 //  This file is part of CPCtelera: An Amstrad CPC Game Engine
-//  Copyright (C) 2015-2016 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
-//  Copyright (C) 2015 Alberto García García
-//  Copyright (C) 2015 Pablo Martínez González
+//  Copyright (C) 2016-2016 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
+//  Copyright (C) 2016 Alberto García García
+//  Copyright (C) 2016 Pablo Martínez González
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
