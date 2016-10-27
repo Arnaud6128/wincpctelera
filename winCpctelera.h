@@ -40,14 +40,14 @@
 #define WIDTH_SCREEN		640
 #define HEIGHT_SCREEN		400
 
-#define CPC_SCR_CX_BYTES	80
-#define CPC_SCR_CY_LINE		200
-#define CPC_INTERRUPT_LINE	(CPC_SCR_CY_LINE/6)
-
 #define CPC_MEM_SIZE		0xFFFF
 
-#define INTERRUPT_MS		(int)(1000/50/6)
+#define INTERRUPT_PER_VBL	6									// 6 interruptions per vertical blank
+#define INTERRUPT_MS		(int)(1000/50/INTERRUPT_PER_VBL)	// 3ms
 
+#define CPC_SCR_CX_BYTES	80
+#define CPC_SCR_CY_LINE		200
+#define CPC_INTERRUPT_LINE	(CPC_SCR_CY_LINE/INTERRUPT_PER_VBL)
 enum
 {
 	MODE_0,
