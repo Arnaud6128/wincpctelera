@@ -281,29 +281,47 @@ void Refresh()
 	InvalidateRect(_hWnd, NULL, FALSE);
 }
 
-VOID CALLBACK InternalTimer(
-	HWND hwnd,
-	UINT message,
-	UINT idTimer,
-	DWORD dwTime)
+DWORD WINAPI InterruptFunction(LPVOID lpParam)
 {
-	if (_amstrad._internalTimer++ == 6)
-		_amstrad._internalTimer = 0;
-	
-	if (_amstrad._interruptFunction != NULL)
-		_amstrad._interruptFunction();
+	SAmstrad* amstrad = (SAmstrad*)lpParam;
+	DWORD time = timeGetTime();
 
-	Refresh();
+	while (1)
+	{
+		if (timeGetTime() - time > INTERRUPT_MS)
+		{
+			time = timeGetTime();
+
+			if (amstrad->_internalTimer++ == INTERRUPT_PER_VBL)
+				amstrad->_internalTimer = 0;
+
+			if (amstrad->_interruptFunction != NULL)
+				amstrad->_interruptFunction();
+
+			Refresh();
+		}
+
+		Sleep(1);
+	}
+
+	return 0;
 }
 
 void StartInterrupt()
 {
+	/* Set timer accuracy to 1 ms */
 	TIMECAPS tc;
 	timeGetDevCaps(&tc, sizeof(TIMECAPS));
 	int timerRes = tc.wPeriodMin > 1 ? tc.wPeriodMin : 1;
 	timeBeginPeriod(timerRes);
 
-	SetTimer(_hWnd, WM_USER + 464, INTERRUPT_MS, InternalTimer);
+	CreateThread(
+		NULL,                   // default security attributes
+		0,                      // use default stack size  
+		InterruptFunction,      // thread function name
+		&_amstrad,		// argument to thread function 
+		0,                      // use default creation flags 
+		NULL);
 }
 
 #endif
