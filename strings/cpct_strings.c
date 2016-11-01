@@ -19,6 +19,9 @@
 
 #include "winCpctelera.h"
 
+extern u8* GetVideoBufferFromAddress(int pScreenAddr);
+extern BOOL IsCpcMem(const void* pAddress);
+
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
 void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
