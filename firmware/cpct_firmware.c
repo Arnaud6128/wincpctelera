@@ -21,7 +21,7 @@
 
 void cpct_setInterruptHandler(void(*intHandler)(void))
 {
-	_amstrad._interruptFunction = intHandler;
+	SetInterruptFunction(intHandler);
 }
 
 void cpct_reenableFirmware(u16 firmware_ROM_code)
