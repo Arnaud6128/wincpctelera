@@ -19,6 +19,11 @@
 
 #include <winCpctelera.h>
 
+extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
+extern u8 ConvPixCPCtoPC(u8 pPix);
+extern u8* GetVideoBufferFromAddress(int pScreenAddr);
+extern BOOL IsCpcMem(const void* pAddress);
+
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
 static int _carry;
 static u8 _transparentColor;
