@@ -19,6 +19,9 @@
 
 #include <winCpctelera.h>
 
+extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
+extern u8* GetVideoBufferFromAddress(int pScreenAddr);
+
 #define TILE_CX	2
 #define TILE_CY	4
 
