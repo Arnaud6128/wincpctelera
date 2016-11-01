@@ -19,36 +19,47 @@
 
 #include "winCpctelera.h"
 
+extern u8* GetVideoBufferFromAddress(int pScreenAddr);
+extern void CreatePaletteCpc();
+extern BOOL IsCpcMem(const void* pAddress);
+
+u8 ConvPixCPCtoPC(u8 pPix);
+
 static u8* ApplyLSBOffset(u8* buffVideo);
 
-SCPCPalette _palette[NB_PAL_COLOR] =
+SCPCPalette _palette[] =
 {
 	HW_BLACK, RGB(0,0,0),
 	HW_BLUE, RGB(0,0,128),
+	HW_BLUE + 0x0C, RGB(0,0,128),
 	HW_BRIGHT_BLUE, RGB(0,0,255),
 	HW_RED, RGB(128,0,0),
 	HW_MAGENTA, RGB(128,0,128),
 	HW_MAUVE, RGB(128,0,255),
 	HW_BRIGHT_RED, RGB(255,0,0),
 	HW_PURPLE, RGB(255,0,128),
+	HW_PURPLE + 0x03, RGB(255,0,128),
 	HW_BRIGHT_MAGENTA, RGB(255,0,255),
 	HW_GREEN, RGB(0,128,0),
 	HW_CYAN, RGB(0,128,128),
 	HW_SKY_BLUE, RGB(0,128,255),
 	HW_YELLOW, RGB(128,128,0),
 	HW_WHITE, RGB(128,128,128),
+	HW_WHITE + 0x01, RGB(128,128,128),
 	HW_PASTEL_BLUE, RGB(128,128,255),
 	HW_ORANGE, RGB(255,128,0),
 	HW_PINK, RGB(255,128,128),
 	HW_PASTEL_MAGENTA, RGB(255,128,255),
 	HW_BRIGHT_GREEN, RGB(0,255,0),
 	HW_SEA_GREEN, RGB(0,255,128),
+	HW_SEA_GREEN + 0x0F, RGB(0,255,128),
 	HW_BRIGHT_CYAN, RGB(0,255,255),
 	HW_LIME, RGB(128,255,0),
 	HW_PASTEL_GREEN, RGB(128,255,128),
 	HW_PASTEL_CYAN, RGB(128,255,255),
 	HW_BRIGHT_YELLOW, RGB(255,255,0),
 	HW_PASTEL_YELLOW, RGB(255,255,128),
+	HW_PASTEL_YELLOW + 0x06, RGB(255,255,128),
 	HW_BRIGHT_WHITE, RGB(255,255,255)
 };
 
@@ -61,14 +72,12 @@ void cpct_fw2hw(void *fw_colour_array, u16 size)
 
 void cpct_setPalette(u8* ink_array, u16 ink_array_size)
 {
-	memcpy(_amstrad._curPal, ink_array, ink_array_size);
-	CreatePaletteCpc();
+	memcpy(_amstrad._curVideoConf._palette, ink_array, ink_array_size);
 }
 
 void cpct_setPALColour(u8 pen, u8 hw_ink)
 {
-	_amstrad._curPal[pen] = hw_ink;
-	CreatePaletteCpc();
+	_amstrad._curVideoConf._palette[pen] = hw_ink;
 }
 
 u8 cpct_getHWColour(u16 pFW)
@@ -77,26 +86,26 @@ u8 cpct_getHWColour(u16 pFW)
 }
 
 void cpct_waitVSYNC()
-{
-	_amstrad._internalTimer = 0;
+{	
 	MsgLoop();
+	Sleep(1);
 }
 
 u16 cpct_count2VSYNC()
 {
-	return 0;
+	return _amstrad._internalTimer / INTERRUPT_PER_VBL * REFRESH_MS * 1000;
 }
 
 void cpct_clearScreen(u8 colour_pattern)
 {
 	u8 pix = ConvPixCPCtoPC(colour_pattern);
 	memset(GetVideoBufferFromAddress(0xC000), pix, 0x4000);
-	Sleep(1);
+	Sleep(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
 }
 
 void cpct_setVideoMode(u8 videoMode)
 {
-	_amstrad._mode = videoMode;
+	_amstrad._curVideoConf._videoMode = videoMode;
 }
 
 void cpct_setVideoMemoryPage(u8 page_6LSb)
@@ -117,7 +126,7 @@ u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 
 void SetPalette(int i, u8 pHW)
 {
-	_amstrad._curPal[i] = pHW;
+	_amstrad._curVideoConf._palette[i] = pHW;
 }
 
 COLORREF GetColorHW(int pHW)
@@ -125,7 +134,7 @@ COLORREF GetColorHW(int pHW)
 	if (pHW >= 0x40)
 		pHW -= 0x40;
 
-	for (int i = 0; i < NB_PAL_COLOR; i++)
+	for (int i = 0; i < sizeof(_palette) / sizeof(SCPCPalette); i++)
 	{
 		if (_palette[i].hw == pHW)
 			return _palette[i].rgb;
@@ -136,39 +145,6 @@ COLORREF GetColorHW(int pHW)
 COLORREF GetColorFW(int pFW)
 {
 	return _palette[pFW].rgb;
-}
-
-int GetPixelBit()
-{
-	switch (_amstrad._mode)
-	{
-		case MODE_2: return 1;
-		case MODE_1: return 4; // BMP not handle 2bits bitmap
-		case MODE_0:
-		default: return 4;
-	}
-}
-
-int GetScreenWidth()
-{
-	switch (_amstrad._mode)
-	{
-		case MODE_2: return 640;
-		case MODE_1: return 320;
-		case MODE_0:
-		default: return 160;
-	}
-}
-
-int ConvertPixelPos(int x)
-{
-	switch (_amstrad._mode)
-	{
-		case MODE_2: return x;
-		case MODE_1: return x * 2;
-		case MODE_0:
-		default: return x * 4;
-	}
 }
 
 int GetVideoArea(int pScreenAddr)
@@ -218,15 +194,15 @@ u8* GetVideoBufferFromPage(int pPage)
 {
 	switch (pPage)
 	{
-		case cpct_page00:
-			return _amstrad._memCPC;
-		case cpct_page40:
-			return _amstrad._memCPC + 0x4000;
-		case cpct_page80:
-			return _amstrad._memCPC + 0x8000;
-		case cpct_pageC0:
-		default:
-			return _amstrad._memCPC + 0xC000;
+	case cpct_page00:
+		return _amstrad._memCPC;
+	case cpct_page40:
+		return _amstrad._memCPC + 0x4000;
+	case cpct_page80:
+		return _amstrad._memCPC + 0x8000;
+	case cpct_pageC0:
+	default:
+		return _amstrad._memCPC + 0xC000;
 	}
 }
 
@@ -235,17 +211,19 @@ u8* GetCurVideoBuffer()
 	return GetVideoBufferFromPage(_amstrad._currentPage);
 }
 
-/* 
+u8 GetCurrentVideoMode()
+{
+	return _amstrad._curVideoConf._videoMode;
+}
+
+/*
 *	Convert pixel from CPC format to PC format
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
 u8 ConvPixCPCtoPC(u8 pPix)
 {
-	if (pPix == 0x00 || pPix == 0xFF)
-		return pPix;
-
-	if (_amstrad._mode == MODE_0)
+	if (GetCurrentVideoMode() == MODE_0)
 	{
 		u8 pix0 = (pPix & 0x80) >> 7;
 		u8 pixa = (pPix & 0x40) >> 6;
@@ -260,7 +238,7 @@ u8 ConvPixCPCtoPC(u8 pPix)
 		return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 	}
 
-	if (_amstrad._mode == MODE_1)
+	if (GetCurrentVideoMode() == MODE_1)
 	{
 		u8 pix0 = (pPix & 0x80) >> 7;
 		u8 pix2 = (pPix & 0x40) >> 6;
@@ -283,61 +261,106 @@ u8 ConvPixCPCtoPC(u8 pPix)
 
 u8* GetRenderingBuffer()
 {
+	static u8 sRenderBuffer[WIDTH_SCREEN*CPC_SCR_CY_LINE];
+
 	u8 *buffVideo = GetCurVideoBuffer();
 
-	/** Convert mode 0 to mode 1 4bits */
-	if (_amstrad._mode == 1)
+	if (_amstrad._memOffset != 0)
+		buffVideo = ApplyLSBOffset(buffVideo);
+
+	int i = 0, j = 0;
+	u8 curVideo = GetCurrentVideoMode();
+	int bytesPerInterrupt = 0x4000 / INTERRUPT_PER_VBL;
+	int bytesProcess = 0;
+
+	for (int k = 0; k < INTERRUPT_PER_VBL; k++)
 	{
-		u8* buffMode1 = _amstrad._mode1Video;
-
-		int i = 0, j = 0;
-		while (i < 0x4000)
+		bytesProcess = 0;
+		while (bytesProcess++ < bytesPerInterrupt)
 		{
-			u8 valPix = buffVideo[i++];
+			/* Convert color depth 4bpp to 8bpp */
+			if (curVideo == MODE_0)
+			{
+				u8 valPix = buffVideo[i++];
 
-			u8 pix3 = (valPix & 0b00000011);
-			u8 pix2 = (valPix & 0b00001100) << 2;
-			u8 pix1 = (valPix & 0b00110000) >> 4;
-			u8 pix0 = (valPix & 0b11000000) >> 2;
+				u8 pix0 = valPix & 0x0F;
+				u8 pix1 = valPix >> 4;
 
-			valPix = buffVideo[i++];
+				if (pix0 != 0 || pix1 != 0)
+					pix1 = pix1;
 
-			u8 pix7 = (valPix & 0b00000011);
-			u8 pix6 = (valPix & 0b00001100) << 2;
-			u8 pix5 = (valPix & 0b00110000) >> 4;
-			u8 pix4 = (valPix & 0b11000000) >> 2;
+				sRenderBuffer[j++] = pix1;
+				sRenderBuffer[j++] = pix1;
+				sRenderBuffer[j++] = pix1;
+				sRenderBuffer[j++] = pix1;
 
-			buffMode1[j++] = pix1 | pix0;
-			buffMode1[j++] = pix3 | pix2;
-			buffMode1[j++] = pix5 | pix4;
-			buffMode1[j++] = pix7 | pix6;
+				sRenderBuffer[j++] = pix0;
+				sRenderBuffer[j++] = pix0;
+				sRenderBuffer[j++] = pix0;
+				sRenderBuffer[j++] = pix0;
+			}
+			/* Convert color depth 2bpp to 8bpp */
+			else if (curVideo == MODE_1)
+			{
+				u8 valPix = buffVideo[i++];
+
+				u8 pix0 = (valPix & 0b00000011);
+				u8 pix1 = (valPix & 0b00001100) >> 2;
+				u8 pix2 = (valPix & 0b00110000) >> 4;
+				u8 pix3 = (valPix & 0b11000000) >> 6;
+
+				sRenderBuffer[j++] = pix3;
+				sRenderBuffer[j++] = pix3;
+
+				sRenderBuffer[j++] = pix2;
+				sRenderBuffer[j++] = pix2;
+
+				sRenderBuffer[j++] = pix1;
+				sRenderBuffer[j++] = pix1;
+
+				sRenderBuffer[j++] = pix0;
+				sRenderBuffer[j++] = pix0;
+
+			}
+			/* Convert color depth 2bpp to 8bpp */
+			else if (curVideo == MODE_2)
+			{
+				u8 valPix = buffVideo[i++];
+
+				u8 pix0 = (valPix & 0b00000001);
+				u8 pix1 = (valPix & 0b00000010) >> 1;
+				u8 pix2 = (valPix & 0b00000100) >> 2;
+				u8 pix3 = (valPix & 0b00001000) >> 3;
+				u8 pix4 = (valPix & 0b00010000) >> 4;
+				u8 pix5 = (valPix & 0b00100000) >> 5;
+				u8 pix6 = (valPix & 0b01000000) >> 6;
+				u8 pix7 = (valPix & 0b10000000) >> 7;
+
+				sRenderBuffer[j++] = pix7;
+				sRenderBuffer[j++] = pix6;
+				sRenderBuffer[j++] = pix5;
+				sRenderBuffer[j++] = pix4;
+				sRenderBuffer[j++] = pix3;
+				sRenderBuffer[j++] = pix2;
+				sRenderBuffer[j++] = pix1;
+				sRenderBuffer[j++] = pix0;
+			}
 		}
-
-		buffVideo = buffMode1;
 	}
 
-	if (_amstrad._memOffset != 0)
-		return ApplyLSBOffset(buffVideo);
-
-	return buffVideo;
+	return sRenderBuffer;
 }
 
+/* Simulate CRCT R13 offset */
 static u8* ApplyLSBOffset(u8* buffVideo)
 {
-	int bufferSize = 0x4000;
+	static u8 SOffsetVideo[0x4000];
+
 	int offset = _amstrad._memOffset * 2;
 	int cxLine = CPC_SCR_CX_BYTES;
-	u8* destVideo = _amstrad._renderVideo;
+	u8* destVideo = SOffsetVideo;
 
-	if (_amstrad._mode == MODE_1)
-	{
-		bufferSize *= 2;
-		offset *= 2;
-		cxLine *= 2;
-		destVideo = _amstrad._renderMode1Video;
-	}
-
-	int dstIndex = bufferSize - offset;
+	int dstIndex = 0x4000 - offset;
 	for (int i = 0; i < CPC_SCR_CY_LINE*CPC_SCR_CX_BYTES; i++)
 	{
 		destVideo[dstIndex++] = *buffVideo++;
