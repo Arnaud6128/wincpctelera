@@ -19,6 +19,8 @@
 
 #include <winCpctelera.h>
 
+extern u8 ConvPixCPCtoPC(u8 pPix);
+
 BOOL IsCpcMem(const void* pAddress)
 {
 	return ((int)pAddress < CPC_MEM_SIZE);
