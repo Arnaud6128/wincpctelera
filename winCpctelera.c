@@ -48,15 +48,15 @@ void CPCTeleraWin()
 void StartCPC()
 {
 	ZeroMemory(&_amstrad, sizeof(_amstrad));
-	for (int i = 0; i < NB_COLORS; i++)
-		_amstrad._curPal[i] = _palette[i].hw;
-
 	memset(&_amstrad._memCPC, 0, CPC_MEM_SIZE);
 
-	_amstrad._mode = 1;
-	_amstrad._curPal[0] = HW_BRIGHT_BLUE;
-	_amstrad._curPal[1] = HW_BRIGHT_YELLOW;
-	_amstrad._curPal[BORDER_COLOR] = HW_BRIGHT_BLUE;
+	for (int i = 0; i < NB_COLORS; i++)
+		_amstrad._curVideoConf._palette[i] = _palette[i].hw;
+
+	_amstrad._curVideoConf._videoMode = 1;
+	_amstrad._curVideoConf._palette[0] = HW_BRIGHT_BLUE;
+	_amstrad._curVideoConf._palette[1] = HW_BRIGHT_YELLOW;
+	_amstrad._curVideoConf._palette[BORDER_COLOR] = HW_BRIGHT_BLUE;
 
 	_amstrad._currentPage = cpct_pageC0;
 
