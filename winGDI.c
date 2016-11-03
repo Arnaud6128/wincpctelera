@@ -160,21 +160,22 @@ void RenderScreen(int screenPart)
 	ReleaseMutex(sMutex);
 }
 
-void Redraw(HWND pWnd)
+void Redraw()
 {
-	WaitForSingleObject(sMutex, INFINITE);
+	if (WaitForSingleObject(sMutex, 1000) == WAIT_TIMEOUT)
+		return;
 
-	PAINTSTRUCT ps;
-	HDC hdc = BeginPaint(pWnd, &ps);
+	HDC hdc = GetDC(_hWnd);
 
 	SelectPalette(_memDC, _hPal, FALSE);
 	RealizePalette(_memDC);
 
 	BitBlt(hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
 
-	EndPaint(pWnd, &ps);
+	ReleaseDC(_hWnd, hdc);
 
 	ReleaseMutex(sMutex);
+
 }
 
 LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -185,10 +186,6 @@ LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 			_curKey = TRUE;
 			int pos = GetCpcKeyPos(wParam);
 			cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
-			break;
-
-		case WM_PAINT:
-			Redraw(hWnd);
 			break;
 
 		case WM_DESTROY:
@@ -308,11 +305,6 @@ void MsgLoop()
 	}
 }
 
-void Refresh()
-{
-	InvalidateRect(_hWnd, NULL, FALSE);
-}
-
 DWORD WINAPI InterruptFunction(LPVOID lpParam)
 {
 	SAmstrad* amstrad = (SAmstrad*)lpParam;
@@ -327,7 +319,7 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 			if (amstrad->_internalTimer == INTERRUPT_PER_VBL)
 			{
 				amstrad->_internalTimer = 0;
-				Refresh();
+				Redraw();
 			}
 
 			if (amstrad->_interruptFunction != NULL)
