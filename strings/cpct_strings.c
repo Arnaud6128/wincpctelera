@@ -21,6 +21,7 @@
 
 extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 extern BOOL IsCpcMem(const void* pAddress);
+extern int GetVideoArea(int pScreenAddr);
 
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode);
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara);
@@ -89,7 +90,7 @@ void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 
 void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
-	DrawString(string, video_memory, fg_pen, bg_pen, 0);
+	DrawString(string, video_memory, fg_pen, bg_pen, MODE_0);
 }
 
 void cpct_drawCharM1(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
@@ -107,12 +108,12 @@ void cpct_drawCharM1_f(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 
 void cpct_drawStringM1(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
-	DrawString(string, video_memory, fg_pen, bg_pen, 1);
+	DrawString(string, video_memory, fg_pen, bg_pen, MODE_1);
 }
 
 void cpct_drawStringM1_f(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
-	DrawString(string, video_memory, fg_pen, bg_pen, 1);
+	DrawString(string, video_memory, fg_pen, bg_pen, MODE_1);
 }
 
 void cpct_drawCharM2(void* video_memory, u8 pen, u8 ascii)
@@ -125,7 +126,7 @@ void cpct_drawCharM2(void* video_memory, u8 pen, u8 ascii)
 
 void cpct_drawStringM2(void* string, void* video_memory, u8 pen)
 {
-	DrawString(string, video_memory, 0, pen, 2);
+	DrawString(string, video_memory, 0, pen, MODE_2);
 }
 
 void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
@@ -136,28 +137,41 @@ void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 
 	const u8* pixChara = fonts + fonty * FONT_NB_LINE + fontx;
 
-	/** 2 pixels per Byte */
+	/** 2 pixels per Byte -> 4 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
 		u8 val = *pixChara;
 
-		/* 1111 0000 */
-		u8 pix3 = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
-		pix3 |= ((val & 0b00000010) << 3) == 0 ? bgPen << 4 : fgPen << 4;
+		if (pChara != ' ')
+		{
+			/* Input character on 1 bpp : 32 10 32 10 */
 
-		u8 pix2 = ((val & 0b00000100) >> 2) == 0 ? bgPen : fgPen;
-		pix2 |= ((val & 0b00001000) << 1) == 0 ? bgPen << 4 : fgPen << 4;
+			/* 32 -> 3333 2222 */
+			u8 pix3 = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
+			pix3 |= ((val & 0b00000010) << 1) == 0 ? bgPen << 4 : fgPen << 4;
 
-		u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
-		pix1 |= ((val & 0b00100000) >> 1) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix2 = ((val & 0b00000100) << 2) == 0 ? bgPen : fgPen;
+			pix2 |= ((val & 0b00001000) << 3) == 0 ? bgPen << 4 : fgPen << 4; 
 
-		u8 pix0 = ((val & 0b01000000) >> 6) == 0 ? bgPen : fgPen;
-		pix0 |= ((val & 0b10000000) >> 3) == 0 ? bgPen << 4 : fgPen << 4;
+			/* 10 -> 1111 0000 */
+			u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
+			pix1 |= ((val & 0b00100000) >> 3) == 0 ? bgPen << 4 : fgPen << 4;
 
-		*pVideo++ = pix0;
-		*pVideo++ = pix1;
-		*pVideo++ = pix2;
-		*pVideo++ = pix3;
+			u8 pix0 = ((val & 0b01000000) >> 2) == 0 ? bgPen : fgPen;
+			pix0 |= ((val & 0b10000000) >> 1) == 0 ? bgPen << 4 : fgPen << 4;
+
+			*pVideo++ = pix0;
+			*pVideo++ = pix1;
+			*pVideo++ = pix2;
+			*pVideo++ = pix3;
+		}
+		else
+		{
+			*pVideo++ = bgPen | bgPen << 4;
+			*pVideo++ = bgPen | bgPen << 4;
+			*pVideo++ = bgPen | bgPen << 4;
+			*pVideo++ = bgPen | bgPen << 4;
+		}
 
 		pixChara -= FONT_NB_LINE;
 		pVideo += (CPC_SCR_CX_BYTES - 4);
@@ -165,7 +179,6 @@ void DisplayFontM0(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 
 	MsgLoop();
 }
-
 
 void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 {
@@ -175,24 +188,35 @@ void DisplayFontM1(u8* pVideo, u8 fgPen, u8 bgPen, char pChara)
 
 	const u8* pixChara = fonts + fonty * FONT_NB_LINE + fontx;
 
-	/** 4 pixels per Byte */
+	/** 4 pixels per Byte -> 2 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
 		u8 val = *pixChara;
 
-		/* 33 22 11 00 */
-		u8 pix0 = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
-		pix0 |= ((val & 0b00000010) << 1) == 0 ? bgPen << 2 : fgPen << 2;
-		pix0 |= ((val & 0b00000100) << 2) == 0 ? bgPen << 4 : fgPen << 4;
-		pix0 |= ((val & 0b00001000) << 3) == 0 ? bgPen << 6 : fgPen << 6;
+		if (pChara != ' ')
+		{
+			/* Input character on 1 bpp : 3210 3210 */			
+			/* 3210 -> 33 22 11 00 */
+			u8 pix00a = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
+			u8 pix11a = ((val & 0b00000010) << 1) == 0 ? bgPen << 2 : fgPen << 2;
+			u8 pix22a = ((val & 0b00000100) << 2) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix33a = ((val & 0b00001000) << 3) == 0 ? bgPen << 6 : fgPen << 6;
 
-		u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
-		pix1 |= ((val & 0b00100000) >> 3) == 0 ? bgPen << 2 : fgPen << 2;
-		pix1 |= ((val & 0b01000000) >> 2) == 0 ? bgPen << 4 : fgPen << 4;
-		pix1 |= ((val & 0b10000000) >> 1) == 0 ? bgPen << 6 : fgPen << 6;
+			/* 3210 -> 33 22 11 00 */
+			u8 pix00b = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
+			u8 pix11b = ((val & 0b00100000) >> 3) == 0 ? bgPen << 2 : fgPen << 2;
+			u8 pix22b = ((val & 0b01000000) >> 2) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix33b = ((val & 0b10000000) >> 1) == 0 ? bgPen << 6 : fgPen << 6;
 
-		*pVideo++ = pix1;
-		*pVideo++ = pix0;
+			*pVideo++ = pix33b | pix22b | pix11b | pix00b;
+			*pVideo++ = pix33a | pix22a | pix11a | pix00a;
+		}
+		else
+		{
+			*pVideo++ = bgPen | bgPen << 2 | bgPen << 4 | bgPen << 6;
+			*pVideo++ = bgPen | bgPen << 2 | bgPen << 4 | bgPen << 6;
+		}
+
 
 		pixChara -= FONT_NB_LINE;
 		pVideo += (CPC_SCR_CX_BYTES - 2);
@@ -214,16 +238,22 @@ void DisplayFontM2(u8* pVideo, u8 pPen, char pChara)
 	{
 		u8 val = *pixChara;
 
-		u8 pix0 = ((val & 0b00000001) == 0) ? 0 : pPen << 0;
-		pix0 |= ((val & 0b00000010) == 0) ? 0 : pPen << 1;
-		pix0 |= ((val & 0b00000100) == 0) ? 0 : pPen << 2;
-		pix0 |= ((val & 0b00001000) == 0) ? 0 : pPen << 3;
-		pix0 |= ((val & 0b00010000) == 0) ? 0 : pPen << 4;
-		pix0 |= ((val & 0b00100000) == 0) ? 0 : pPen << 5;
-		pix0 |= ((val & 0b01000000) == 0) ? 0 : pPen << 6;
-		pix0 |= ((val & 0b10000000) == 0) ? 0 : pPen << 7;
+		if (pChara != ' ')
+		{
+			u8 pix0 = ((val & 0b00000001) == 0) ? 0 : pPen << 0;
+			pix0 |= ((val & 0b00000010) == 0) ? 0 : pPen << 1;
+			pix0 |= ((val & 0b00000100) == 0) ? 0 : pPen << 2;
+			pix0 |= ((val & 0b00001000) == 0) ? 0 : pPen << 3;
+			pix0 |= ((val & 0b00010000) == 0) ? 0 : pPen << 4;
+			pix0 |= ((val & 0b00100000) == 0) ? 0 : pPen << 5;
+			pix0 |= ((val & 0b01000000) == 0) ? 0 : pPen << 6;
+			pix0 |= ((val & 0b10000000) == 0) ? 0 : pPen << 7;
 
-		*pVideo++ = pix0;
+			*pVideo++ = pix0;
+		}
+		else
+			*pVideo++ = 0;
+
 		pixChara -= FONT_NB_LINE;
 		pVideo += (CPC_SCR_CX_BYTES - 1);
 	}
@@ -233,22 +263,36 @@ void DisplayFontM2(u8* pVideo, u8 pPen, char pChara)
 
 void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode)
 {
+	int offsetRam = (int)video_memory - GetVideoArea((int)video_memory);
+
 	if (IsCpcMem(video_memory))
 		video_memory = GetVideoBufferFromAddress((int)video_memory);
-
+	
 	u8* str = (u8*)string;
 	u8* video = (u8*)video_memory;
+	int videoOffset = 0;
 
 	for (u8 i = 0; i < strlen(str); i++)
 	{
-		if (str[i] != ' ')
+		switch (pMode)
 		{
-			switch (pMode)
-			{
-			case MODE_0: DisplayFontM0(video + i * 4, fg_pen, bg_pen, str[i]);	break;
-			case MODE_1: DisplayFontM1(video + i * 2, fg_pen, bg_pen, str[i]);	break;
-			case MODE_2: DisplayFontM2(video + i * 1, bg_pen, str[i]);	break;
-			}
+			case MODE_0: videoOffset += 4; break;
+			case MODE_1: videoOffset += 2; break;
+			case MODE_2: videoOffset += 1; break;
+		}
+
+		/** Test if character end of line */
+		if (videoOffset > 0 && (offsetRam + videoOffset) % 80 == 0)
+			videoOffset += 8 * 80;
+		
+		switch (pMode)
+		{
+			case MODE_0: DisplayFontM0(video + videoOffset, fg_pen, bg_pen, str[i]);
+				break;
+			case MODE_1: DisplayFontM1(video + videoOffset, fg_pen, bg_pen, str[i]);
+				break;
+			case MODE_2: DisplayFontM2(video + videoOffset, bg_pen, str[i]);
+				break;
 		}
 	}
 
