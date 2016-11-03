@@ -276,6 +276,16 @@ void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMod
 	{
 		switch (pMode)
 		{
+			case MODE_0: DisplayFontM0(video + videoOffset, fg_pen, bg_pen, str[i]);
+				break;
+			case MODE_1: DisplayFontM1(video + videoOffset, fg_pen, bg_pen, str[i]);
+				break;
+			case MODE_2: DisplayFontM2(video + videoOffset, bg_pen, str[i]);
+				break;
+		}
+
+		switch (pMode)
+		{
 			case MODE_0: videoOffset += 4; break;
 			case MODE_1: videoOffset += 2; break;
 			case MODE_2: videoOffset += 1; break;
@@ -284,16 +294,6 @@ void DrawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMod
 		/** Test if character end of line */
 		if (videoOffset > 0 && (offsetRam + videoOffset) % 80 == 0)
 			videoOffset += 8 * 80;
-		
-		switch (pMode)
-		{
-			case MODE_0: DisplayFontM0(video + videoOffset, fg_pen, bg_pen, str[i]);
-				break;
-			case MODE_1: DisplayFontM1(video + videoOffset, fg_pen, bg_pen, str[i]);
-				break;
-			case MODE_2: DisplayFontM2(video + videoOffset, bg_pen, str[i]);
-				break;
-		}
 	}
 
 	MsgLoop();
