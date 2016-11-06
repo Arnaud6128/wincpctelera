@@ -30,7 +30,9 @@ extern u8 GetCpcKeyPos(u16 pVKeyID);
 static HBITMAP _oldBitmap;
 static HBITMAP _doubleBuffer;
 static HDC _memDC;
+static HDC _hdc;
 static HPALETTE _hPal;
+static HPALETTE _oldhPal;
 static HWND _hWnd;
 static DWORD _lastTime;
 
@@ -46,6 +48,7 @@ void Close()
 {
 	SelectObject(_memDC, _oldBitmap);
 	DeleteDC(_memDC);
+	ReleaseDC(_hWnd, _hdc);
 	DeleteObject(_doubleBuffer);
 	DeleteObject(_hPal);
 
@@ -94,7 +97,10 @@ LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
 void CreatePaletteCpc()
 {
 	if (_hPal != NULL)
+	{
+		SelectPalette(_memDC, _oldhPal, FALSE);
 		DeleteObject(_hPal);
+	}
 
 	NPLOGPALETTE logPalette = (NPLOGPALETTE)malloc(sizeof(LOGPALETTE) + NB_COLORS * sizeof(PALETTEENTRY));
 
@@ -149,7 +155,7 @@ void RenderScreen(int screenPart)
 
 		int yBitmap = y - BORDER_UP_CY / COEF;
 
-		SelectPalette(_memDC, _hPal, FALSE);
+		_oldhPal = SelectPalette(_memDC, _hPal, FALSE);
 		RealizePalette(_memDC);
 
 		StretchDIBits(_memDC,	BORDER_CX, y * COEF, WIDTH_SCREEN, cy * COEF,
@@ -162,20 +168,11 @@ void RenderScreen(int screenPart)
 
 void Redraw()
 {
-	if (WaitForSingleObject(sMutex, 1000) == WAIT_TIMEOUT)
-		return;
+	WaitForSingleObject(sMutex, INFINITE);
 
-	HDC hdc = GetDC(_hWnd);
-
-	SelectPalette(_memDC, _hPal, FALSE);
-	RealizePalette(_memDC);
-
-	BitBlt(hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
-
-	ReleaseDC(_hWnd, hdc);
+	BitBlt(_hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
 
 	ReleaseMutex(sMutex);
-
 }
 
 LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -275,13 +272,11 @@ void CreateWindowApp()
 	SetWindowText(_hWnd, TITLE);
 	PosWindow();
 
-	HDC hdc = GetDC(_hWnd);
-	_memDC = CreateCompatibleDC(hdc);
-	_doubleBuffer = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
+	_hdc = GetDC(_hWnd);
+	_memDC = CreateCompatibleDC(_hdc);
+	_doubleBuffer = CreateCompatibleBitmap(_hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
 
 	_oldBitmap = SelectObject(_memDC, _doubleBuffer);
-
-	ReleaseDC(_hWnd, hdc);
 
 	_hPal = NULL;
 	CreatePaletteCpc();
