@@ -40,8 +40,8 @@ void CPCTeleraWin()
 	{
 		_isStarted = TRUE;
 
-		StartCPC();
 		CreateWindowApp();
+		StartCPC();
 	}
 }
 
