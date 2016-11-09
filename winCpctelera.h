@@ -40,8 +40,8 @@
 #define FULL_SCREEN_CX		(BORDER_CX + WIDTH_SCREEN + BORDER_CX) // 384 * 2
 #define FULL_SCREEN_CY		(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY) // 270*2
 
-#define CPC_BANK_SIZE		0x3FFF
-#define CPC_MEM_SIZE		0xFFFF
+#define CPC_BANK_SIZE		0x4000
+#define CPC_MEM_SIZE		0x10000
 
 #define INTERRUPT_PER_VBL	6									// 6 interruptions per refresh screen
 #define	REFRESH_MS			(1000/50)							// 50 hz
@@ -87,6 +87,7 @@ typedef struct tagSAmstrad
 
 typedef struct tagSCPCPalette
 {
+	u8 fw;
 	u8 hw;
 	COLORREF rgb;
 } SCPCPalette;
