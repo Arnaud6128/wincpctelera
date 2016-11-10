@@ -47,7 +47,7 @@ void cpct_memset_f64(void *array, u16 value, u16 size)
 	u8* data = (u8*)GetMemory(array);
 
 	for (int i = 0; i < size; i++)
-		data[i] = value;
+		data[i] = (u8)value;
 }
 
 void cpct_memset_f8(void *array, u16 value, u16 size)
