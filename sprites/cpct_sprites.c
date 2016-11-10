@@ -215,9 +215,7 @@ u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
-	if (IsCpcMem(memory))
-		memory = GetVideoBufferFromAddress((int)memory);
-
+	memory = GetVideoBufferFromAddress((int)memory);
 	DrawSprite(sprite, memory, width, height, SPRITE_NORMAL);
 
 	Sleep(1);
@@ -233,11 +231,7 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
 	u8 pix = ConvPixCPCtoPC(colour_pattern);
-
-	if (IsCpcMem(memory))
-		memory = GetVideoBufferFromAddress((int)memory);
-
-	u8* video = (u8*)memory;
+	u8* video = (u8*)GetVideoBufferFromAddress((int)memory);
 
 	for (int yi = 0; yi < height; yi++)
 	{
