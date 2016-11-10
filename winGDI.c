@@ -37,6 +37,7 @@ static HWND _hWnd;
 static DWORD _lastTime;
 
 static HANDLE sMutex;
+static HANDLE sStartInterruptEvent;
 static HANDLE sVSyncEvent;
 static BOOL sRunInterrupt;
 
@@ -53,7 +54,7 @@ void Close()
 	DeleteObject(_hPal);
 
 	CloseHandle(sMutex);
-	CloseHandle(sVSyncEvent);
+	CloseHandle(sStartInterruptEvent);
 }
 
 void GetRectScreen(int screenPart, RECT* pRect)
@@ -314,6 +315,7 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 			if (amstrad->_internalTimer == INTERRUPT_PER_VBL)
 			{
 				amstrad->_internalTimer = 0;
+				SetEvent(sVSyncEvent);
 				Redraw();
 			}
 
@@ -328,7 +330,7 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 		Sleep(1);
 	}
 
-	SetEvent(sVSyncEvent);
+	SetEvent(sStartInterruptEvent);
 
 	return 0;
 }
@@ -347,10 +349,15 @@ void CreateInterruptThread()
 		NULL);
 }
 
+void WaitVSync()
+{
+	WaitForSingleObject(sVSyncEvent, INFINITE);
+}
+
 void SetInterruptFunction(void(*intHandler)(void))
 {
 	sRunInterrupt = FALSE;
-	WaitForSingleObject(sVSyncEvent, INFINITE);
+	WaitForSingleObject(sStartInterruptEvent, INFINITE);
 
 	_amstrad._interruptFunction = intHandler;
 	CreateInterruptThread();
@@ -369,9 +376,16 @@ void StartInterrupt()
 		FALSE,             // initially not owned
 		NULL);             // unnamed mutex
 
-	sVSyncEvent  = CreateEvent(
+	sStartInterruptEvent  = CreateEvent(
 		NULL,               // default security attributes
 		TRUE,               // manual-reset event
+		FALSE,              // initial state is nonsignaled
+		TEXT("SyncInter")	// object name
+	);
+
+	sVSyncEvent = CreateEvent(
+		NULL,               // default security attributes
+		FALSE,               // auto-reset event
 		FALSE,              // initial state is nonsignaled
 		TEXT("VSync")		// object name
 	);
