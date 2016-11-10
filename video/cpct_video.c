@@ -22,6 +22,7 @@
 extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 extern void CreatePaletteCpc();
 extern BOOL IsCpcMem(const void* pAddress);
+extern void WaitVSync();
 
 u8 ConvPixCPCtoPC(u8 pPix);
 
@@ -93,7 +94,7 @@ u8 cpct_getHWColour(u16 pFW)
 void cpct_waitVSYNC()
 {	
 	MsgLoop();
-	Sleep(1);
+	WaitVSync();
 }
 
 u16 cpct_count2VSYNC()
