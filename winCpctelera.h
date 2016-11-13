@@ -51,6 +51,8 @@
 #define CPC_SCR_CY_LINE		200
 #define CPC_INTERRUPT_LINE	(CPC_SCR_CY_LINE/INTERRUPT_PER_VBL)
 
+#define GetCurrentVideoMode() _amstrad._curVideoConf._videoMode
+
 enum
 {
 	MODE_0,
