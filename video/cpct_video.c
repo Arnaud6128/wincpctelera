@@ -217,11 +217,6 @@ u8* GetCurVideoBuffer()
 	return GetVideoBufferFromPage(_amstrad._currentPage);
 }
 
-u8 GetCurrentVideoMode()
-{
-	return _amstrad._curVideoConf._videoMode;
-}
-
 /*
 *	Convert pixel from CPC format to PC format
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
