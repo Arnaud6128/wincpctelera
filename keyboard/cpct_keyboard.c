@@ -71,8 +71,8 @@ SKeyMapping cpctMapKey[] =
 
 	{ Key_0, 0x30 },
 	{ Key_9, 0x39 },
-	{ Key_O, 0x39 },
-	{ Key_I, 0x39 },
+	{ Key_O, 0x4F },
+	{ Key_I, 0x49 },
 	{ Key_L, 0x4C },
 	{ Key_K, 0x4B },
 	{ Key_M, 0x4B },
@@ -149,13 +149,17 @@ void cpct_scanKeyboard()
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
 	MsgLoop();
+	
+	u16 vKey = GetVKey(key); // 0x4F
+	BOOL isKeyPressed = (GetAsyncKeyState(vKey) != 0);
 	_curKey = FALSE;
-	return GetAsyncKeyState(GetVKey(key)) != 0 ? TRUE : FALSE;
+	return isKeyPressed;
 }
 
 u8 cpct_isAnyKeyPressed()
 {
 	MsgLoop();
+
 	BOOL isKeyPressed = (_curKey != FALSE);
 	_curKey = FALSE;
 	return isKeyPressed;
