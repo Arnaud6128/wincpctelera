@@ -176,6 +176,6 @@
 //    }
 // (end code)
 //
-#define cpctm_declareMaskTable(MASKTABLE)	
+#define cpctm_declareMaskTable(MASKTABLE)	u8 MASKTABLE[1];
 
 #endif

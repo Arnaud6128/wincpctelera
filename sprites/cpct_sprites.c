@@ -23,6 +23,7 @@ extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMod
 extern u8 ConvPixCPCtoPC(u8 pPix);
 extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 extern BOOL IsCpcMem(const void* pAddress);
+extern u8* GetMemory(const void* ptr);
 
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
 static int _carry;
@@ -35,8 +36,8 @@ void cpct_setBlendMode(CPCT_BlendMode mode)
 
 void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 {
-	u8* dst = (u8*)memory;
-	u8* src = (u8*)sprite;
+	u8* dst = GetVideoBufferFromAddress((int)memory);
+	u8* src = (u8*)GetMemory(sprite);
 
 	for (int y = 0; y < height; y++)
 	{
@@ -215,7 +216,6 @@ u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
-	memory = GetVideoBufferFromAddress((int)memory);
 	DrawSprite(sprite, memory, width, height, SPRITE_NORMAL);
 
 	Sleep(1);
@@ -321,7 +321,7 @@ static u8 DecodeFlipPixMode1(u8 data)
 
 void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)GetMemory(sprite);
 	hflipByte(width, height, data);
 
 	data = sprite;
@@ -352,7 +352,7 @@ static u8 DecodeFlipPixMode2(u8 data)
 
 void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)GetMemory(sprite);
 	hflipByte(width, height, data);
 
 	data = sprite;
@@ -386,7 +386,7 @@ static void hflipByteMasked(u8 width, u8 height, u16* sprite)
 
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)GetMemory(sprite);
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
@@ -397,7 +397,7 @@ void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 
 void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)GetMemory(sprite);
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height*2; i++)
@@ -408,7 +408,7 @@ void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 
 void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)GetMemory(sprite);
 	hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
@@ -417,9 +417,27 @@ void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 	Sleep(1);
 }
 
-void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
+void FilterPixel(u8* video, u8 pix, u8 transColor)
 {
-	u8* video = (u8*)memory;
+	if (GetCurrentVideoMode() == MODE_0)
+	{
+		if ((pix & 0x0F) >> 0 != transColor)	*video = (*video & 0xF0) | (0x0F & pix);
+		if ((pix & 0xF0) >> 4 != transColor)	*video = (*video & 0x0F) | (0xF0 & pix);
+	}
+	else
+	if (GetCurrentVideoMode() == MODE_1)
+	{
+		if ((pix & 0x03) >> 0 != transColor)	*video = (*video & 0xFC) | (0x03 & pix);
+		if ((pix & 0x0C) >> 2 != transColor)	*video = (*video & 0xF3) | (0x0C & pix);
+		if ((pix & 0x30) >> 4 != transColor)	*video = (*video & 0xCF) | (0x30 & pix);
+		if ((pix & 0xC0) >> 6 != transColor)	*video = (*video & 0x3F) | (0xC0 & pix);
+	}
+}
+
+void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
+{
+	u8* video = GetVideoBufferFromAddress((int)memory);
+	u8* sprite = (u8*)GetMemory(pSprite);
 
 	if (pSpriteMode == SPRITE_MASKED)
 	{
@@ -462,11 +480,11 @@ void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode)
 			for (int xi = 0; xi < cx; xi++)
 			{
 				u8 pixel = ConvPixCPCtoPC(*pix);
-				if (pixel != _transparentColor)
-					*video = pixel;
+
+				FilterPixel(video, pixel, _transparentColor);
 
 				video++;
-				pix++;
+ 				pix++;
 			}
 			video += (CPC_SCR_CX_BYTES - cx);
 		}
