@@ -26,7 +26,7 @@ BOOL IsCpcMem(const void* pAddress)
 	return ((int)pAddress < CPC_MEM_SIZE);
 }
 
-static u8* GetMemory(const void* ptr)
+u8* GetMemory(const void* ptr)
 {
 	if (IsCpcMem(ptr))
 		return (u8*)(_amstrad._memCPC) + (int)ptr;
