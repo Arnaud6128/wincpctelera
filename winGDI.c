@@ -23,9 +23,15 @@
 
 #pragma comment(lib,"winmm.lib")
 
+#define JOY_MID_VALUE (int)(USHRT_MAX / 2)
+#define JOY_LIMIT_VALUE (int)(JOY_MID_VALUE - 10000)
+
 extern COLORREF GetColorHW(int pHW);
 extern UCHAR* GetRenderingBuffer();
 extern u8 GetCpcKeyPos(u16 pVKeyID);
+
+static BOOL _joystickOK;
+static JOYINFOEX _joyState;
 
 static HBITMAP _oldBitmap;
 static HBITMAP _doubleBuffer;
@@ -55,6 +61,81 @@ void Close()
 
 	CloseHandle(sMutex);
 	CloseHandle(sStartInterruptEvent);
+}
+
+int GetXAxis()
+{
+	if (_joystickOK)
+	{
+		int curX = (int)(_joyState.dwXpos) - JOY_MID_VALUE;
+		if (curX > JOY_LIMIT_VALUE)
+			return 1;
+
+		if (curX < -JOY_LIMIT_VALUE)
+			return -1;
+
+		int pov = (int)(_joyState.dwPOV);
+		if (pov != JOY_POVCENTERED)
+		{
+			if (pov > JOY_POVFORWARD && pov < JOY_POVBACKWARD)
+				return 1;
+
+			if (pov > JOY_POVBACKWARD)
+				return -1;
+		}
+	}
+	return 0;
+}
+
+int GetYAxis()
+{
+	if (_joystickOK)
+	{
+		int curY = (int)(_joyState.dwYpos) - JOY_MID_VALUE;
+
+		if (curY > JOY_LIMIT_VALUE)
+			return -1;
+
+		if (curY < -JOY_LIMIT_VALUE)
+			return 1;
+
+		int pov = (int)(_joyState.dwPOV);
+		if (pov != JOY_POVCENTERED)
+		{
+			if (pov > JOY_POVLEFT || pov < JOY_POVRIGHT)
+				return 1;
+
+			if (pov > JOY_POVRIGHT && pov < JOY_POVLEFT)
+				return -1;
+		}
+	}
+	return 0;
+}
+
+int GetJoystickButton()
+{
+	if (_joystickOK)
+	{
+		int curBtn = _joyState.dwButtons;
+
+		if (curBtn & 0x01)
+			return 1;
+
+		if (curBtn & 0x02)
+			return 2;
+	}
+	return 0;
+}
+
+void GetAsyncJoystickState()
+{
+	if (_joystickOK)
+	{
+		joyGetPosEx(JOYSTICKID1, &_joyState);
+
+		if (GetJoystickButton() != 0 || GetXAxis() != 0 || GetYAxis() != 0)
+			_curKey = TRUE;
+	}
 }
 
 void GetRectScreen(int screenPart, RECT* pRect)
@@ -176,15 +257,43 @@ void Redraw()
 	ReleaseMutex(sMutex);
 }
 
+static void KeyEvent(u16 pKey)
+{
+	_curKey = TRUE;
+	int pos = GetCpcKeyPos(pKey);
+	cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
+}
+
+u8 GetAsyncJoyState(u16 vKey)
+{
+	if (vKey == VK_UP && GetYAxis() == 1)
+		return 1;
+
+	if (vKey == VK_DOWN && GetYAxis() == -1)
+		return 1;
+
+	if (vKey == VK_RIGHT && GetXAxis() == 1)
+		return 1;
+
+	if (vKey == VK_LEFT && GetXAxis() == -1)
+		return 1;
+
+	if (vKey == VK_SPACE && GetJoystickButton() == 1)
+		return 1;
+
+	if (vKey == VK_CONTROL && GetJoystickButton() == 2)
+		return 1;
+
+	return 0;
+}
+
 LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
 		case WM_KEYDOWN:
-			_curKey = TRUE;
-			int pos = GetCpcKeyPos(wParam);
-			cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
-			break;
+			KeyEvent(wParam);
+		break;
 
 		case WM_DESTROY:
 			Close();
@@ -240,6 +349,22 @@ void PosWindow()
 	MoveWindow(_hWnd, posX, posY, size.cx, size.cy, TRUE);
 }
 
+void InitJoystick()
+{
+	_joystickOK = TRUE;
+	if (joyGetNumDevs() == 0)
+		_joystickOK = FALSE;
+	else
+	{
+		JOYCAPS jc;
+		if (joyGetDevCaps(JOYSTICKID1, &jc, sizeof(jc)) != JOYERR_NOERROR)
+			_joystickOK = FALSE;
+	}
+
+	_joyState.dwSize = sizeof(_joyState);
+	_joyState.dwFlags = JOY_RETURNALL | JOY_RETURNPOVCTS | JOY_RETURNCENTERED | JOY_USEDEADZONE;
+}
+
 void CreateWindowApp()
 {
 	#define TITLE	"WinCPCTelera"	
@@ -281,6 +406,8 @@ void CreateWindowApp()
 
 	_hPal = NULL;
 	CreatePaletteCpc();
+	InitJoystick();
+
 	MsgLoop();
 }
 
@@ -317,6 +444,8 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 				amstrad->_internalTimer = 0;
 				SetEvent(sVSyncEvent);
 				Redraw();
+
+				GetAsyncJoystickState();
 			}
 
 			if (amstrad->_interruptFunction != NULL)
@@ -380,7 +509,7 @@ void StartInterrupt()
 		NULL,               // default security attributes
 		TRUE,               // manual-reset event
 		FALSE,              // initial state is nonsignaled
-		TEXT("SyncInter")	// object name
+		TEXT("StartInter")	// object name
 	);
 
 	sVSyncEvent = CreateEvent(
