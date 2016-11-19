@@ -25,6 +25,8 @@ static u16 GetVKey(u16 pCpcKeyID);
 BOOL _curKey;
 u8 cpct_keyboardStatusBuffer[10];
 
+extern BOOL GetAsyncJoyState(u16 vKey);
+
 typedef struct
 {
 	u16 cpcKeyID;
@@ -150,8 +152,12 @@ u8 cpct_isKeyPressed(cpct_keyID key)
 {
 	MsgLoop();
 	
-	u16 vKey = GetVKey(key); // 0x4F
+	u16 vKey = GetVKey(key);
 	BOOL isKeyPressed = (GetAsyncKeyState(vKey) != 0);
+
+	if (isKeyPressed == FALSE)
+		isKeyPressed = (GetAsyncJoyState(vKey) != 0);
+
 	_curKey = FALSE;
 	return isKeyPressed;
 }
