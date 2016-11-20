@@ -26,8 +26,8 @@
 #define JOY_MID_VALUE (int)(USHRT_MAX / 2)
 #define JOY_LIMIT_VALUE (int)(JOY_MID_VALUE - 10000)
 
-extern COLORREF GetColorHW(int pHW);
-extern UCHAR* GetRenderingBuffer();
+extern DWORD GetColorHW(int pHW);
+extern u8* GetRenderingBuffer();
 extern u8 GetCpcKeyPos(u16 pVKeyID);
 
 static BOOL _joystickOK;
@@ -53,14 +53,15 @@ static const UCHAR sIconDataFile[] = { 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20,
 
 void Close()
 {
+	CloseHandle(sMutex);
+	CloseHandle(sStartInterruptEvent);
+	WaitForSingleObject(sStartInterruptEvent, INFINITE);
+
 	SelectObject(_memDC, _oldBitmap);
 	DeleteDC(_memDC);
 	ReleaseDC(_hWnd, _hdc);
 	DeleteObject(_doubleBuffer);
 	DeleteObject(_hPal);
-
-	CloseHandle(sMutex);
-	CloseHandle(sStartInterruptEvent);
 }
 
 int GetXAxis()
@@ -331,11 +332,8 @@ RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
 	return rcDesiredWindowRect;
 }
 
-void PosWindow()
+void ComputeWindowsSize(RECT* pWindowRect)
 {
-	SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE);
-	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
-
 	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2;
 	int posY = (GetSystemMetrics(SM_CYFULLSCREEN) - FULL_SCREEN_CY) / 2;
 
@@ -346,7 +344,18 @@ void PosWindow()
 	SIZE size = { rcNewWindowRect.right - rcNewWindowRect.left,
 		rcNewWindowRect.bottom - rcNewWindowRect.top };
 
-	MoveWindow(_hWnd, posX, posY, size.cx, size.cy, TRUE);
+	SetRect(pWindowRect, posX, posY, size.cx, size.cy);
+}
+
+void PosWindow()
+{
+	SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE);
+	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
+
+	RECT windowRect;
+	ComputeWindowsSize(&windowRect);
+
+	MoveWindow(_hWnd, windowRect.left, windowRect.top, windowRect.right, windowRect.bottom, TRUE);
 }
 
 void InitJoystick()
@@ -367,7 +376,7 @@ void InitJoystick()
 
 void CreateWindowApp()
 {
-	#define TITLE	"WinCPCTelera"	
+	#define TITLE	"WinCPCTelera (GDI)"	
 
 	HINSTANCE instance = GetModuleHandle(NULL);
 
