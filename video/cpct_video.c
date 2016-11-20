@@ -135,7 +135,7 @@ void SetPalette(int i, u8 pHW)
 	_amstrad._curVideoConf._palette[i] = pHW;
 }
 
-COLORREF GetColorHW(int pHW)
+DWORD GetColorHW(int pHW)
 {
 	if (pHW >= 0x40)
 		pHW -= 0x40;
@@ -148,7 +148,7 @@ COLORREF GetColorHW(int pHW)
 	return _palette[0].rgb;
 }
 
-COLORREF GetColorFW(int pFW)
+DWORD GetColorFW(int pFW)
 {
 	return _palette[pFW].rgb;
 }
