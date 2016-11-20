@@ -20,20 +20,28 @@
 #include "winCpctelera.h"
 
 #ifdef _USESDL
-#pragma comment(lib,"winmm.lib")
+#pragma comment(lib,"SDL2.lib")
 
-extern COLORREF GetColorHW(int pHW);
-extern UCHAR* GetRenderingBuffer();
+#define JOY_AXIS_X				0
+#define JOY_AXIS_Y				1
+#define JOY_MID_VALUE			(Sint16)(USHRT_MAX / 2)
+#define JOY_LIMIT_VALUE			(Sint16)(JOY_MID_VALUE - 1000)
+
+#define GetRedValue(rgb)		(rgb & 0xFF)
+#define GetGreenValue(rgb)		((rgb >> 8) & 0xFF)
+#define GetBlueValue(rgb)		((rgb >>16) & 0xFF)
+
+extern DWORD GetColorHW(int pHW);
+extern u8* GetRenderingBuffer();
 extern u8 GetCpcKeyPos(u16 pVKeyID);
 
-static HBITMAP _oldBitmap;
-static HBITMAP _doubleBuffer;
-static HDC _memDC;
-static HPALETTE _hPal;
-static HWND _hWnd;
-static DWORD _lastTime;
+static BOOL _joystickOK;
+static SDL_Joystick* _SDLJoystick;
+static SDL_Window* _SDLWnd;
+static SDL_Renderer* _SDLRender;
 
 static HANDLE sMutex;
+static HANDLE sStartInterruptEvent;
 static HANDLE sVSyncEvent;
 static BOOL sRunInterrupt;
 
@@ -43,13 +51,86 @@ static const UCHAR sIconDataFile[] = { 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20,
 
 void Close()
 {
-	SelectObject(_memDC, _oldBitmap);
-	DeleteDC(_memDC);
-	DeleteObject(_doubleBuffer);
-	DeleteObject(_hPal);
-
 	CloseHandle(sMutex);
-	CloseHandle(sVSyncEvent);
+	CloseHandle(sStartInterruptEvent);
+	WaitForSingleObject(sStartInterruptEvent, INFINITE);
+
+	SDL_DestroyWindow(_SDLWnd);
+	SDL_DestroyRenderer(_SDLRender);
+	SDL_JoystickClose(_SDLJoystick);
+	SDL_Quit();
+}
+
+int GetXAxis()
+{
+	if (_joystickOK)
+	{
+		Sint16 curX = SDL_JoystickGetAxis(_SDLJoystick, JOY_AXIS_X);
+		if (curX > JOY_LIMIT_VALUE)
+			return 1;
+
+		if (curX < -JOY_LIMIT_VALUE)
+			return -1;
+
+		Sint16 pov = SDL_JoystickGetHat(_SDLJoystick, 0);
+		if (pov != SDL_HAT_CENTERED)
+		{
+			if (pov == SDL_HAT_RIGHT)
+				return 1;
+
+			if (pov == SDL_HAT_LEFT)
+				return -1;
+		}
+	}
+	return 0;
+}
+
+int GetYAxis()
+{
+	if (_joystickOK)
+	{
+		Sint16 curY = SDL_JoystickGetAxis(_SDLJoystick, JOY_AXIS_Y);
+		if (curY > JOY_LIMIT_VALUE)
+			return -1;
+
+		if (curY < -JOY_LIMIT_VALUE)
+			return 1;
+
+		int pov = SDL_JoystickGetHat(_SDLJoystick, 0);
+		if (pov != SDL_HAT_CENTERED)
+		{
+			if (pov == SDL_HAT_UP)
+				return 1;
+
+			if (pov == SDL_HAT_DOWN)
+				return -1;
+		}
+	}
+	return 0;
+}
+
+int GetJoystickButton()
+{
+	if (_joystickOK)
+	{
+		if (SDL_JoystickGetButton(_SDLJoystick, 0))
+			return 1;
+
+		if (SDL_JoystickGetButton(_SDLJoystick, 1))
+			return 2;
+	}
+	return 0;
+}
+
+void GetAsyncJoystickState()
+{
+	if (_joystickOK)
+	{
+		SDL_JoystickUpdate();
+		
+		if (GetJoystickButton() != 0 || GetXAxis() != 0 || GetYAxis() != 0)
+			_curKey = TRUE;
+	}
 }
 
 void GetRectScreen(int screenPart, RECT* pRect)
@@ -66,62 +147,30 @@ void GetRectScreen(int screenPart, RECT* pRect)
 	}
 }
 
-LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
+void CreatePaletteCPC(SDL_Surface* pSurface)
 {
-	int nbColor = 1;
-	for (int i = 0; i < pBitCount; i++)
-		nbColor *= 2;
-
-	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
-	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
-	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	bitmapInfos->bmiHeader.biWidth = cx;
-	bitmapInfos->bmiHeader.biHeight = -cy;
-	bitmapInfos->bmiHeader.biPlanes = 1;
-	bitmapInfos->bmiHeader.biBitCount = pBitCount;
-	bitmapInfos->bmiHeader.biCompression = BI_RGB;
-	bitmapInfos->bmiHeader.biClrUsed = nbColor;
-
-	WORD* pal = (WORD*)bitmapInfos->bmiColors;
-	for (int i = 0; i < nbColor; i++)
-		pal[i] = i;
-
-	return bitmapInfos;
-}
-
-void CreatePaletteCpc()
-{
-	if (_hPal != NULL)
-		DeleteObject(_hPal);
-
-	NPLOGPALETTE logPalette = (NPLOGPALETTE)malloc(sizeof(LOGPALETTE) + NB_COLORS * sizeof(PALETTEENTRY));
-
-	logPalette->palNumEntries = NB_COLORS;
-	logPalette->palVersion = 0x300;
+	SDL_Color colors[NB_COLORS];
 
 	for (int i = 0; i < NB_COLORS; i++)
 	{
 		int hw = _amstrad._curVideoConf._palette[i];
-		COLORREF rgb = GetColorHW(hw);
+		uint32_t colorHW = GetColorHW(hw);
 
-		logPalette->palPalEntry[i].peBlue = GetBValue(rgb);
-		logPalette->palPalEntry[i].peRed = GetRValue(rgb);
-		logPalette->palPalEntry[i].peGreen = GetGValue(rgb);
-		logPalette->palPalEntry[i].peFlags = 0;
+		colors[i] = *(SDL_Color*)(&colorHW);
 	}
 
-	_hPal = CreatePalette(logPalette);
-
-	free(logPalette);
+	SDL_SetPaletteColors(pSurface->format->palette, colors, 0, NB_COLORS);
 }
 
 void FillBorder(RECT* pRect)
 {
 	int hw = _amstrad._curVideoConf._palette[BORDER_COLOR];
-	HBRUSH brush = CreateSolidBrush(GetColorHW(hw));
-	FillRect(_memDC, pRect, brush);
-	DeleteObject(brush);
+	DWORD RGB = GetColorHW(hw);
+
+	SDL_SetRenderDrawColor(_SDLRender, GetRedValue(RGB), GetGreenValue(RGB), GetBlueValue(RGB), 255);
+
+	SDL_Rect rectFill = { pRect->left, pRect->top, pRect->right, pRect->bottom };
+	SDL_RenderFillRect(_SDLRender, &rectFill);
 }
 
 void RenderScreen(int screenPart)
@@ -136,66 +185,87 @@ void RenderScreen(int screenPart)
 	int y = drawScreen.top / COEF;
 	int cy = (drawScreen.bottom - drawScreen.top) / COEF;
 
-	CreatePaletteCpc();
-
 	WaitForSingleObject(sMutex, INFINITE);
 
 	FillBorder(&rectPart);
 
 	if (cy > 0)
 	{
-		LPBITMAPINFO bitmapInfos = CreateBitmapInfo(8, WIDTH_SCREEN, cy);
-
 		int yBitmap = y - BORDER_UP_CY / COEF;
 
-		SelectPalette(_memDC, _hPal, FALSE);
-		RealizePalette(_memDC);
+		u8* renderBuffer = GetRenderingBuffer() + yBitmap * WIDTH_SCREEN;
 
-		StretchDIBits(_memDC, BORDER_CX, y * COEF, WIDTH_SCREEN, cy * COEF,
-			0, 0, WIDTH_SCREEN, cy, GetRenderingBuffer() + yBitmap * WIDTH_SCREEN, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
-		free(bitmapInfos);
+		SDL_Surface* surfaceBuffer = SDL_CreateRGBSurfaceWithFormatFrom(renderBuffer,
+																WIDTH_SCREEN, cy * COEF,
+																8, WIDTH_SCREEN, SDL_PIXELFORMAT_INDEX8);
+
+		CreatePaletteCPC(surfaceBuffer);
+
+		SDL_Texture* textureBuffer = SDL_CreateTextureFromSurface(_SDLRender, surfaceBuffer);
+		
+		SDL_Rect dest = { BORDER_CX, y * COEF, WIDTH_SCREEN, cy * COEF };
+		SDL_Rect src = { 0, 0, WIDTH_SCREEN, cy };
+
+		SDL_RenderCopy(_SDLRender, textureBuffer, &src, &dest);
+
+		SDL_FreeSurface(surfaceBuffer); 
+		SDL_DestroyTexture(textureBuffer);
 	}
 
 	ReleaseMutex(sMutex);
 }
 
-void Redraw(HWND pWnd)
+void Redraw()
 {
 	WaitForSingleObject(sMutex, INFINITE);
 
-	PAINTSTRUCT ps;
-	HDC hdc = BeginPaint(pWnd, &ps);
-
-	SelectPalette(_memDC, _hPal, FALSE);
-	RealizePalette(_memDC);
-
-	BitBlt(hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
-
-	EndPaint(pWnd, &ps);
+	SDL_RenderPresent(_SDLRender);
 
 	ReleaseMutex(sMutex);
 }
 
-LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+static void KeyEvent(u16 pKey)
 {
-	switch (message)
+	_curKey = TRUE;
+	int pos = GetCpcKeyPos(pKey);
+	cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
+}
+
+u8 GetAsyncJoyState(u16 vKey)
+{
+	if (vKey == VK_UP && GetYAxis() == 1)
+		return 1;
+
+	if (vKey == VK_DOWN && GetYAxis() == -1)
+		return 1;
+
+	if (vKey == VK_RIGHT && GetXAxis() == 1)
+		return 1;
+
+	if (vKey == VK_LEFT && GetXAxis() == -1)
+		return 1;
+
+	if (vKey == VK_SPACE && GetJoystickButton() == 1)
+		return 1;
+
+	if (vKey == VK_CONTROL && GetJoystickButton() == 2)
+		return 1;
+
+	return 0;
+}
+
+void InitJoystick()
+{
+	_joystickOK = TRUE;
+
+	if (SDL_NumJoysticks() == 0)
+		_joystickOK = FALSE;
+	else
 	{
-	case WM_KEYDOWN:
-		_curKey = TRUE;
-		int pos = GetCpcKeyPos(wParam);
-		cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
-		break;
-
-	case WM_PAINT:
-		Redraw(hWnd);
-		break;
-
-	case WM_DESTROY:
-		Close();
-		exit(0);
+		_SDLJoystick = SDL_JoystickOpen(0);
+		if (_SDLJoystick == NULL)
+			_joystickOK = FALSE;
 	}
-
-	return DefWindowProc(hWnd, message, wParam, lParam);
 }
 
 HICON createIcon(PBYTE iconData, int iconSize)
@@ -209,124 +279,62 @@ HICON createIcon(PBYTE iconData, int iconSize)
 	return hIcon;
 }
 
-RECT CalculateWindowRect(HWND hWindow, SIZE szDesiredClient)
-{
-	RECT rcDesiredWindowRect;
-	RECT rcCurrentWindowRect;
-	RECT rcCurrentClientRect;
-
-	GetWindowRect(hWindow, &rcCurrentWindowRect);
-	GetClientRect(hWindow, &rcCurrentClientRect);
-
-	/** Get the difference between the current and desired client areas */
-	SIZE szClientDifference = { rcCurrentClientRect.right - szDesiredClient.cx, rcCurrentClientRect.bottom - szDesiredClient.cy };
-
-	/** Get the difference between the current window rect and the desired window rect */
-	SetRect(&rcDesiredWindowRect, rcCurrentWindowRect.left, rcCurrentWindowRect.top, rcCurrentWindowRect.right - szClientDifference.cx, rcCurrentWindowRect.bottom - szClientDifference.cy);
-	return rcDesiredWindowRect;
-}
-
-void PosWindow()
-{
-	SetWindowLong(_hWnd, GWL_STYLE, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE);
-	MoveWindow(_hWnd, 0, 0, 0, 0, FALSE);
-
-	int posX = (GetSystemMetrics(SM_CXFULLSCREEN) - FULL_SCREEN_CX) / 2;
-	int posY = (GetSystemMetrics(SM_CYFULLSCREEN) - FULL_SCREEN_CY) / 2;
-
-	SIZE szDesiredClient = { FULL_SCREEN_CX, FULL_SCREEN_CY };
-
-	RECT rcNewWindowRect = CalculateWindowRect(_hWnd, szDesiredClient);
-
-	SIZE size = { rcNewWindowRect.right - rcNewWindowRect.left,
-		rcNewWindowRect.bottom - rcNewWindowRect.top };
-
-	MoveWindow(_hWnd, posX, posY, size.cx, size.cy, TRUE);
-}
-
 void CreateWindowApp()
 {
-#define TITLE	"WinCPCTelera"	
+	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
 
-	HINSTANCE instance = GetModuleHandle(NULL);
+	_SDLWnd = SDL_CreateWindow(	"WinCPCTelera (SDL)", 
+								SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+								FULL_SCREEN_CX, FULL_SCREEN_CY,
+								SDL_WINDOW_SHOWN);
 
-	WNDCLASS wc;
-	wc.style = CS_HREDRAW | CS_VREDRAW;
-	wc.lpfnWndProc = WindowProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hInstance = instance;
-	wc.hIcon = createIcon(sIconDataFile, 32);
-	wc.hCursor = NULL;
-	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	wc.lpszMenuName = TITLE;
-	wc.lpszClassName = TITLE;
+	_SDLRender = SDL_CreateRenderer(_SDLWnd, -1, SDL_RENDERER_ACCELERATED);
 
-	RegisterClass(&wc);
+	SendMessage(GetActiveWindow(), WM_SETICON, ICON_BIG, (LPARAM)createIcon(sIconDataFile, 32));
 
-	_hWnd = CreateWindow(TITLE,
-		NULL,
-		WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE,
-		0, 0,
-		0, 0,
-		NULL,
-		NULL,
-		instance,
-		NULL);
+	InitJoystick();
 
-	SetWindowText(_hWnd, TITLE);
-	PosWindow();
-
-	HDC hdc = GetDC(_hWnd);
-	_memDC = CreateCompatibleDC(hdc);
-	_doubleBuffer = CreateCompatibleBitmap(hdc, FULL_SCREEN_CX, FULL_SCREEN_CY);
-
-	_oldBitmap = SelectObject(_memDC, _doubleBuffer);
-
-	ReleaseDC(_hWnd, hdc);
-
-	_hPal = NULL;
-	CreatePaletteCpc();
 	MsgLoop();
 }
 
 void MsgLoop()
 {
-	MSG msg;
-	memset(&msg, 0, sizeof(msg));
+	SDL_Event event;
 
-	while (TRUE)
+	while (SDL_PollEvent(&event)) 
 	{
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		switch (event.type)
 		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+		case SDL_KEYDOWN:
+			KeyEvent(event.key.keysym.sym);
+			break;
+
+		case SDL_QUIT:
+			Close();
+			exit(0);
 		}
-		else
-			return;
 	}
 }
 
-void Refresh()
-{
-	InvalidateRect(_hWnd, NULL, FALSE);
-}
-
-DWORD WINAPI InterruptFunction(LPVOID lpParam)
+static int InterruptFunction(LPVOID lpParam)
 {
 	SAmstrad* amstrad = (SAmstrad*)lpParam;
-	DWORD time = timeGetTime();
+	DWORD time = SDL_GetTicks();
 
 	while (sRunInterrupt)
 	{
-		if (timeGetTime() - time > INTERRUPT_MS)
+		int elapse = SDL_GetTicks() - time;
+		if (elapse > INTERRUPT_MS)
 		{
-			time = timeGetTime();
+			time = SDL_GetTicks();
 
 			if (amstrad->_internalTimer == INTERRUPT_PER_VBL)
 			{
 				amstrad->_internalTimer = 0;
-				Refresh();
+				SetEvent(sVSyncEvent);
+				Redraw();
+
+				GetAsyncJoystickState();
 			}
 
 			if (amstrad->_interruptFunction != NULL)
@@ -340,7 +348,7 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 		Sleep(1);
 	}
 
-	SetEvent(sVSyncEvent);
+	SetEvent(sStartInterruptEvent);
 
 	return 0;
 }
@@ -350,19 +358,18 @@ void CreateInterruptThread()
 	_amstrad._internalTimer = 0;
 	sRunInterrupt = TRUE;
 
-	CreateThread(
-		NULL,                   // default security attributes
-		0,                      // use default stack size  
-		InterruptFunction,      // thread function name
-		&_amstrad,				// argument to thread function 
-		0,                      // use default creation flags 
-		NULL);
+	SDL_CreateThread(InterruptFunction, "CPC_INTERRUPT", &_amstrad);
+}
+
+void WaitVSync()
+{
+	WaitForSingleObject(sVSyncEvent, INFINITE);
 }
 
 void SetInterruptFunction(void(*intHandler)(void))
 {
 	sRunInterrupt = FALSE;
-	WaitForSingleObject(sVSyncEvent, INFINITE);
+	WaitForSingleObject(sStartInterruptEvent, INFINITE);
 
 	_amstrad._interruptFunction = intHandler;
 	CreateInterruptThread();
@@ -370,25 +377,25 @@ void SetInterruptFunction(void(*intHandler)(void))
 
 void StartInterrupt()
 {
-	/* Set timer accuracy to 1 ms */
-	TIMECAPS tc;
-	timeGetDevCaps(&tc, sizeof(TIMECAPS));
-	int timerRes = tc.wPeriodMin > 1 ? tc.wPeriodMin : 1;
-	timeBeginPeriod(timerRes);
-
 	sMutex = CreateMutex(
 		NULL,              // default security attributes
 		FALSE,             // initially not owned
 		NULL);             // unnamed mutex
+		
+	sStartInterruptEvent = CreateEvent(
+		NULL,               // default security attributes
+		TRUE,               // manual-reset event
+		FALSE,              // initial state is nonsignaled
+		TEXT("StartInterr")	// object name
+	);
 
 	sVSyncEvent = CreateEvent(
 		NULL,               // default security attributes
-		TRUE,               // manual-reset event
+		FALSE,               // auto-reset event
 		FALSE,              // initial state is nonsignaled
 		TEXT("VSync")		// object name
 	);
 
 	CreateInterruptThread();
 }
-
 #endif
