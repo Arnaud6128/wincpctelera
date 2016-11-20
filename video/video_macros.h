@@ -130,7 +130,7 @@
 //    All constant values - Use this macro <cpctm_screenPtr>
 //    Any variable value  - Use the function <cpct_getScreenPtr>
 //
-#define cpctm_screenPtr(VMEM,X,Y) (void*)((VMEM) + 80 * ((unsigned int)((Y) >> 3)) + 2048 * ((Y) & 7) + (X))
+#define cpctm_screenPtr(VMEM,X,Y) cpct_getScreenPtr(VMEM,X,Y)
 
 ////////////////////////////////////////////////////////////////////////
 // Group: Setting the border
