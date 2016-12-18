@@ -19,11 +19,18 @@
 
 #include <winCpctelera.h>
 
-extern u8 ConvPixCPCtoPC(u8 pPix);
+extern int GetPageAddress(int pPage);
+extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 
 BOOL IsCpcMem(const void* pAddress)
 {
 	return ((int)pAddress < CPC_MEM_SIZE);
+}
+
+BOOL IsVideoMem(const void* pAddress)
+{
+	int videoAdress = GetPageAddress(_amstrad._currentPage);
+	return ((int)pAddress >= videoAdress && (int)pAddress <= (videoAdress + CPC_BANK_SIZE));
 }
 
 u8* GetMemory(const void* ptr)
@@ -56,13 +63,21 @@ void cpct_memset_f8(void *array, u16 value, u16 size)
 }
 
 void cpct_memset(void *array, u8 value, u16 size)
-{
-	u8* data = (u8*)GetMemory(array);
-
-	if (IsCpcMem(array))
-		value = ConvPixCPCtoPC(value);
-
-	memset(data, value, size);
+{	
+	if (IsVideoMem(array))
+	{
+		int address = (int)array;
+		for (int i = 0; i < size; i++) 
+		{
+			u8* videoData = GetVideoBufferFromAddress(address + i);
+			*videoData = value;
+		}
+	}
+	else
+	{
+		u8* data = (u8*)GetMemory(array);
+		memset(data, value, size);
+	}
 }
 
 void cpct_setStackLocation(void* memory)
