@@ -20,10 +20,10 @@
 #include <windows.h>
 #include <cpctelera.h>
 
-#define CPCTELERA_VER	1.5
+#define CPCTELERA_VER	1.4
 
-#define	_USEWINGDI			1
-//#define _USESDL				1
+#define	_USEWINGDI		1
+//#define _USESDL		1
 
 #ifdef _USESDL
 	#include <SDL.h>
