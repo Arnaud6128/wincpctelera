@@ -56,6 +56,9 @@ void StartCPC()
 	_amstrad._curVideoConf._videoMode = 1;
 	_amstrad._curVideoConf._palette[0] = HW_BRIGHT_BLUE;
 	_amstrad._curVideoConf._palette[1] = HW_BRIGHT_YELLOW;
+	_amstrad._curVideoConf._palette[2] = HW_PASTEL_CYAN;
+	_amstrad._curVideoConf._palette[3] = HW_BRIGHT_RED;
+		
 	_amstrad._curVideoConf._palette[BORDER_COLOR] = HW_BRIGHT_BLUE;
 
 	_amstrad._currentPage = cpct_pageC0;
