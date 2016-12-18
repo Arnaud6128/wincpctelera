@@ -24,7 +24,7 @@ extern void CreatePaletteCpc();
 extern BOOL IsCpcMem(const void* pAddress);
 extern void WaitVSync();
 
-u8 ConvPixCPCtoPC(u8 pPix);
+u8 ConvPixCPCtoPC(u8 pix);
 
 static u8* ApplyLSBOffset(u8* buffVideo);
 
@@ -176,9 +176,9 @@ int ConvertScreenAddress(int pScreenAddr)
 	int videoAddress = GetVideoArea(pScreenAddr);
 	int address = pScreenAddr - videoAddress;
 
-	int line = (address / 0x800);
-	int lineChar = (address - line * 0x800) / 0x50;
-	int bytes = (address - line * 0x800) % 0x50;
+	int line = (address / 0x7D0);
+	int lineChar = (address - line * 0x7D0) / 0x50;
+	int bytes = (address - line * 0x7D0) % 0x50;
 
 	int buffAddress = (lineChar * 8 + line) * CPC_SCR_CX_BYTES + bytes;
 
@@ -190,26 +190,34 @@ u8* GetVideoBufferFromAddress(int pScreenAddr)
 	if (IsCpcMem((void*)pScreenAddr))
 	{
 		int address = ConvertScreenAddress(pScreenAddr);
+		if (address == -1)
+			return NULL;
+
 		return _amstrad._memCPC + address;
 	}
 	else
 		return (u8*)pScreenAddr;
 }
 
-u8* GetVideoBufferFromPage(int pPage)
+int GetPageAddress(int page)
 {
-	switch (pPage)
+	switch(page)
 	{
 	case cpct_page00:
-		return _amstrad._memCPC;
+		return 0x0000;
 	case cpct_page40:
-		return _amstrad._memCPC + 0x4000;
+		return 0x4000;
 	case cpct_page80:
-		return _amstrad._memCPC + 0x8000;
+		return 0x8000;
 	case cpct_pageC0:
 	default:
-		return _amstrad._memCPC + 0xC000;
+		return 0xC000;
 	}
+}
+
+u8* GetVideoBufferFromPage(int pPage)
+{
+	return _amstrad._memCPC + GetPageAddress(pPage);
 }
 
 u8* GetCurVideoBuffer()
@@ -222,42 +230,42 @@ u8* GetCurVideoBuffer()
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
-u8 ConvPixCPCtoPC(u8 pPix)
+u8 ConvPixCPCtoPC(u8 pix)
 {
 	if (GetCurrentVideoMode() == MODE_0)
 	{
-		u8 pix0 = (pPix & 0x80) >> 7;
-		u8 pixa = (pPix & 0x40) >> 6;
-		u8 pix2 = (pPix & 0x20) >> 5;
-		u8 pixc = (pPix & 0x10) >> 4;
+		u8 pix0 = (pix & 0x80) >> 7;
+		u8 pixa = (pix & 0x40) >> 6;
+		u8 pix2 = (pix & 0x20) >> 5;
+		u8 pixc = (pix & 0x10) >> 4;
 
-		u8 pix1 = (pPix & 0x08) >> 3;
-		u8 pixb = (pPix & 0x04) >> 2;
-		u8 pix3 = (pPix & 0x02) >> 1;
-		u8 pixd = (pPix & 0x01);
+		u8 pix1 = (pix & 0x08) >> 3;
+		u8 pixb = (pix & 0x04) >> 2;
+		u8 pix3 = (pix & 0x02) >> 1;
+		u8 pixd = (pix & 0x01);
 
 		return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 	}
 
 	if (GetCurrentVideoMode() == MODE_1)
 	{
-		u8 pix0 = (pPix & 0x80) >> 7;
-		u8 pix2 = (pPix & 0x40) >> 6;
+		u8 pix0 = (pix & 0x80) >> 7;
+		u8 pix2 = (pix & 0x40) >> 6;
 
-		u8 pix4 = (pPix & 0x20) >> 5;
-		u8 pix6 = (pPix & 0x10) >> 4;
+		u8 pix4 = (pix & 0x20) >> 5;
+		u8 pix6 = (pix & 0x10) >> 4;
 
-		u8 pix1 = (pPix & 0x08) >> 3;
-		u8 pix3 = (pPix & 0x04) >> 2;
+		u8 pix1 = (pix & 0x08) >> 3;
+		u8 pix3 = (pix & 0x04) >> 2;
 
-		u8 pix5 = (pPix & 0x02) >> 1;
-		u8 pix7 = (pPix & 0x01);
+		u8 pix5 = (pix & 0x02) >> 1;
+		u8 pix7 = (pix & 0x01);
 
 		u8 val = (pix1 << 7 | pix0 << 6 | pix3 << 5 | pix2 << 4 | pix5 << 3 | pix4 << 2 | pix7 << 1 | pix6);
 		return val;
 	}
 
-	return pPix;
+	return pix;
 }
 
 u8* GetRenderingBuffer()
