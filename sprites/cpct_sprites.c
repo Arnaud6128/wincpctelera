@@ -20,7 +20,7 @@
 #include <winCpctelera.h>
 
 extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
-extern u8 ConvPixCPCtoPC(u8 pPix);
+extern u8 ConvPixCPCtoPC(u8 pix);
 extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 extern BOOL IsCpcMem(const void* pAddress);
 extern u8* GetMemory(const void* ptr);
@@ -160,53 +160,9 @@ void cpct_drawTileAligned4x8_f(void* sprite, void* memory)
 	cpct_drawSprite(sprite, memory, 4, 8);
 }
 
-/*
-*	Convert pixel from CPC format to PC format
-*	ex mode 0 : 3210 dcba -> 0a2c 1b3d
-*	cf. cpct_px2byteM0 and cpct_px2byteM1
-*/
-u8 ConvPixPCtoCPC(u8 pPix, u8 pMode)
-{
-	if (pMode == MODE_0)
-	{
-		u8 pix3 = (pPix & 0x80) >> 7;
-		u8 pix2 = (pPix & 0x40) >> 6;
-		u8 pix1 = (pPix & 0x20) >> 5;
-		u8 pix0 = (pPix & 0x10) >> 4;
-
-		u8 pixd = (pPix & 0x08) >> 3;
-		u8 pixc = (pPix & 0x04) >> 2;
-		u8 pixb = (pPix & 0x02) >> 1;
-		u8 pixa = (pPix & 0x01);
-
-		return (pix0 << 7 | pixa << 6 | pix2 << 5 | pixc << 4 | pix1 << 3 | pixb << 2 | pix3 << 1 | pixd);
-	}
-
-	if (pMode == MODE_1)
-	{
-		u8 pix1 = (pPix & 0x80) >> 7;
-		u8 pix0 = (pPix & 0x40) >> 6;
-
-		u8 pix3 = (pPix & 0x20) >> 5;
-		u8 pix2 = (pPix & 0x10) >> 4;
-
-		u8 pix5 = (pPix & 0x08) >> 3;
-		u8 pix4 = (pPix & 0x04) >> 2;
-
-		u8 pix7 = (pPix & 0x02) >> 1;
-		u8 pix6 = (pPix & 0x01);
-
-		u8 val = (pix0 << 7 | pix2 << 6 | pix4 << 5 | pix6 << 4 | pix1 << 3 | pix3 << 2 | pix5 << 1 | pix7);
-		return val;
-	}
-
-	return pPix;
-}
-
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
-	u8 pix = (px1 << 4) | (0x0F & px0);
-	return ConvPixPCtoCPC(pix, MODE_0);
+	return (px1 << 4) | (0x0F & px0);
 }
 
 u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
