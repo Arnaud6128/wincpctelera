@@ -4,7 +4,7 @@
 #include <cpctelera.h>
 #include <stdio.h>
 
-u8* WinCpcTelera_GetMemPtr(u8* pMem);
+u8* WinCpcTelera_GetMemPtr(u16 memAddress);
 
 #ifdef WINCPCTELERA
 	extern void Wait(int ms);

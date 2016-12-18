@@ -9,10 +9,10 @@
 /*	Get memory pointer					 			 */
 /*												     */
 /*****************************************************/
-u8* WinCpcTelera_GetMemPtr(u8* mem)
+u8* WinCpcTelera_GetMemPtr(u16 memAddress)
 {
 #ifdef WINCPCTELERA
-	return GetMemory(mem);
+	return GetMemory((u8*)memAddress);
 #else
 	return pMem;
 #endif // WINCPCTELERA
