@@ -316,6 +316,11 @@ void MsgLoop()
 	}
 }
 
+void Wait(int ms)
+{
+	SDL_Delay(ms);
+}
+
 static int InterruptFunction(LPVOID lpParam)
 {
 	SAmstrad* amstrad = (SAmstrad*)lpParam;
@@ -345,7 +350,7 @@ static int InterruptFunction(LPVOID lpParam)
 			amstrad->_internalTimer++;
 		}
 
-		Sleep(1);
+		Wait(1);
 	}
 
 	SetEvent(sStartInterruptEvent);

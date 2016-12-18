@@ -161,7 +161,7 @@ LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
 
 	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
 	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
-	memset(bitmapInfos, 0, sizeof(BITMAPINFOHEADER));
+	memset(bitmapInfos, 0, sizeBitmapInfo);
 	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bitmapInfos->bmiHeader.biWidth = cx;
 	bitmapInfos->bmiHeader.biHeight = -cy;
@@ -437,6 +437,11 @@ void MsgLoop()
 	}
 }
 
+void Wait(int ms)
+{
+	Sleep(ms);
+}
+
 DWORD WINAPI InterruptFunction(LPVOID lpParam)
 {
 	SAmstrad* amstrad = (SAmstrad*)lpParam;
@@ -465,7 +470,7 @@ DWORD WINAPI InterruptFunction(LPVOID lpParam)
 			amstrad->_internalTimer++;
 		}
 
-		Sleep(1);
+		Wait(1);
 	}
 
 	SetEvent(sStartInterruptEvent);
