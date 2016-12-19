@@ -14,6 +14,6 @@ u8* WinCpcTelera_GetMemPtr(u16 memAddress)
 #ifdef WINCPCTELERA
 	return GetMemory((u8*)memAddress);
 #else
-	return pMem;
+	return (u8*)memAddress;
 #endif // WINCPCTELERA
 }
