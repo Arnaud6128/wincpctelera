@@ -13,9 +13,9 @@ u8* WinCpcTelera_GetMemPtr(u16 memAddress);
 	#define WinCpcTelera_Process()		MsgLoop()
 	#define WinCpcTelera_Wait(X)		Wait(X)
 	#define WinCpcTelera_Stop()		{ while(1){ Wait(10); MsgLoop(); }; }
-	#define WinCpcTelera_PrintStr(X)	printf("%s\n", X)
-	#define WinCpcTelera_PrintInt(X)	printf("%d\n", X)
-	#define WinCpcTelera_PrintHex(X)	printf("0x%04X\n", X)
+	#define WinCpcTelera_PrintStr(N,X)	printf("%s : %s\n", N, X)
+	#define WinCpcTelera_PrintInt(N,X)	printf("%s : %d\n", N, X)
+	#define WinCpcTelera_PrintHex(N,X)	printf("%s : 0x%04X\n", N, X)
 #else
 	#define WinCpcTelera_Process()
 	#define WinCpcTelera_Wait(X)	
