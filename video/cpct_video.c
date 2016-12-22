@@ -24,8 +24,6 @@ extern void CreatePaletteCpc();
 extern BOOL IsCpcMem(const void* pAddress);
 extern void WaitVSync();
 
-u8 ConvPixCPCtoPC(u8 pix);
-
 static u8* ApplyLSBOffset(u8* buffVideo);
 
 SCPCPalette _palette[] =
@@ -104,8 +102,7 @@ u16 cpct_count2VSYNC()
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	u8 pix = ConvPixCPCtoPC(colour_pattern);
-	memset(GetVideoBufferFromAddress(0xC000), pix, 0x4000);
+	memset(GetVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
 	Sleep(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
 }
 
@@ -230,7 +227,7 @@ u8* GetCurVideoBuffer()
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
-u8 ConvPixCPCtoPC(u8 pix)
+u8 ConvPixSpriteCPCtoPC(u8 pix)
 {
 	if (GetCurrentVideoMode() == MODE_0)
 	{
