@@ -20,7 +20,7 @@
 #include <winCpctelera.h>
 
 extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
-extern u8 ConvPixCPCtoPC(u8 pix);
+extern u8 ConvPixSpriteCPCtoPC(u8 pix);
 extern u8* GetVideoBufferFromAddress(int pScreenAddr);
 extern BOOL IsCpcMem(const void* pAddress);
 extern u8* GetMemory(const void* ptr);
@@ -43,7 +43,7 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 	{
 		for (int x = 0; x < width; x++)
 		{
-			u8 pixSrc = ConvPixCPCtoPC(*src);
+			u8 pixSrc = ConvPixSpriteCPCtoPC(*src);
 
 			switch (_blendMode)
 			{
@@ -186,14 +186,13 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
-	u8 pix = ConvPixCPCtoPC(colour_pattern);
 	u8* video = (u8*)GetVideoBufferFromAddress((int)memory);
 
 	for (int yi = 0; yi < height; yi++)
 	{
 		for (int xi = 0; xi < width; xi++)
 		{
-			*video = pix;
+			*video = colour_pattern;
 			video++;
 		}
 		video += (CPC_SCR_CX_BYTES - width);
@@ -402,8 +401,8 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 mask = ConvPixCPCtoPC((u8)(*pix));
-				u8 sprite = ConvPixCPCtoPC((u8)(*pix >> 8));
+				u8 mask = ConvPixSpriteCPCtoPC((u8)(*pix));
+				u8 sprite = ConvPixSpriteCPCtoPC((u8)(*pix >> 8));
 				*video = *video ^ sprite;
 				*video = *video & mask;
 				*video = *video ^ sprite;
@@ -421,7 +420,7 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				*video = ConvPixCPCtoPC(*pix);
+				*video = ConvPixSpriteCPCtoPC(*pix);
 				video++;
 				pix++;
 			}
@@ -435,7 +434,7 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 pixel = ConvPixCPCtoPC(*pix);
+				u8 pixel = ConvPixSpriteCPCtoPC(*pix);
 
 				FilterPixel(video, pixel, _transparentColor);
 
