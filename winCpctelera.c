@@ -24,44 +24,40 @@
 	#undef const
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+void wincpct_createWindowApp();
+void wincpct_startCPC();
 
-extern void CreateWindowApp();
-void StartCPC();
+SAmstrad gAmstrad;
 
-SAmstrad _amstrad;
-
-void CPCTeleraWin()
+void wincpct_CPCTeleraWin()
 {
 	static BOOL _isStarted = FALSE;
 	if (!_isStarted)
 	{
 		_isStarted = TRUE;
 
-		CreateWindowApp();
-		StartCPC();
+		wincpct_createWindowApp();
+		wincpct_startCPC();
 	}
 }
 
-void StartCPC()
+void wincpct_startCPC()
 {
-	ZeroMemory(&_amstrad, sizeof(_amstrad));
-	memset(&_amstrad._memCPC, 0, CPC_MEM_SIZE);
+	ZeroMemory(&gAmstrad, sizeof(gAmstrad));
+	memset(&gAmstrad._memCPC, 0, CPC_MEM_SIZE);
 
 	for (int i = 0; i < NB_COLORS; i++)
-		_amstrad._curVideoConf._palette[i] = _palette[i].hw;
+		gAmstrad._curVideoConf.gCpcPalette[i] = gCpcPalette[i].hw;
 
-	_amstrad._curVideoConf._videoMode = 1;
-	_amstrad._curVideoConf._palette[0] = HW_BRIGHT_BLUE;
-	_amstrad._curVideoConf._palette[1] = HW_BRIGHT_YELLOW;
-	_amstrad._curVideoConf._palette[2] = HW_PASTEL_CYAN;
-	_amstrad._curVideoConf._palette[3] = HW_BRIGHT_RED;
+	gAmstrad._curVideoConf._videoMode = 1;
+	gAmstrad._curVideoConf.gCpcPalette[0] = HW_BRIGHT_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[1] = HW_BRIGHT_YELLOW;
+	gAmstrad._curVideoConf.gCpcPalette[2] = HW_PASTEL_CYAN;
+	gAmstrad._curVideoConf.gCpcPalette[3] = HW_BRIGHT_RED;
 		
-	_amstrad._curVideoConf._palette[BORDER_COLOR] = HW_BRIGHT_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[BORDER_COLOR] = HW_BRIGHT_BLUE;
 
-	_amstrad._currentPage = cpct_pageC0;
+	gAmstrad._currentPage = cpct_pageC0;
 
-	StartInterrupt();
+	wincpct_startInterrupt();
 }

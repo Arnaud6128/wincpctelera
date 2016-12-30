@@ -17,7 +17,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //-------------------------------------------------------------------------------
 
-#include <windows.h>
 #include <cpctelera.h>
 
 #define CPCTELERA_VER	1.4
@@ -28,6 +27,8 @@
 #ifdef _USESDL
 	#include <SDL.h>
 #endif
+
+#include <windows.h>
 
 #define NB_COLORS			16
 #define BORDER_COLOR		16
@@ -53,7 +54,7 @@
 #define CPC_SCR_CY_LINE		200
 #define CPC_INTERRUPT_LINE	(CPC_SCR_CY_LINE/INTERRUPT_PER_VBL)
 
-#define GetCurrentVideoMode() _amstrad._curVideoConf._videoMode
+#define wincpct_getCurrentVideoMode() gAmstrad._curVideoConf._videoMode
 
 enum
 {
@@ -74,7 +75,7 @@ typedef void(*TInterrupt)(void);
 typedef struct tagVideoConf
 {
 	u8 _videoMode;
-	u8 _palette[NB_COLORS + 1];
+	u8 gCpcPalette[NB_COLORS + 1];
 } SVideoConf;
 
 typedef struct tagSAmstrad
@@ -96,11 +97,30 @@ typedef struct tagSCPCPalette
 	COLORREF rgb;
 } SCPCPalette;
 
-extern SCPCPalette _palette[];
-extern BOOL _curKey;
-extern SAmstrad _amstrad;
+extern SCPCPalette gCpcPalette[];
+extern BOOL gCurKey;
+extern SAmstrad gAmstrad;
 
-void CPCTeleraWin();
-void MsgLoop();
-void SetInterruptFunction(void(*intHandler)(void));
-void StartInterrupt();
+/* wincpctelera */
+void wincpct_CPCTeleraWin();
+void wincpct_msgLoop();
+void wincpct_setInterruptFunction(void(*intHandler)(void));
+void wincpct_startInterrupt();
+u8 wincpct_getAsyncJoyState(u16 vKey);
+void wincpct_wait(int ms);
+void wincpct_waitVSync();
+void wincpct_createPaletteCpc();
+
+/* cpct_sprite */
+u8 wincpct_convPixSpriteCPCtoPC(u8 pix);
+void wincpct_drawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
+
+/* cpct_memutils */
+BOOL wincpct_isCpcMem(const void* pAddress);
+u8* wincpct_getMemory(const void* ptr);
+
+/* cpct_video */
+u8* wincpct_getVideoBufferFromAddress(int pScreenAddr);
+u8* wincpct_applyLSBOffset(u8* buffVideo);
+int wincpct_getVideoArea(int pScreenAddr);
+int wincpct_getPageAddress(int pPage);
