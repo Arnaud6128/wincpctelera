@@ -19,13 +19,11 @@
 
 #include <winCpctelera.h>
 
-static void ScanKeyboard();
-static u16 GetVKey(u16 pCpcKeyID);
+static void wincpct_scanKeyboard();
+static u16 wincpct_getVKey(u16 pCpcKeyID);
 
-BOOL _curKey;
+BOOL gCurKey;
 u8 cpct_keyboardStatusBuffer[10];
-
-extern BOOL GetAsyncJoyState(u16 vKey);
 
 typedef struct
 {
@@ -33,7 +31,7 @@ typedef struct
 	u16 winKeyID;
 } SKeyMapping;
 
-SKeyMapping cpctMapKey[] =
+static const SKeyMapping sCpctMapKey[] =
 {
 	{ Key_CursorUp, VK_UP },
 	{ Key_CursorRight, VK_RIGHT },
@@ -135,39 +133,39 @@ SKeyMapping cpctMapKey[] =
 
 void cpct_scanKeyboard_f()
 {
-	ScanKeyboard();
+	wincpct_scanKeyboard();
 }
 
 void cpct_scanKeyboard_if()
 {
-	ScanKeyboard();
+	wincpct_scanKeyboard();
 }
 
 void cpct_scanKeyboard()
 {
-	ScanKeyboard();
+	wincpct_scanKeyboard();
 }
 
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
-	MsgLoop();
+	wincpct_msgLoop();
 	
-	u16 vKey = GetVKey(key);
+	u16 vKey = wincpct_getVKey(key);
 	BOOL isKeyPressed = (GetAsyncKeyState(vKey) != 0);
 
 	if (isKeyPressed == FALSE)
-		isKeyPressed = (GetAsyncJoyState(vKey) != 0);
+		isKeyPressed = (wincpct_getAsyncJoyState(vKey) != 0);
 
-	_curKey = FALSE;
+	gCurKey = FALSE;
 	return isKeyPressed;
 }
 
 u8 cpct_isAnyKeyPressed()
 {
-	MsgLoop();
+	wincpct_msgLoop();
 
-	BOOL isKeyPressed = (_curKey != FALSE);
-	_curKey = FALSE;
+	BOOL isKeyPressed = (gCurKey != FALSE);
+	gCurKey = FALSE;
 	return isKeyPressed;
 }
 
@@ -176,41 +174,41 @@ u8 cpct_isAnyKeyPressed_f()
 	return cpct_isAnyKeyPressed();
 }
 
-static u16 GetVKey(u16 pCpcKeyID)
+static u16 wincpct_getVKey(u16 pCpcKeyID)
 {
-	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	for (int i = 0; i < sizeof(sCpctMapKey) / sizeof(SKeyMapping); i++)
 	{
-		if (cpctMapKey[i].cpcKeyID == pCpcKeyID)
+		if (sCpctMapKey[i].cpcKeyID == pCpcKeyID)
 		{
-			return cpctMapKey[i].winKeyID;
+			return sCpctMapKey[i].winKeyID;
 		}
 	}
 	return 0;
 }
 
-static void ScanKeyboard()
+static void wincpct_scanKeyboard()
 {
 	memset(cpct_keyboardStatusBuffer, 0xFF, sizeof(cpct_keyboardStatusBuffer));
-	MsgLoop();
+	wincpct_msgLoop();
 }
 
-u16 GetCpcKey(u16 pVKeyID)
+static u16 wincpct_getCpcKey(u16 pVKeyID)
 {
-	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	for (int i = 0; i < sizeof(sCpctMapKey) / sizeof(SKeyMapping); i++)
 	{
-		if (cpctMapKey[i].winKeyID == pVKeyID)
+		if (sCpctMapKey[i].winKeyID == pVKeyID)
 		{
-			return cpctMapKey[i].cpcKeyID;
+			return sCpctMapKey[i].cpcKeyID;
 		}
 	}
 	return 0;
 }
 
-u8 GetCpcKeyPos(u16 pVKeyID)
+u8 wincpct_getCpcKeyPos(u16 pVKeyID)
 {
-	for (int i = 0; i < sizeof(cpctMapKey) / sizeof(SKeyMapping); i++)
+	for (int i = 0; i < sizeof(sCpctMapKey) / sizeof(SKeyMapping); i++)
 	{
-		if (cpctMapKey[i].winKeyID == pVKeyID)
+		if (sCpctMapKey[i].winKeyID == pVKeyID)
 		{
 			return i;
 		}
