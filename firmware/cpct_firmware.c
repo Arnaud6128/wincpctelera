@@ -21,16 +21,16 @@
 
 void cpct_setInterruptHandler(void(*intHandler)(void))
 {
-	SetInterruptFunction(intHandler);
+	wincpct_setInterruptFunction(intHandler);
 }
 
 void cpct_reenableFirmware(u16 firmware_ROM_code)
 {
-	MsgLoop();
+	wincpct_msgLoop();
 }
 
 u16 cpct_disableFirmware()
 {
-	CPCTeleraWin();
+	wincpct_CPCTeleraWin();
 	return 0;
 }
