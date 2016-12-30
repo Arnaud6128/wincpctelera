@@ -19,14 +19,7 @@
 
 #include "winCpctelera.h"
 
-extern u8* GetVideoBufferFromAddress(int pScreenAddr);
-extern void CreatePaletteCpc();
-extern BOOL IsCpcMem(const void* pAddress);
-extern void WaitVSync();
-
-static u8* ApplyLSBOffset(u8* buffVideo);
-
-SCPCPalette _palette[] =
+const SCPCPalette gCpcPalette[] =
 {
 	0, HW_BLACK, RGB(0,0,0),
 	1, HW_BLUE, RGB(0,0,128),
@@ -71,86 +64,86 @@ void cpct_fw2hw(void *fw_colour_array, u16 size)
 
 void cpct_setPalette(u8* ink_array, u16 ink_array_size)
 {
-	memcpy(_amstrad._curVideoConf._palette, ink_array, ink_array_size);
+	memcpy(gAmstrad._curVideoConf.gCpcPalette, ink_array, ink_array_size);
 }
 
 void cpct_setPALColour(u8 pen, u8 hw_ink)
 {
-	_amstrad._curVideoConf._palette[pen] = hw_ink;
+	gAmstrad._curVideoConf.gCpcPalette[pen] = hw_ink;
 }
 
 u8 cpct_getHWColour(u16 pFW)
 {
-	for (u16 i = 0; i < sizeof(_palette) / sizeof(SCPCPalette); i++)
+	for (u16 i = 0; i < sizeof(gCpcPalette) / sizeof(SCPCPalette); i++)
 	{
-		if (_palette[i].fw == pFW)
-			return _palette[i].hw;
+		if (gCpcPalette[i].fw == pFW)
+			return gCpcPalette[i].hw;
 	}
-	return _palette[0].hw;
+	return gCpcPalette[0].hw;
 }
 
 void cpct_waitVSYNC()
 {	
-	MsgLoop();
-	WaitVSync();
+	wincpct_msgLoop();
+	wincpct_waitVSync();
 }
 
 u16 cpct_count2VSYNC()
 {
-	return _amstrad._internalTimer / INTERRUPT_PER_VBL * REFRESH_MS * 1000;
+	return gAmstrad._internalTimer / INTERRUPT_PER_VBL * REFRESH_MS * 1000;
 }
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	memset(GetVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
-	Sleep(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
+	memset(wincpct_getVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
+	wincpct_wait(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
 }
 
 void cpct_setVideoMode(u8 videoMode)
 {
-	_amstrad._curVideoConf._videoMode = videoMode;
+	gAmstrad._curVideoConf._videoMode = videoMode;
 }
 
 void cpct_setVideoMemoryPage(u8 page_6LSb)
 {
-	_amstrad._currentPage = page_6LSb;
+	gAmstrad._currentPage = page_6LSb;
 }
 
 void cpct_setVideoMemoryOffset(u8 offset)
 {
-	_amstrad._memOffset = offset;
+	gAmstrad._memOffset = offset;
 }
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	u8* memory = GetVideoBufferFromAddress((int)screen_start);
+	u8* memory = wincpct_getVideoBufferFromAddress((int)screen_start);
 	return memory + y * CPC_SCR_CX_BYTES + x;
 }
 
-void SetPalette(int i, u8 pHW)
+void wincpct_setPalette(int i, u8 pHW)
 {
-	_amstrad._curVideoConf._palette[i] = pHW;
+	gAmstrad._curVideoConf.gCpcPalette[i] = pHW;
 }
 
-DWORD GetColorHW(int pHW)
+DWORD wincpct_getColorHW(int pHW)
 {
 	if (pHW >= 0x40)
 		pHW -= 0x40;
 
-	for (int i = 0; i < sizeof(_palette) / sizeof(SCPCPalette); i++)
+	for (int i = 0; i < sizeof(gCpcPalette) / sizeof(SCPCPalette); i++)
 	{
-		if (_palette[i].hw == pHW)
-			return _palette[i].rgb;
+		if (gCpcPalette[i].hw == pHW)
+			return gCpcPalette[i].rgb;
 	}
-	return _palette[0].rgb;
+	return gCpcPalette[0].rgb;
 }
 
-DWORD GetColorFW(int pFW)
+DWORD wincpct_getColorFW(int pFW)
 {
-	return _palette[pFW].rgb;
+	return gCpcPalette[pFW].rgb;
 }
 
-int GetVideoArea(int pScreenAddr)
+int wincpct_getVideoArea(int pScreenAddr)
 {
 	int videoAddress = 0;
 
@@ -168,9 +161,9 @@ int GetVideoArea(int pScreenAddr)
 	return videoAddress;
 }
 
-int ConvertScreenAddress(int pScreenAddr)
+static int wincpct_convertScreenAddress(int pScreenAddr)
 {
-	int videoAddress = GetVideoArea(pScreenAddr);
+	int videoAddress = wincpct_getVideoArea(pScreenAddr);
 	int address = pScreenAddr - videoAddress;
 
 	int line = (address / 0x7D0);
@@ -182,21 +175,21 @@ int ConvertScreenAddress(int pScreenAddr)
 	return videoAddress + buffAddress;
 }
 
-u8* GetVideoBufferFromAddress(int pScreenAddr)
+u8* wincpct_getVideoBufferFromAddress(int pScreenAddr)
 {
-	if (IsCpcMem((void*)pScreenAddr))
+	if (wincpct_isCpcMem((void*)pScreenAddr))
 	{
-		int address = ConvertScreenAddress(pScreenAddr);
+		int address = wincpct_convertScreenAddress(pScreenAddr);
 		if (address == -1)
 			return NULL;
 
-		return _amstrad._memCPC + address;
+		return gAmstrad._memCPC + address;
 	}
 	else
 		return (u8*)pScreenAddr;
 }
 
-int GetPageAddress(int page)
+int wincpct_getPageAddress(int page)
 {
 	switch(page)
 	{
@@ -212,14 +205,14 @@ int GetPageAddress(int page)
 	}
 }
 
-u8* GetVideoBufferFromPage(int pPage)
+u8* wincpct_getVideoBufferFromPage(int pPage)
 {
-	return _amstrad._memCPC + GetPageAddress(pPage);
+	return gAmstrad._memCPC + wincpct_getPageAddress(pPage);
 }
 
-u8* GetCurVideoBuffer()
+u8* wincpct_getCurVideoBuffer()
 {
-	return GetVideoBufferFromPage(_amstrad._currentPage);
+	return wincpct_getVideoBufferFromPage(gAmstrad._currentPage);
 }
 
 /*
@@ -227,9 +220,9 @@ u8* GetCurVideoBuffer()
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
-u8 ConvPixSpriteCPCtoPC(u8 pix)
+u8 wincpct_convPixSpriteCPCtoPC(u8 pix)
 {
-	if (GetCurrentVideoMode() == MODE_0)
+	if (wincpct_getCurrentVideoMode() == MODE_0)
 	{
 		u8 pix0 = (pix & 0x80) >> 7;
 		u8 pixa = (pix & 0x40) >> 6;
@@ -244,7 +237,7 @@ u8 ConvPixSpriteCPCtoPC(u8 pix)
 		return (pix3 << 7 | pix2 << 6 | pix1 << 5 | pix0 << 4 | pixd << 3 | pixc << 2 | pixb << 1 | pixa);
 	}
 
-	if (GetCurrentVideoMode() == MODE_1)
+	if (wincpct_getCurrentVideoMode() == MODE_1)
 	{
 		u8 pix0 = (pix & 0x80) >> 7;
 		u8 pix2 = (pix & 0x40) >> 6;
@@ -265,17 +258,17 @@ u8 ConvPixSpriteCPCtoPC(u8 pix)
 	return pix;
 }
 
-u8* GetRenderingBuffer()
+u8* wincpct_getRenderingBuffer()
 {
 	static u8 sRenderBuffer[WIDTH_SCREEN*CPC_SCR_CY_LINE];
 
-	u8 *buffVideo = GetCurVideoBuffer();
+	u8 *buffVideo = wincpct_getCurVideoBuffer();
 
-	if (_amstrad._memOffset != 0)
-		buffVideo = ApplyLSBOffset(buffVideo);
+	if (gAmstrad._memOffset != 0)
+		buffVideo = wincpct_applyLSBOffset(buffVideo);
 
 	int i = 0, j = 0;
-	u8 curVideo = GetCurrentVideoMode();
+	u8 curVideo = wincpct_getCurrentVideoMode();
 	int bytesPerInterrupt = 0x4000 / INTERRUPT_PER_VBL;
 	int bytesProcess = 0;
 
@@ -358,11 +351,11 @@ u8* GetRenderingBuffer()
 }
 
 /* Simulate CRCT R13 offset */
-static u8* ApplyLSBOffset(u8* buffVideo)
+static u8* wincpct_applyLSBOffset(u8* buffVideo)
 {
 	static u8 SOffsetVideo[0x4000];
 
-	int offset = _amstrad._memOffset * 2;
+	int offset = gAmstrad._memOffset * 2;
 	int cxLine = CPC_SCR_CX_BYTES;
 	u8* destVideo = SOffsetVideo;
 
