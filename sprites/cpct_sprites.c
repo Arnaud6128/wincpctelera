@@ -19,12 +19,6 @@
 
 #include <winCpctelera.h>
 
-extern void DrawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
-extern u8 ConvPixSpriteCPCtoPC(u8 pix);
-extern u8* GetVideoBufferFromAddress(int pScreenAddr);
-extern BOOL IsCpcMem(const void* pAddress);
-extern u8* GetMemory(const void* ptr);
-
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
 static int _carry;
 static u8 _transparentColor;
@@ -36,14 +30,14 @@ void cpct_setBlendMode(CPCT_BlendMode mode)
 
 void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 {
-	u8* dst = GetVideoBufferFromAddress((int)memory);
-	u8* src = (u8*)GetMemory(sprite);
+	u8* dst = wincpct_getVideoBufferFromAddress((int)memory);
+	u8* src = (u8*)wincpct_getMemory(sprite);
 
 	for (int y = 0; y < height; y++)
 	{
 		for (int x = 0; x < width; x++)
 		{
-			u8 pixSrc = ConvPixSpriteCPCtoPC(*src);
+			u8 pixSrc = wincpct_convPixSpriteCPCtoPC(*src);
 
 			switch (_blendMode)
 			{
@@ -121,9 +115,8 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 		dst += CPC_SCR_CX_BYTES - width;
 	}
 
-	Sleep(1);
+	wincpct_wait(1);
 }
-
 
 void cpct_drawTileAligned2x4(void* sprite, void* memory)
 {
@@ -172,21 +165,21 @@ u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
-	DrawSprite(sprite, memory, width, height, SPRITE_NORMAL);
+	wincpct_drawSprite(sprite, memory, width, height, SPRITE_NORMAL);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
-	DrawSprite(sprite, memory, width, height, SPRITE_MASKED);
+	wincpct_drawSprite(sprite, memory, width, height, SPRITE_MASKED);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
-	u8* video = (u8*)GetVideoBufferFromAddress((int)memory);
+	u8* video = (u8*)wincpct_getVideoBufferFromAddress((int)memory);
 
 	for (int yi = 0; yi < height; yi++)
 	{
@@ -198,18 +191,18 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		video += (CPC_SCR_CX_BYTES - width);
 	}
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
 {
 	_transparentColor = ((u8*)pmasktable)[0];
-	DrawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
+	wincpct_drawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
-static void hflipByte(u8 width, u8 height, u8* sprite)
+static void wincpct_hflipByte(u8 width, u8 height, u8* sprite)
 {
 	for (int y = 0; y < height; y++)
 	{
@@ -231,7 +224,7 @@ static void hflipByte(u8 width, u8 height, u8* sprite)
 *	ex mode 0 : 3210 dcba -> 0a2c 1b3d -> a0c2 b1d3
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
-static u8 DecodeFlipPixMode0(u8 data)
+static u8 wincpct_decodeFlipPixMode0(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pixa = (data & 0x40) >> 6;
@@ -248,19 +241,19 @@ static u8 DecodeFlipPixMode0(u8 data)
 void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
 {
 	u8* data = (u8*)sprite;
-	hflipByte(width, height, data);
+	wincpct_hflipByte(width, height, data);
 
 	for (int i = 0; i < width*height; i++)
-		*data++ = DecodeFlipPixMode0(*data);
+		*data++ = wincpct_decodeFlipPixMode0(*data);
 }
 
 void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
 {
 	cpct_hflipSpriteM0(width, height, (u8*)sprite);
-	Sleep(1);
+	wincpct_wait(1);
 }
 
-static u8 DecodeFlipPixMode1(u8 data)
+static u8 wincpct_decodeFlipPixMode1(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pix1 = (data & 0x40) >> 6;
@@ -276,14 +269,14 @@ static u8 DecodeFlipPixMode1(u8 data)
 
 void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)GetMemory(sprite);
-	hflipByte(width, height, data);
+	u8* data = (u8*)wincpct_getMemory(sprite);
+	wincpct_hflipByte(width, height, data);
 
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
-		*data++ = DecodeFlipPixMode1(*data);
+		*data++ = wincpct_decodeFlipPixMode1(*data);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
@@ -291,7 +284,7 @@ void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM1(width, height, (u8*)sprite);
 }
 
-static u8 DecodeFlipPixMode2(u8 data)
+static u8 wincpct_decodeFlipPixMode2(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
 	u8 pix1 = (data & 0x40) >> 6;
@@ -307,14 +300,14 @@ static u8 DecodeFlipPixMode2(u8 data)
 
 void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)GetMemory(sprite);
-	hflipByte(width, height, data);
+	u8* data = (u8*)wincpct_getMemory(sprite);
+	wincpct_hflipByte(width, height, data);
 
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
-		*data++ = DecodeFlipPixMode2(*data);
+		*data++ = wincpct_decodeFlipPixMode2(*data);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
@@ -322,7 +315,7 @@ void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM2(width, height, (u8*)sprite);
 }
 
-static void hflipByteMasked(u8 width, u8 height, u16* sprite)
+static void wincpct_hflipByteMasked(u8 width, u8 height, u16* sprite)
 {
 	for (int y = 0; y < height; y++)
 	{
@@ -341,46 +334,46 @@ static void hflipByteMasked(u8 width, u8 height, u16* sprite)
 
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)GetMemory(sprite);
-	hflipByteMasked(width, height, sprite);
+	u8* data = (u8*)wincpct_getMemory(sprite);
+	wincpct_hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
-		*data++ = DecodeFlipPixMode0(*data);
+		*data++ = wincpct_decodeFlipPixMode0(*data);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)GetMemory(sprite);
-	hflipByteMasked(width, height, sprite);
+	u8* data = (u8*)wincpct_getMemory(sprite);
+	wincpct_hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height*2; i++)
-		*data++ = DecodeFlipPixMode1(*data);
+		*data++ = wincpct_decodeFlipPixMode1(*data);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)GetMemory(sprite);
-	hflipByteMasked(width, height, sprite);
+	u8* data = (u8*)wincpct_getMemory(sprite);
+	wincpct_hflipByteMasked(width, height, sprite);
 
 	for (int i = 0; i < width*height * 2; i++)
-		*data++ = DecodeFlipPixMode2(*data);
+		*data++ = wincpct_decodeFlipPixMode2(*data);
 
-	Sleep(1);
+	wincpct_wait(1);
 }
 
-void FilterPixel(u8* video, u8 pix, u8 transColor)
+void wincpct_filterPixel(u8* video, u8 pix, u8 transColor)
 {
-	if (GetCurrentVideoMode() == MODE_0)
+	if (wincpct_getCurrentVideoMode() == MODE_0)
 	{
 		if ((pix & 0x0F) >> 0 != transColor)	*video = (*video & 0xF0) | (0x0F & pix);
 		if ((pix & 0xF0) >> 4 != transColor)	*video = (*video & 0x0F) | (0xF0 & pix);
 	}
 	else
-	if (GetCurrentVideoMode() == MODE_1)
+	if (wincpct_getCurrentVideoMode() == MODE_1)
 	{
 		if ((pix & 0x03) >> 0 != transColor)	*video = (*video & 0xFC) | (0x03 & pix);
 		if ((pix & 0x0C) >> 2 != transColor)	*video = (*video & 0xF3) | (0x0C & pix);
@@ -389,10 +382,10 @@ void FilterPixel(u8* video, u8 pix, u8 transColor)
 	}
 }
 
-void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
+void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 {
-	u8* video = GetVideoBufferFromAddress((int)memory);
-	u8* sprite = (u8*)GetMemory(pSprite);
+	u8* video = wincpct_getVideoBufferFromAddress((int)memory);
+	u8* sprite = (u8*)wincpct_getMemory(pSprite);
 
 	if (pSpriteMode == SPRITE_MASKED)
 	{
@@ -401,8 +394,8 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 mask = ConvPixSpriteCPCtoPC((u8)(*pix));
-				u8 sprite = ConvPixSpriteCPCtoPC((u8)(*pix >> 8));
+				u8 mask = wincpct_convPixSpriteCPCtoPC((u8)(*pix));
+				u8 sprite = wincpct_convPixSpriteCPCtoPC((u8)(*pix >> 8));
 				*video = *video ^ sprite;
 				*video = *video & mask;
 				*video = *video ^ sprite;
@@ -420,7 +413,7 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				*video = ConvPixSpriteCPCtoPC(*pix);
+				*video = wincpct_convPixSpriteCPCtoPC(*pix);
 				video++;
 				pix++;
 			}
@@ -434,9 +427,11 @@ void DrawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 		{
 			for (int xi = 0; xi < cx; xi++)
 			{
-				u8 pixel = ConvPixSpriteCPCtoPC(*pix);
+				u8 pixel = wincpct_convPixSpriteCPCtoPC(*pix);
 
-				FilterPixel(video, pixel, _transparentColor);
+				/** Filter only index 0 in cpctelera */
+				if (_transparentColor == 0)
+					wincpct_filterPixel(video, pixel, _transparentColor);
 
 				video++;
  				pix++;
