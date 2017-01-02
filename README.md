@@ -1,5 +1,5 @@
-# wincpctelera
-is a port of cpctelera API for Windows :
+# WinCpctelera
+is a port of cpctelera API to Windows :
 https://github.com/lronaldo/cpctelera
 
 WinCpctelera is a Windows implementation of the API of CPCTelera and use the GDI or SDL.
