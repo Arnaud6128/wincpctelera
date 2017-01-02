@@ -11,13 +11,13 @@ There are some limitations :
 - No sound
 - No direct memory access
 ```
-u8* memVideo = 0xC000;
+u8* memVideo = (u8*)0xC000;
 *memVideo = 0x00; // Crash under Windows
 ```
 
 But you can use this function helper :
 ```
-u8* memVideo = WinCpcTelera_GetMemPtr(u0xC000);
+u8* memVideo = WinCpcTelera_GetMemPtr(0xC000);
 *memVideo = 0x00; // Works both for Windows and CPC
 ```
 
