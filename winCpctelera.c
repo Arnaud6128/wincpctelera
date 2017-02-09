@@ -50,12 +50,22 @@ void wincpct_startCPC()
 		gAmstrad._curVideoConf.gCpcPalette[i] = gCpcPalette[i].hw;
 
 	gAmstrad._curVideoConf._videoMode = 1;
-	gAmstrad._curVideoConf.gCpcPalette[0] = HW_BRIGHT_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[0] = HW_BLUE;
 	gAmstrad._curVideoConf.gCpcPalette[1] = HW_BRIGHT_YELLOW;
 	gAmstrad._curVideoConf.gCpcPalette[2] = HW_PASTEL_CYAN;
 	gAmstrad._curVideoConf.gCpcPalette[3] = HW_BRIGHT_RED;
+	gAmstrad._curVideoConf.gCpcPalette[4] = HW_BRIGHT_WHITE;
+	gAmstrad._curVideoConf.gCpcPalette[5] = HW_BLACK;
+	gAmstrad._curVideoConf.gCpcPalette[6] = HW_BRIGHT_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[7] = HW_BRIGHT_MAGENTA;
+	gAmstrad._curVideoConf.gCpcPalette[8] = HW_CYAN;
+	gAmstrad._curVideoConf.gCpcPalette[9] = HW_YELLOW;
+	gAmstrad._curVideoConf.gCpcPalette[10] = HW_PASTEL_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[11] = HW_PINK;
+	gAmstrad._curVideoConf.gCpcPalette[12] = HW_BRIGHT_GREEN;
+	gAmstrad._curVideoConf.gCpcPalette[13] = HW_PASTEL_GREEN;
 		
-	gAmstrad._curVideoConf.gCpcPalette[BORDER_COLOR] = HW_BRIGHT_BLUE;
+	gAmstrad._curVideoConf.gCpcPalette[BORDER_COLOR] = HW_BLUE;
 
 	gAmstrad._currentPage = cpct_pageC0;
 
