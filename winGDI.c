@@ -29,6 +29,7 @@
 extern DWORD wincpct_getColorHW(int pHW);
 extern u8* wincpct_getRenderingBuffer();
 extern u8 wincpct_getCpcKeyPos(u16 pVKeyID);
+extern u16 wincpct_getCpcKey(u16 pVKeyID);
 
 static BOOL _joystickOK;
 static JOYINFOEX _joyState;
@@ -42,8 +43,7 @@ static HPALETTE _oldhPal;
 static HWND _hWnd;
 static DWORD _lastTime;
 
-static HANDLE _mutex;
-static HANDLE _startInterruptEvent;
+static HANDLE _EndInterruptEvent;
 static HANDLE _vsyncEvent;
 static BOOL _runInterrupt;
 
@@ -53,9 +53,9 @@ static const UCHAR sIconDataFile[] = { 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20,
 
 void wincpct_close()
 {
-	CloseHandle(_mutex);
-	CloseHandle(_startInterruptEvent);
-	WaitForSingleObject(_startInterruptEvent, INFINITE);
+	_runInterrupt = FALSE;
+	WaitForSingleObject(_EndInterruptEvent, INFINITE);
+	CloseHandle(_EndInterruptEvent);
 
 	SelectObject(_memDC, _oldBitmap);
 	DeleteDC(_memDC);
@@ -228,8 +228,6 @@ static void wincpct_renderScreen(int screenPart)
 
 	wincpct_createPaletteCpc();
 
-	WaitForSingleObject(_mutex, INFINITE);
-
 	wincpct_fillBorder(&rectPart);
 
 	if (cy > 0)
@@ -245,24 +243,19 @@ static void wincpct_renderScreen(int screenPart)
 								0, 0, WIDTH_SCREEN, cy, wincpct_getRenderingBuffer() + yBitmap * WIDTH_SCREEN, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
 		free(bitmapInfos);
 	}					
-
-	ReleaseMutex(_mutex);
 }
 
 static void wincpct_redraw()
 {
-	WaitForSingleObject(_mutex, INFINITE);
-
 	BitBlt(_hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
-
-	ReleaseMutex(_mutex);
 }
 
 static void wincpct_keyEvent(u16 pKey)
 {
 	gCurKey = TRUE;
-	int pos = wincpct_getCpcKeyPos(pKey);
-	cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
+
+	unsigned short key = wincpct_getCpcKey(pKey);
+	cpct_keyboardStatusBuffer[key & 0x0000F] = 0xFF ^ (key >> 8);
 }
 
 u8 wincpct_getAsyncJoyState(u16 vKey)
@@ -417,6 +410,7 @@ void wincpct_createWindowApp()
 	wincpct_createPaletteCpc();
 	wincpct_initJoystick();
 
+	_runInterrupt = FALSE;
 	wincpct_msgLoop();
 }
 
@@ -465,15 +459,13 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 			if (amstrad->_interruptFunction != NULL)
 				amstrad->_interruptFunction();
 
-			wincpct_renderScreen(amstrad->_internalTimer);
-
-			amstrad->_internalTimer++;
+			wincpct_renderScreen(amstrad->_internalTimer++);
 		}
 
 		wincpct_wait(1);
 	}
 
-	SetEvent(_startInterruptEvent);
+	SetEvent(_EndInterruptEvent);
 
 	return 0;
 }
@@ -499,11 +491,11 @@ void wincpct_waitVSync()
 
 void wincpct_setInterruptFunction(void(*intHandler)(void))
 {
-	_runInterrupt = FALSE;
-	WaitForSingleObject(_startInterruptEvent, INFINITE);
-
+	if (!_runInterrupt)
+		wincpct_createInterruptThread();
+	
 	gAmstrad._interruptFunction = intHandler;
-	wincpct_createInterruptThread();
+	WaitForSingleObject(_vsyncEvent, INFINITE);
 }
 
 void wincpct_startInterrupt()
@@ -514,12 +506,7 @@ void wincpct_startInterrupt()
 	int timerRes = tc.wPeriodMin > 1 ? tc.wPeriodMin : 1;
 	timeBeginPeriod(timerRes);
 
-	_mutex = CreateMutex(
-		NULL,              // default security attributes
-		FALSE,             // initially not owned
-		NULL);             // unnamed mutex
-
-	_startInterruptEvent  = CreateEvent(
+	_EndInterruptEvent  = CreateEvent(
 		NULL,               // default security attributes
 		TRUE,               // manual-reset event
 		FALSE,              // initial state is nonsignaled
