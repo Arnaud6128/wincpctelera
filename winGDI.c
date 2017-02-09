@@ -28,7 +28,6 @@
 
 extern DWORD wincpct_getColorHW(int pHW);
 extern u8* wincpct_getRenderingBuffer();
-extern u8 wincpct_getCpcKeyPos(u16 pVKeyID);
 extern u16 wincpct_getCpcKey(u16 pVKeyID);
 
 static BOOL _joystickOK;

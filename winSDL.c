@@ -34,15 +34,15 @@
 
 extern DWORD wincpct_getColorHW(int pHW);
 extern u8* wincpct_getRenderingBuffer();
-extern u8 wincpct_getCpcKeyPos(u16 pVKeyID);
+extern u16 wincpct_getCpcKey(u16 pVKeyID);
 
 static BOOL _joystickOK;
 static SDL_Joystick* _SDLJoystick;
 static SDL_Window* _SDLWnd;
 static SDL_Renderer* _SDLRender;
+static SDL_Texture *_SDLDisplay;
 
-static HANDLE _mutex;
-static HANDLE _startInterruptEvent;
+static HANDLE _EndInterruptEvent;
 static HANDLE _vsyncEvent;
 static BOOL _runInterrupt;
 
@@ -52,12 +52,12 @@ static const UCHAR sIconDataFile[] = { 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x20,
 
 static void wincpct_close()
 {
-	CloseHandle(_mutex);
-	CloseHandle(_startInterruptEvent);
-	WaitForSingleObject(_startInterruptEvent, INFINITE);
+	CloseHandle(_EndInterruptEvent);
+	WaitForSingleObject(_EndInterruptEvent, INFINITE);
 
 	SDL_DestroyWindow(_SDLWnd);
 	SDL_DestroyRenderer(_SDLRender);
+	SDL_DestroyTexture(_SDLDisplay);
 	SDL_JoystickClose(_SDLJoystick);
 	SDL_Quit();
 }
@@ -186,8 +186,6 @@ static void wincpct_renderScreen(int screenPart)
 	int y = drawScreen.top / COEF;
 	int cy = (drawScreen.bottom - drawScreen.top) / COEF;
 
-	WaitForSingleObject(_mutex, INFINITE);
-
 	wincpct_fillBorder(&rectPart);
 
 	if (cy > 0)
@@ -212,24 +210,24 @@ static void wincpct_renderScreen(int screenPart)
 		SDL_FreeSurface(surfaceBuffer); 
 		SDL_DestroyTexture(textureBuffer);
 	}
-
-	ReleaseMutex(_mutex);
 }
 
 static void wincpct_redraw()
 {
-	WaitForSingleObject(_mutex, INFINITE);
+	SDL_SetRenderTarget(_SDLRender, NULL);
 
+	SDL_RenderCopy(_SDLRender, _SDLDisplay, NULL, NULL);
 	SDL_RenderPresent(_SDLRender);
 
-	ReleaseMutex(_mutex);
+	SDL_SetRenderTarget(_SDLRender, _SDLDisplay);
 }
 
 static void wincpct_keyEvent(u16 pKey)
 {
 	gCurKey = TRUE;
-	int pos = wincpct_getCpcKeyPos(pKey);
-	cpct_keyboardStatusBuffer[pos / 8] = 0xFF ^ (1 << (pos % 8));
+
+	unsigned short key = wincpct_getCpcKey(pKey);
+	cpct_keyboardStatusBuffer[key & 0x0000F] = 0xFF ^ (key >> 8);
 }
 
 u8 wincpct_getAsyncJoyState(u16 vKey)
@@ -289,7 +287,11 @@ void wincpct_createWindowApp()
 								FULL_SCREEN_CX, FULL_SCREEN_CY,
 								SDL_WINDOW_SHOWN);
 
-	_SDLRender = SDL_CreateRenderer(_SDLWnd, -1, SDL_RENDERER_ACCELERATED);
+	_SDLRender = SDL_CreateRenderer(_SDLWnd, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+	/* Create texture for display */
+	_SDLDisplay = SDL_CreateTexture(_SDLRender, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, FULL_SCREEN_CX, FULL_SCREEN_CY);
+	SDL_SetRenderTarget(_SDLRender, _SDLDisplay);
 
 	SendMessage(GetActiveWindow(), WM_SETICON, ICON_BIG, (LPARAM)wincpct_createIcon(sIconDataFile, 32));
 
@@ -354,7 +356,7 @@ static int wincpct_interruptFunction(LPVOID lpParam)
 		wincpct_wait(1);
 	}
 
-	SetEvent(_startInterruptEvent);
+	SetEvent(_EndInterruptEvent);
 
 	return 0;
 }
@@ -374,21 +376,16 @@ void wincpct_waitVSync()
 
 void wincpct_setInterruptFunction(void(*intHandler)(void))
 {
-	_runInterrupt = FALSE;
-	WaitForSingleObject(_startInterruptEvent, INFINITE);
-
+	if (!_runInterrupt)
+		wincpct_createInterruptThread();
+	
 	gAmstrad._interruptFunction = intHandler;
-	wincpct_createInterruptThread();
+	WaitForSingleObject(_vsyncEvent, INFINITE);
 }
 
 void wincpct_startInterrupt()
 {
-	_mutex = CreateMutex(
-		NULL,              // default security attributes
-		FALSE,             // initially not owned
-		NULL);             // unnamed mutex
-		
-	_startInterruptEvent = CreateEvent(
+	_EndInterruptEvent = CreateEvent(
 		NULL,               // default security attributes
 		TRUE,               // manual-reset event
 		FALSE,              // initial state is nonsignaled
