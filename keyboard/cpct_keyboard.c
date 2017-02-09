@@ -192,25 +192,13 @@ static void wincpct_scanKeyboard()
 	wincpct_msgLoop();
 }
 
-static u16 wincpct_getCpcKey(u16 pVKeyID)
+u16 wincpct_getCpcKey(u16 pVKeyID)
 {
 	for (int i = 0; i < sizeof(sCpctMapKey) / sizeof(SKeyMapping); i++)
 	{
 		if (sCpctMapKey[i].winKeyID == pVKeyID)
 		{
 			return sCpctMapKey[i].cpcKeyID;
-		}
-	}
-	return 0;
-}
-
-u8 wincpct_getCpcKeyPos(u16 pVKeyID)
-{
-	for (int i = 0; i < sizeof(sCpctMapKey) / sizeof(SKeyMapping); i++)
-	{
-		if (sCpctMapKey[i].winKeyID == pVKeyID)
-		{
-			return i;
 		}
 	}
 	return 0;
