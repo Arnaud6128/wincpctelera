@@ -30,6 +30,8 @@
 #define __asm__(X) \
 		/* X */
 
+#define __sdcc_heap_init()
+
 #include "types.h"
 #include "firmware/firmware.h"
 #include "memutils/memutils.h"
