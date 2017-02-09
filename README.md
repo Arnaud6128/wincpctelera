@@ -1,13 +1,14 @@
-# WinCpctelera
-is a port of cpctelera API to Windows :
+# WinCpctelera is a port of cpctelera API to Windows :
 https://github.com/lronaldo/cpctelera
 
-WinCpctelera is a Windows implementation of the API of CPCTelera and use the GDI or SDL.
-The goal is to code and debug easily under Windows environment (i use visual c++) and use the same code to compile for CPC with Cywin and cpctelera.
+WinCpctelera is a Windows implementation of the API of CPCTelera and use GDI or SDL.
+The objective is to code and debug easily under Windows environment (i use visual c++) and use the same code to compile for CPC with Cywin and cpctelera.
 
-Some functions are also provided to help debugging or to have a better compatibility with CPC, they are in directory **_helper**
+Some functions are also provided to help debug or to have a better code compatibility with CPC, 
+they are in directory **_helper**
 
 There are some limitations :
+- Changing mode (0,1,2) on interrupt don't work and corrupt display
 - No sound
 - No direct memory access
 ```
