@@ -1,0 +1,1 @@
+void ExoDecrunch(const u8* input, u8* output) __z88dk_callee;
