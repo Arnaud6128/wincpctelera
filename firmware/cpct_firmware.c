@@ -19,6 +19,11 @@
 
 #include <winCpctelera.h>
 
+void cpct_removeInterruptHandler()
+{
+	wincpct_setInterruptFunction(NULL);
+}
+
 void cpct_setInterruptHandler(void(*intHandler)(void))
 {
 	wincpct_setInterruptFunction(intHandler);
