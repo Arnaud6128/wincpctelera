@@ -264,8 +264,16 @@ u8* wincpct_getRenderingBuffer()
 
 	u8 *buffVideo = wincpct_getCurVideoBuffer();
 
-	if (gAmstrad._memOffset != 0)
-		buffVideo = wincpct_applyLSBOffset(buffVideo);
+	static u8 off = 0;
+
+	if (gAmstrad._memOffset != 0 && gAmstrad._memOffset <= 80)
+	{
+		if (off != gAmstrad._memOffset)
+		{
+			wincpct_applyLSBOffset(buffVideo);
+			gAmstrad._memOffset = off;
+		}
+	}
 
 	int i = 0, j = 0;
 	u8 curVideo = wincpct_getCurrentVideoMode();
@@ -351,30 +359,28 @@ u8* wincpct_getRenderingBuffer()
 }
 
 /* Simulate CRCT R13 offset */
-static u8* wincpct_applyLSBOffset(u8* buffVideo)
+static void wincpct_applyLSBOffset(u8* buffVideo)
 {
-	static u8 SOffsetVideo[0x4000];
-
+	u8* offsetVideo = malloc(0x4000);
 	int offset = gAmstrad._memOffset * 2;
-	int cxLine = CPC_SCR_CX_BYTES;
-	u8* destVideo = SOffsetVideo;
 
-	int dstIndex = 0x4000 - offset;
-	for (int i = 0; i < CPC_SCR_CY_LINE*CPC_SCR_CX_BYTES; i++)
+	for (int i = 0; i < CPC_SCR_CY_LINE; i++)
 	{
-		destVideo[dstIndex++] = *buffVideo++;
-		if (dstIndex > 0x3FFF)
-			dstIndex = 0;
-	}
-
-	for (int x = 0; x < offset; x++)
-	{
-		for (int y = 7; y < CPC_SCR_CY_LINE + 7; y++)
+		int dstIndex = (i + 1) * CPC_SCR_CX_BYTES - offset % 80 - 1 -(int)(offset / 80) * 8 * CPC_SCR_CX_BYTES;
+		u8* srcVideo = buffVideo + i * CPC_SCR_CX_BYTES;
+		
+		for (int j = 0; j < CPC_SCR_CX_BYTES; j++)
 		{
-			int offsetX = CPC_SCR_CX_BYTES - x - 1;
-			*(destVideo + (y - 7)*CPC_SCR_CX_BYTES + offsetX) = *(destVideo + y*CPC_SCR_CX_BYTES + offsetX);
+			if (dstIndex < 0)
+				dstIndex = 0x3FFF + dstIndex;
+
+			offsetVideo[dstIndex--] = srcVideo[CPC_SCR_CX_BYTES - j - 1];
+
+			if (j == CPC_SCR_CX_BYTES - offset % 80 - 1)
+				dstIndex -= 7 * CPC_SCR_CX_BYTES;
 		}
 	}
 
-	return destVideo;
+	memcpy(buffVideo, offsetVideo, 0x4000);
+	free(offsetVideo);
 }
