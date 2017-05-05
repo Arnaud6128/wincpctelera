@@ -20,6 +20,7 @@
 #include "winCpctelera.h"
 
 static u32 cpct_mxor32_seed;
+static u16 g_lfsr;
 
 void cpct_setSeed_mxor(u32 newseed)
 {
@@ -65,14 +66,29 @@ u32 cpct_getRandom_mxor_u32()
 	return (u32)rand();
 }
 
+void cpct_setSeed_glfsr16(u16 glfsrSeed)
+{
+	g_lfsr = glfsrSeed;
+}
+
+/** From http://www.cpcwiki.eu/forum/programming/fill-the-character-screen// */
 u8 cpct_getRandom_glfsr16_u8()
 {
-	return (u8)rand();
+	unsigned lastbit = g_lfsr & 1;
+
+	// Shift Register by one
+	g_lfsr >>= 1;
+
+	// When last bit is one, tap the register
+	if (lastbit)
+		g_lfsr ^= 0x0240;
+
+	return (u8)g_lfsr;
 }
 
 u16 cpct_getRandom_glfsr16_u16()
 {
-	return (u16)rand();
+	return g_lfsr;
 }
 
 u8 cpct_getRandom_lcg_u8(u8 entropy_byte)
