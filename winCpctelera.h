@@ -121,6 +121,6 @@ u8* wincpct_getMemory(const void* ptr);
 
 /* cpct_video */
 u8* wincpct_getVideoBufferFromAddress(int pScreenAddr);
-u8* wincpct_applyLSBOffset(u8* buffVideo);
+void wincpct_applyLSBOffset(u8* buffVideo);
 int wincpct_getVideoArea(int pScreenAddr);
 int wincpct_getPageAddress(int pPage);
