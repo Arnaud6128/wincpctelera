@@ -272,6 +272,6 @@
 //    -  Add 2 different IDs on the call to <CPCT_RELOCATABLE_AREA> (ID).
 // This will prevent names from clashing.
 //
-#define CPCT_RELOCATABLE_AREA(FNAME) 
+#define CPCT_RELOCATABLE_AREA() 
 
 #endif
