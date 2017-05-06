@@ -5,14 +5,14 @@ WinCpctelera is a Windows implementation of the API of CPCTelera and use GDI or 
 The objective is to code and debug easily under Windows environment (i use visual c++) and use the same code to compile for CPCTelera project.
 
 Some functions are also provided to help debug or to have a better code compatibility with CPC, 
-they are in directory **_helper**
+they are in directory **_helper**.
 
 Cross compressor are also provided in the directory **_compressor** :
 - Exomizer (not the optimized version) from Magnus Lind
 - Lz48 from Roudoudou
 
 There are some limitations :
-- Changing mode (0,1,2) on interrupt don't work and corrupt display
+- Changing mode (0,1,2) on interrupt corrupt display
 - No sound
 - No direct memory access
 ```
