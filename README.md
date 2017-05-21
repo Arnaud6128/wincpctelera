@@ -7,9 +7,10 @@ The objective is to code and debug easily under Windows environment (i use visua
 Some functions are also provided to help debug or to have a better code compatibility with CPC, 
 they are in directory **_helper**.
 
-Cross compressor are also provided in the directory **_compressor** :
+Cross compressors are also provided in the directory **_compressor** :
 - Exomizer (not the optimized version) from Magnus Lind
 - Lz48 from Roudoudou
+- Zx7 from Einar Saukas
 
 There are some limitations :
 - Changing mode (0,1,2) on interrupt corrupt display
