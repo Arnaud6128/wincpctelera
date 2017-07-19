@@ -138,6 +138,11 @@ void cpct_drawTileAligned2x8_f(void* sprite, void* memory)
 	cpct_drawSprite(sprite, memory, 2, 8);
 }
 
+void cpct_drawTileGrayCode2x8_af(void* sprite, void* memory)
+{
+	cpct_drawSprite(sprite, memory, 2, 8);
+}
+
 void cpct_drawTileAligned4x4(void* sprite, void* memory)
 {
 	cpct_drawSprite(sprite, memory, 4, 4);
