@@ -136,6 +136,11 @@ void cpct_scanKeyboard_f()
 	wincpct_scanKeyboard();
 }
 
+void cpct_scanKeyboard_i()
+{
+	wincpct_scanKeyboard();
+}
+
 void cpct_scanKeyboard_if()
 {
 	wincpct_scanKeyboard();
