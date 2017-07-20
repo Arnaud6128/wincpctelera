@@ -165,7 +165,7 @@ u8 cpct_px2byteM0(u8 px0, u8 px1)
 
 u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 {
-	return (px3 << 6) | (px2 << 4) | (px1 << 2) | px0;
+	return (px0 << 6) | (px1 << 4) | (px2 << 2) | px3;
 }
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
@@ -197,6 +197,8 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	}
 
 	wincpct_wait(1);
+
+
 }
 
 void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
