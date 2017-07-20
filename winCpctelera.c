@@ -45,6 +45,7 @@ void wincpct_startCPC()
 {
 	ZeroMemory(&gAmstrad, sizeof(gAmstrad));
 	memset(&gAmstrad._memCPC, 0, CPC_MEM_SIZE);
+	memset(&gAmstrad._bankCPC, 0, CPC_NB_BANKS*CPC_BANK_SIZE);
 
 	for (int i = 0; i < NB_COLORS; i++)
 		gAmstrad._curVideoConf.gCpcPalette[i] = gCpcPalette[i].hw;
@@ -68,6 +69,7 @@ void wincpct_startCPC()
 	gAmstrad._curVideoConf.gCpcPalette[BORDER_COLOR] = HW_BLUE;
 
 	gAmstrad._currentPage = cpct_pageC0;
+	gAmstrad._currentBank = RAMCFG_0;
 
 	wincpct_startInterrupt();
 }

@@ -43,6 +43,7 @@
 #define FULL_SCREEN_CX		(BORDER_CX + WIDTH_SCREEN + BORDER_CX) // 384 * 2
 #define FULL_SCREEN_CY		(BORDER_UP_CY + HEIGHT_SCREEN + BORDER_DW_CY) // 270*2
 
+#define CPC_NB_BANKS		8
 #define CPC_BANK_SIZE		0x4000
 #define CPC_MEM_SIZE		0x10000
 
@@ -80,6 +81,7 @@ typedef struct tagVideoConf
 
 typedef struct tagSAmstrad
 {
+	u8 _currentBank;
 	u8 _currentPage;
 	u8 _internalTimer;
 	TInterrupt _interruptFunction;
@@ -88,6 +90,8 @@ typedef struct tagSAmstrad
 
 	u8 _memOffset;
 	u8 _memCPC[CPC_MEM_SIZE];
+
+	u8 _bankCPC[CPC_NB_BANKS][CPC_BANK_SIZE];
 } SAmstrad;
 
 typedef struct tagSCPCPalette
