@@ -81,3 +81,72 @@ void cpct_setStackLocation(void* memory)
 {
 	wincpct_CPCTeleraWin();
 }
+
+/*u8* GetMemoryFromBank(u8 bank)
+{
+	if (bank < 4)
+		return  &gAmstrad._memCPC[bank*CPC_BANK_SIZE];
+	else
+		return gAmstrad._bankCPC[CPC_NB_BANKS - bank];
+}*/
+
+static void switchBank(u8 indexMemCpc, u8 bankCur, u8 bankNext)
+{
+	u8* addressMemCpc = gAmstrad._memCPC + indexMemCpc*CPC_BANK_SIZE;
+
+	/** Save current memory to bank */
+	memcpy_s(&gAmstrad._bankCPC[bankCur], CPC_BANK_SIZE, addressMemCpc, CPC_BANK_SIZE);
+	
+
+	/** Copy data from bank to memory */
+	memcpy_s(addressMemCpc, CPC_BANK_SIZE, &gAmstrad._bankCPC[bankNext], CPC_BANK_SIZE);
+
+	/*u8* memAddressCur = GetMemoryFromBank(bankCur);
+	u8* memAddressNext = GetMemoryFromBank(bankNext);
+
+	memcpy_s(tempBank, CPC_BANK_SIZE, memAddressCur, CPC_BANK_SIZE);
+	memcpy_s(memAddressCur, CPC_BANK_SIZE, memAddressNext, CPC_BANK_SIZE);
+	memcpy_s(memAddressNext, CPC_BANK_SIZE, tempBank, CPC_BANK_SIZE);
+
+	memcpy_s(addressMemCpc, CPC_BANK_SIZE, memAddressNext, CPC_BANK_SIZE);*/
+}
+
+void cpct_pageMemory(u8 configAndBankValue)
+{
+	wincpct_CPCTeleraWin();
+
+	static u8 sRamCfg[8][4] = {
+		// RAMCFG_0: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_1, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_3
+		{ 0, 1, 2, 3 },
+		// RAMCFG_1: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_1, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_7
+		{ 0, 1, 2, 7 },
+		// RAMCFG_2: 0000-3FFF -> RAM_4, 4000-7FFF -> RAM_5, 8000-BFFF -> RAM_6, C000-FFFF -> RAM_7
+		{ 4, 5, 6, 7 },
+		// RAMCFG_3: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_3, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_7
+		{ 0, 3, 2, 7 },
+		// RAMCFG_4: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_4, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_3
+		{ 0, 4, 2, 3 },
+		// RAMCFG_5: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_5, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_3
+		{ 0, 5, 2, 3 },
+		// RAMCFG_6: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_6, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_3
+		{ 0, 6, 2, 3 },
+		// RAMCFG_7: 0000-3FFF -> RAM_0, 4000-7FFF -> RAM_7, 8000-BFFF -> RAM_2, C000-FFFF -> RAM_3
+		{ 0, 7, 2, 3 }
+	};
+
+	configAndBankValue &= 0x07;
+	if (gAmstrad._currentBank != configAndBankValue)
+	{
+		u8* curBankConfig = sRamCfg[gAmstrad._currentBank];
+		u8* nextBankConfig = sRamCfg[configAndBankValue];
+
+		for (int i = 0; i < 4; i++)
+		{
+			if (curBankConfig[i] != nextBankConfig[i])
+				switchBank(i, curBankConfig[i], nextBankConfig[i]);
+		}
+
+		gAmstrad._currentBank = configAndBankValue;
+	}
+
+}
