@@ -75,10 +75,10 @@ static const SKeyMapping sCpctMapKey[] =
 	{ Key_I, 0x49 },
 	{ Key_L, 0x4C },
 	{ Key_K, 0x4B },
-	{ Key_M, 0x4B },
+	{ Key_M, 0x4D },
 	{ Key_Comma, VK_OEM_COMMA },
 
-	{ Key_8, 0x4B },
+	{ Key_8, 0x38 },
 	{ Key_7, 0x37 },
 	{ Key_U, 0x55 },
 	{ Key_Y, 0x59 },
