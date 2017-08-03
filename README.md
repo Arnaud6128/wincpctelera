@@ -15,7 +15,7 @@ Cross compressors are also provided in the directory **_compressor** :
 There are some limitations :
 - Changing mode (0,1,2) on interrupt corrupt display
 - No sound
-- No direct memory access
+- No direct memory access :
 ```
 u8* memVideo = (u8*)0xC000;
 *memVideo = 0x00; // Crash under Windows
@@ -27,7 +27,7 @@ u8* memVideo = WinCpcTelera_GetMemPtr(0xC000);
 *memVideo = 0x00; // Works both for Windows and CPC
 ```
 
-- SDCC assembly is not supported but you can use the macro WINCPCTELERA to make an alternate C version.
+- SDCC assembly is not supported but you can use the macro WINCPCTELERA to make an alternate C version :
 
 ```
 #ifndef WINCPCTELERA
