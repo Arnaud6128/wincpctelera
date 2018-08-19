@@ -38,12 +38,32 @@ u8* wincpct_getMemory(const void* ptr)
 	return (u8*)ptr;
 }
 
+BOOL wincpct_isInternaVideoMem(const void* pAddress)
+{
+	return (int)pAddress >= (int)(gAmstrad._memCPC + 0xC000);
+}
+
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
+	BOOL isToVideo = wincpct_isInternaVideoMem(to);
+	BOOL isFromVideo = wincpct_isInternaVideoMem(from);
+
 	to = wincpct_getMemory(to);
 	from = wincpct_getMemory(from);
 
-	memcpy_s(to, size, from, size);
+	if (isToVideo == isFromVideo)
+		memcpy_s(to, size, from, size);
+	else
+	{
+		u8* fromPix = from;
+		u8* toPix = to;
+
+		for (u16 i = 0; i < size; i++)
+		{
+			u8 conv = wincpct_convPixSpritePCtoCPC(fromPix[i]);
+			toPix[i] = conv;
+		}
+	}
 }
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
@@ -82,14 +102,6 @@ void cpct_setStackLocation(void* memory)
 	wincpct_CPCTeleraWin();
 }
 
-/*u8* GetMemoryFromBank(u8 bank)
-{
-	if (bank < 4)
-		return  &gAmstrad._memCPC[bank*CPC_BANK_SIZE];
-	else
-		return gAmstrad._bankCPC[CPC_NB_BANKS - bank];
-}*/
-
 static void switchBank(u8 indexMemCpc, u8 bankCur, u8 bankNext)
 {
 	u8* addressMemCpc = gAmstrad._memCPC + indexMemCpc*CPC_BANK_SIZE;
@@ -100,15 +112,6 @@ static void switchBank(u8 indexMemCpc, u8 bankCur, u8 bankNext)
 
 	/** Copy data from bank to memory */
 	memcpy_s(addressMemCpc, CPC_BANK_SIZE, &gAmstrad._bankCPC[bankNext], CPC_BANK_SIZE);
-
-	/*u8* memAddressCur = GetMemoryFromBank(bankCur);
-	u8* memAddressNext = GetMemoryFromBank(bankNext);
-
-	memcpy_s(tempBank, CPC_BANK_SIZE, memAddressCur, CPC_BANK_SIZE);
-	memcpy_s(memAddressCur, CPC_BANK_SIZE, memAddressNext, CPC_BANK_SIZE);
-	memcpy_s(memAddressNext, CPC_BANK_SIZE, tempBank, CPC_BANK_SIZE);
-
-	memcpy_s(addressMemCpc, CPC_BANK_SIZE, memAddressNext, CPC_BANK_SIZE);*/
 }
 
 void cpct_pageMemory(u8 configAndBankValue)
