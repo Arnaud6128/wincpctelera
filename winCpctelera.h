@@ -117,6 +117,7 @@ void wincpct_createPaletteCpc();
 
 /* cpct_sprite */
 u8 wincpct_convPixSpriteCPCtoPC(u8 pix);
+u8 wincpct_convPixSpritePCtoCPC(u8 pix);
 void wincpct_drawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
 
 /* cpct_memutils */
