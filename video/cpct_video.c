@@ -217,6 +217,30 @@ u8* wincpct_getCurVideoBuffer()
 
 /*
 *	Convert pixel from CPC format to PC format
+*	ex mode 0 : 3210 dcba -> 0a2c 1b3d
+*	cf. cpct_px2byteM0 and cpct_px2byteM1
+*/
+u8 wincpct_convPixSpritePCtoCPC(u8 pix)
+{
+	if (wincpct_getCurrentVideoMode() == MODE_0)
+	{
+		u8 pix3 = (pix & 0x80) >> 6;
+		u8 pix2 = (pix & 0x40) >> 1;
+		u8 pix1 = (pix & 0x20) >> 2;
+		u8 pix0 = (pix & 0x10) << 3;
+
+		u8 pixd = (pix & 0x08) >> 3;
+		u8 pixc = (pix & 0x04) << 2;
+		u8 pixb = (pix & 0x02) << 1;
+		u8 pixa = (pix & 0x01) << 6;
+
+		return (pix0 | pixa | pix2 | pixc | pix1 | pixb | pix3 | pixd);
+	}
+	return pix;
+}
+
+/*
+*	Convert pixel from CPC format to PC format
 *	ex mode 0 : 0a2c 1b3d -> 3210 dcba
 *	cf. cpct_px2byteM0 and cpct_px2byteM1
 */
