@@ -56,6 +56,27 @@
     <Filter Include="compressor\zx7">
       <UniqueIdentifier>{a7cb7878-042b-4f7f-87e5-fda35e56d7ed}</UniqueIdentifier>
     </Filter>
+    <Filter Include="cpctelera\sprites\blending">
+      <UniqueIdentifier>{174409b0-3583-408d-998f-3b0844389443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\drawTile">
+      <UniqueIdentifier>{06ff7f6e-18ec-43a8-8fcb-9d2c6cbd5742}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\flipping">
+      <UniqueIdentifier>{46fb686b-bb3d-4624-98e2-16982ca11f0a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\screenToSprite">
+      <UniqueIdentifier>{e95e91e8-691d-4e62-af90-a8e2be29f78f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\drawToSpriteBuffer">
+      <UniqueIdentifier>{03b3abab-75e3-4eff-b574-ce7cc1019c33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\colorReplace">
+      <UniqueIdentifier>{600613da-cc34-4a50-b0cd-a7a59cc4e35a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\compression">
+      <UniqueIdentifier>{e1a281dc-b52a-4209-a4fb-4e08df4d0dc0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\cpcfonts.bmp">
@@ -117,6 +138,30 @@
     </ClCompile>
     <ClCompile Include="..\_compressors\zx7\wincpct\ZX7Decrunch.c">
       <Filter>compressor\zx7</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\blending\cpct_drawSpriteBlended.c">
+      <Filter>cpctelera\sprites\blending</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\drawTile\cpct_drawTile.c">
+      <Filter>cpctelera\sprites\drawTile</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\flipping\cpct_flipping.c">
+      <Filter>cpctelera\sprites\flipping</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\screenToSprite\cpct_screenToSprite.c">
+      <Filter>cpctelera\sprites\screenToSprite</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\drawToSpriteBuffer\cpct_drawToSpriteBuffer.c">
+      <Filter>cpctelera\sprites\drawToSpriteBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM0.c">
+      <Filter>cpctelera\sprites\colorReplace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM1.c">
+      <Filter>cpctelera\sprites\colorReplace</Filter>
+    </ClCompile>
+    <ClCompile Include="..\compression\cpct_zx7b_decrunch.c">
+      <Filter>cpctelera\compression</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -192,6 +237,36 @@
     </ClInclude>
     <ClInclude Include="..\_compressors\zx7\wincpct\ZX7Decrunch.h">
       <Filter>compressor\zx7</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\blending\blending.h">
+      <Filter>cpctelera\sprites\blending</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\drawTile\drawTile.h">
+      <Filter>cpctelera\sprites\drawTile</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\flipping\flipping.h">
+      <Filter>cpctelera\sprites\flipping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\flipping\flipping_macros.h">
+      <Filter>cpctelera\sprites\flipping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\flipping\flipping_table_macros.h">
+      <Filter>cpctelera\sprites\flipping</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\pixel_macros.h">
+      <Filter>cpctelera\sprites</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\screenToSprite\screenToSprite.h">
+      <Filter>cpctelera\sprites\screenToSprite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\drawToSpriteBuffer\drawToSpriteBuffer.h">
+      <Filter>cpctelera\sprites\drawToSpriteBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sprites\colorReplace\colorReplace.h">
+      <Filter>cpctelera\sprites\colorReplace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\compression\compression.h">
+      <Filter>cpctelera\compression</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -19,7 +19,7 @@
 
 #include <cpctelera.h>
 
-#define CPCTELERA_VER	1.4.2
+#define CPCTELERA_VER	1.5.0
 
 #define	_USEWINGDI		1
 //#define _USESDL		1

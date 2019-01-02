@@ -1,6 +1,7 @@
 //-----------------------------LICENSE NOTICE------------------------------------
-//  This file is part of Bitume 
-//  Copyright (C) 2017 Arnaud Bouche (Arnaud6128)
+//  This file is part of CPCtelera: An Amstrad CPC Game Engine
+//  Copyright (C) 2018 Arnaud Bouche (@arnaud6128)
+//  Copyright (C) 2017 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -16,4 +17,22 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //-------------------------------------------------------------------------------
 
-void ZX7Decrunch(const u8* input, u8* ouput) __z88dk_callee;
+#include <winCpctelera.h>
+
+void cpct_getScreenToSprite(u8* memory, u8* sprite, u8 width, u8 height)
+{
+	u8* video = (u8*)wincpct_getVideoBufferFromAddress((int)memory);
+
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width; xi++)
+		{
+			*sprite = wincpct_convPixSpritePCtoCPC(*video);
+			video++;
+			sprite++;
+		}
+		video += (CPC_SCR_CX_BYTES - width);
+	}
+
+	wincpct_wait(2);
+}

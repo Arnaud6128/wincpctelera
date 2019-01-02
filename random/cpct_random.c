@@ -22,6 +22,7 @@
 static u32 cpct_mxor32_seed;
 static u16 g_lfsr = 100;
 
+
 void cpct_setSeed_mxor(u32 newseed)
 {
 	cpct_mxor32_seed = newseed;
@@ -120,4 +121,9 @@ void cpct_restoreState_mxor_u8()
 
 void cpct_restoreState_mxor_u16()
 {
+}
+
+void cpct_setTaps_glfsr16(GLFSR16_TAPS taps)
+{
+
 }

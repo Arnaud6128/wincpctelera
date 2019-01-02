@@ -43,5 +43,8 @@
 #include "audio/audio.h"
 #include "random/random.h"
 #include "easytilemaps/easytilemaps.h"
+#include "compression/compression.h"
+
+#include "_helper/winCpctelera_helper.h"
 
 #endif

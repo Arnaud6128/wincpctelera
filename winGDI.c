@@ -461,7 +461,7 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 			wincpct_renderScreen(amstrad->_internalTimer++);
 		}
 
-		wincpct_wait(1);
+		wincpct_wait(5);
 	}
 
 	SetEvent(_EndInterruptEvent);

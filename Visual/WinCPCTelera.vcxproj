@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -25,12 +25,20 @@
   <ItemGroup>
     <ClCompile Include="..\audio\cpct_audio.c" />
     <ClCompile Include="..\bitarray\cpct_bitarray.c" />
+    <ClCompile Include="..\compression\cpct_zx7b_decrunch.c" />
     <ClCompile Include="..\easytilemaps\cpct_easytilemaps.c" />
     <ClCompile Include="..\firmware\cpct_firmware.c" />
     <ClCompile Include="..\keyboard\cpct_keyboard.c" />
     <ClCompile Include="..\memutils\cpct_memutils.c" />
     <ClCompile Include="..\random\cpct_random.c" />
+    <ClCompile Include="..\sprites\blending\cpct_drawSpriteBlended.c" />
+    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM0.c" />
+    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM1.c" />
     <ClCompile Include="..\sprites\cpct_sprites.c" />
+    <ClCompile Include="..\sprites\drawTile\cpct_drawTile.c" />
+    <ClCompile Include="..\sprites\drawToSpriteBuffer\cpct_drawToSpriteBuffer.c" />
+    <ClCompile Include="..\sprites\flipping\cpct_flipping.c" />
+    <ClCompile Include="..\sprites\screenToSprite\cpct_screenToSprite.c" />
     <ClCompile Include="..\strings\cpct_strings.c" />
     <ClCompile Include="..\video\cpct_video.c" />
     <ClCompile Include="..\winCpctelera.c" />
@@ -46,6 +54,7 @@
     <ClInclude Include="..\audio\audio.h" />
     <ClInclude Include="..\bitarray\bitarray.h" />
     <ClInclude Include="..\bitarray\bitarray_macros.h" />
+    <ClInclude Include="..\compression\compression.h" />
     <ClInclude Include="..\cpctelera.h" />
     <ClInclude Include="..\easytilemaps\easytilemaps.h" />
     <ClInclude Include="..\firmware\firmware.h" />
@@ -55,6 +64,15 @@
     <ClInclude Include="..\memutils\relocation.h" />
     <ClInclude Include="..\random\random.h" />
     <ClInclude Include="..\random\random_types.h" />
+    <ClInclude Include="..\sprites\blending\blending.h" />
+    <ClInclude Include="..\sprites\colorReplace\colorReplace.h" />
+    <ClInclude Include="..\sprites\drawTile\drawTile.h" />
+    <ClInclude Include="..\sprites\drawToSpriteBuffer\drawToSpriteBuffer.h" />
+    <ClInclude Include="..\sprites\flipping\flipping.h" />
+    <ClInclude Include="..\sprites\flipping\flipping_macros.h" />
+    <ClInclude Include="..\sprites\flipping\flipping_table_macros.h" />
+    <ClInclude Include="..\sprites\pixel_macros.h" />
+    <ClInclude Include="..\sprites\screenToSprite\screenToSprite.h" />
     <ClInclude Include="..\sprites\sprites.h" />
     <ClInclude Include="..\sprites\sprite_types.h" />
     <ClInclude Include="..\sprites\transparency_table_macros.h" />
@@ -73,32 +91,32 @@
     <ProjectGuid>{5674F765-32FC-4AC6-8229-A8722F342415}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>WinCPCTelera</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -143,6 +161,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

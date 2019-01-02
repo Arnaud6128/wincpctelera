@@ -96,7 +96,7 @@ u16 cpct_count2VSYNC()
 void cpct_clearScreen(u8 colour_pattern)
 {
 	memset(wincpct_getVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
-	wincpct_wait(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
+	//wincpct_wait(98); // This function takes 98331 microseconds to fill the screen cf. CPCTelera manual
 }
 
 void cpct_setVideoMode(u8 videoMode)
