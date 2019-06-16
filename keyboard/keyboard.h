@@ -149,111 +149,111 @@ extern u8 cpct_keyboardStatusBuffer[10];
 enum cpct_e_keyID
 {
   // Matrix Line 00h
-  Key_CursorUp     = (i16)0x0100,  // Bit 0 (01h) => | 0000 0001 |
-  Key_CursorRight  = (i16)0x0200,  // Bit 1 (02h) => | 0000 0010 |
-  Key_CursorDown   = (i16)0x0400,  // Bit 2 (04h) => | 0000 0100 |
-  Key_F9           = (i16)0x0800,  // Bit 3 (08h) => | 0000 1000 |
-  Key_F6           = (i16)0x1000,  // Bit 4 (10h) => | 0001 0000 |
-  Key_F3           = (i16)0x2000,  // Bit 5 (20h) => | 0010 0000 |
-  Key_Enter        = (i16)0x4000,  // Bit 6 (40h) => | 0100 0000 |
-  Key_FDot         = (i16)0x8000,  // Bit 7 (80h) => | 1000 0000 |
+  Key_CursorUp     = (u16)0x0100,  // Bit 0 (01h) => | 0000 0001 |
+  Key_CursorRight  = (u16)0x0200,  // Bit 1 (02h) => | 0000 0010 |
+  Key_CursorDown   = (u16)0x0400,  // Bit 2 (04h) => | 0000 0100 |
+  Key_F9           = (u16)0x0800,  // Bit 3 (08h) => | 0000 1000 |
+  Key_F6           = (u16)0x1000,  // Bit 4 (10h) => | 0001 0000 |
+  Key_F3           = (u16)0x2000,  // Bit 5 (20h) => | 0010 0000 |
+  Key_Enter        = (u16)0x4000,  // Bit 6 (40h) => | 0100 0000 |
+  Key_FDot         = (u16)0x8000,  // Bit 7 (80h) => | 1000 0000 |
 
   // Matrix Line 01h
-  Key_CursorLeft   = (i16)0x0101,
-  Key_Copy         = (i16)0x0201,
-  Key_F7           = (i16)0x0401,
-  Key_F8           = (i16)0x0801,
-  Key_F5           = (i16)0x1001,
-  Key_F1           = (i16)0x2001,
-  Key_F2           = (i16)0x4001,
-  Key_F0           = (i16)0x8001,
+  Key_CursorLeft   = (u16)0x0101,
+  Key_Copy         = (u16)0x0201,
+  Key_F7           = (u16)0x0401,
+  Key_F8           = (u16)0x0801,
+  Key_F5           = (u16)0x1001,
+  Key_F1           = (u16)0x2001,
+  Key_F2           = (u16)0x4001,
+  Key_F0           = (u16)0x8001,
 
   // Matrix Line 02h
-  Key_Clr          = (i16)0x0102,
-  Key_OpenBracket  = (i16)0x0202,
-  Key_Return       = (i16)0x0402,
-  Key_CloseBracket = (i16)0x0802,
-  Key_F4           = (i16)0x1002,
-  Key_Shift        = (i16)0x2002,
-  Key_BackSlash    = (i16)0x4002,
-  Key_Control      = (i16)0x8002,
+  Key_Clr          = (u16)0x0102,
+  Key_OpenBracket  = (u16)0x0202,
+  Key_Return       = (u16)0x0402,
+  Key_CloseBracket = (u16)0x0802,
+  Key_F4           = (u16)0x1002,
+  Key_Shift        = (u16)0x2002,
+  Key_BackSlash    = (u16)0x4002,
+  Key_Control      = (u16)0x8002,
 
   // Matrix Line 03h
-  Key_Caret        = (i16)0x0103,
-  Key_Hyphen       = (i16)0x0203,
-  Key_At           = (i16)0x0403,
-  Key_P            = (i16)0x0803,
-  Key_SemiColon    = (i16)0x1003,
-  Key_Colon        = (i16)0x2003,
-  Key_Slash        = (i16)0x4003,
-  Key_Dot          = (i16)0x8003,
+  Key_Caret        = (u16)0x0103,
+  Key_Hyphen       = (u16)0x0203,
+  Key_At           = (u16)0x0403,
+  Key_P            = (u16)0x0803,
+  Key_SemiColon    = (u16)0x1003,
+  Key_Colon        = (u16)0x2003,
+  Key_Slash        = (u16)0x4003,
+  Key_Dot          = (u16)0x8003,
 
   // Matrix Line 04h
-  Key_0            = (i16)0x0104,
-  Key_9            = (i16)0x0204,
-  Key_O            = (i16)0x0404,
-  Key_I            = (i16)0x0804,
-  Key_L            = (i16)0x1004,
-  Key_K            = (i16)0x2004,
-  Key_M            = (i16)0x4004,
-  Key_Comma        = (i16)0x8004,
+  Key_0            = (u16)0x0104,
+  Key_9            = (u16)0x0204,
+  Key_O            = (u16)0x0404,
+  Key_I            = (u16)0x0804,
+  Key_L            = (u16)0x1004,
+  Key_K            = (u16)0x2004,
+  Key_M            = (u16)0x4004,
+  Key_Comma        = (u16)0x8004,
 
   // Matrix Line 05h
-  Key_8            = (i16)0x0105,
-  Key_7            = (i16)0x0205,
-  Key_U            = (i16)0x0405,
-  Key_Y            = (i16)0x0805,
-  Key_H            = (i16)0x1005,
-  Key_J            = (i16)0x2005,
-  Key_N            = (i16)0x4005,
-  Key_Space        = (i16)0x8005,
+  Key_8            = (u16)0x0105,
+  Key_7            = (u16)0x0205,
+  Key_U            = (u16)0x0405,
+  Key_Y            = (u16)0x0805,
+  Key_H            = (u16)0x1005,
+  Key_J            = (u16)0x2005,
+  Key_N            = (u16)0x4005,
+  Key_Space        = (u16)0x8005,
 
   // Matrix Line 06h
-  Key_6            = (i16)0x0106,
-  Joy1_Up          = (i16)0x0106,
-  Key_5            = (i16)0x0206,
-  Joy1_Down        = (i16)0x0206,
-  Key_R            = (i16)0x0406,
-  Joy1_Left        = (i16)0x0406,
-  Key_T            = (i16)0x0806,
-  Joy1_Right       = (i16)0x0806,
-  Key_G            = (i16)0x1006,
-  Joy1_Fire1       = (i16)0x1006,
-  Key_F            = (i16)0x2006,
-  Joy1_Fire2       = (i16)0x2006,
-  Key_B            = (i16)0x4006,
-  Joy1_Fire3       = (i16)0x4006,
-  Key_V            = (i16)0x8006,
+  Key_6            = (u16)0x0106,
+  Joy1_Up          = (u16)0x0106,
+  Key_5            = (u16)0x0206,
+  Joy1_Down        = (u16)0x0206,
+  Key_R            = (u16)0x0406,
+  Joy1_Left        = (u16)0x0406,
+  Key_T            = (u16)0x0806,
+  Joy1_Right       = (u16)0x0806,
+  Key_G            = (u16)0x1006,
+  Joy1_Fire1       = (u16)0x1006,
+  Key_F            = (u16)0x2006,
+  Joy1_Fire2       = (u16)0x2006,
+  Key_B            = (u16)0x4006,
+  Joy1_Fire3       = (u16)0x4006,
+  Key_V            = (u16)0x8006,
 
   // Matrix Line 07h
-  Key_4            = (i16)0x0107,
-  Key_3            = (i16)0x0207,
-  Key_E            = (i16)0x0407,
-  Key_W            = (i16)0x0807,
-  Key_S            = (i16)0x1007,
-  Key_D            = (i16)0x2007,
-  Key_C            = (i16)0x4007,
-  Key_X            = (i16)0x8007,
+  Key_4            = (u16)0x0107,
+  Key_3            = (u16)0x0207,
+  Key_E            = (u16)0x0407,
+  Key_W            = (u16)0x0807,
+  Key_S            = (u16)0x1007,
+  Key_D            = (u16)0x2007,
+  Key_C            = (u16)0x4007,
+  Key_X            = (u16)0x8007,
 
   // Matrix Line 08h
-  Key_1            = (i16)0x0108,
-  Key_2            = (i16)0x0208,
-  Key_Esc          = (i16)0x0408,
-  Key_Q            = (i16)0x0808,
-  Key_Tab          = (i16)0x1008,
-  Key_A            = (i16)0x2008,
-  Key_CapsLock     = (i16)0x4008,
-  Key_Z            = (i16)0x8008,
+  Key_1            = (u16)0x0108,
+  Key_2            = (u16)0x0208,
+  Key_Esc          = (u16)0x0408,
+  Key_Q            = (u16)0x0808,
+  Key_Tab          = (u16)0x1008,
+  Key_A            = (u16)0x2008,
+  Key_CapsLock     = (u16)0x4008,
+  Key_Z            = (u16)0x8008,
 
   // Matrix Line 09h
-  Joy0_Up          = (i16)0x0109,
-  Joy0_Down        = (i16)0x0209,
-  Joy0_Left        = (i16)0x0409,
-  Joy0_Right       = (i16)0x0809,
-  Joy0_Fire1       = (i16)0x1009,
-  Joy0_Fire2       = (i16)0x2009,
-  Joy0_Fire3       = (i16)0x4009,
-  Key_Del          = (i16)0x8009
+  Joy0_Up          = (u16)0x0109,
+  Joy0_Down        = (u16)0x0209,
+  Joy0_Left        = (u16)0x0409,
+  Joy0_Right       = (u16)0x0809,
+  Joy0_Fire1       = (u16)0x1009,
+  Joy0_Fire2       = (u16)0x2009,
+  Joy0_Fire3       = (u16)0x4009,
+  Key_Del          = (u16)0x8009
 };
 
 #endif
