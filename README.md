@@ -13,7 +13,7 @@ Cross compressors are also provided in the directory **_compressor** :
 - Zx7 from Einar Saukas
 
 There are some limitations :
-- Changing mode (0,1,2) on interrupt corrupt display
+- Changing video mode on interrupt corrupt display
 - No sound
 - No direct memory access :
 ```
