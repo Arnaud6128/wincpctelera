@@ -1,7 +1,7 @@
 //-----------------------------LICENSE NOTICE------------------------------------
 //  This file is part of CPCtelera: An Amstrad CPC Game Engine
-//  Copyright (C) 2016 Arnaud Bouche
-//  Copyright (C) 2016 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
+//  Copyright (C) 2019 Arnaud Bouche
+//  Copyright (C) 2019 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ typedef struct
 	u8 posBitmap;
 } SCharMapping;
 
-static const char charaMapBitmap[] = "!'\\#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\'abcdefghijklmnopqrstuvwxyz{|}~";
+static const char charaMapBitmap[] = "!\"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_\'abcdefghijklmnopqrstuvwxyz{|}~";
 
 static int wincpct_findCharaIndex(char pChara)
 {
@@ -71,13 +71,18 @@ static int wincpct_findCharaIndex(char pChara)
 	return 0;
 }
 
-static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
+static u8* wincpct_getCharacterSprite(char pChara)
 {
 	int index = wincpct_findCharaIndex(pChara);
-	int fontx = (index % FONT_NB_LINE - 1);
+	int fontx = (index % FONT_NB_LINE);
 	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
 
-	const u8* pixChara = sFonts + fonty * FONT_NB_LINE + fontx;
+	return (sFonts + fonty * FONT_NB_LINE + fontx);
+}
+
+static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
+{
+	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
 	/** 2 pixels per Byte -> 4 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
@@ -124,11 +129,7 @@ static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
 
 static void wincpct_displayFontM1(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
-	int index = wincpct_findCharaIndex(pChara);
-	int fontx = (index % FONT_NB_LINE - 1);
-	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
-
-	const u8* pixChara = sFonts + fonty * FONT_NB_LINE + fontx;
+	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
 	/** 4 pixels per Byte -> 2 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
@@ -167,13 +168,9 @@ static void wincpct_displayFontM1(u8* video, u8 fgPen, u8 bgPen, char pChara)
 	wincpct_msgLoop();
 }
 
-static void wincpct_displayFontM2(u8* video, u8 pen, char pChara)
+static void wincpct_displayFontM2(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
-	int index = wincpct_findCharaIndex(pChara);
-	int fontx = (index % FONT_NB_LINE - 1);
-	int fonty = (FONT_NB_COL - index / FONT_NB_LINE) * FONT_SIZE - 1;
-
-	const u8* pixChara = sFonts + fonty * FONT_NB_LINE + fontx;
+	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
 	/** 8 pixels per Byte */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
@@ -182,19 +179,22 @@ static void wincpct_displayFontM2(u8* video, u8 pen, char pChara)
 
 		if (pChara != ' ')
 		{
-			u8 pix0 = ((val & 0b00000001) == 0) ? 0 : pen << 0;
-			pix0 |= ((val & 0b00000010) == 0) ? 0 : pen << 1;
-			pix0 |= ((val & 0b00000100) == 0) ? 0 : pen << 2;
-			pix0 |= ((val & 0b00001000) == 0) ? 0 : pen << 3;
-			pix0 |= ((val & 0b00010000) == 0) ? 0 : pen << 4;
-			pix0 |= ((val & 0b00100000) == 0) ? 0 : pen << 5;
-			pix0 |= ((val & 0b01000000) == 0) ? 0 : pen << 6;
-			pix0 |= ((val & 0b10000000) == 0) ? 0 : pen << 7;
+			u8 pen = fgPen;
+			u8 back = bgPen;
+
+			u8 pix0 = ((val & 0b00000001) == 0) ? back << 0 : pen << 0;
+			pix0 |= ((val & 0b00000010) == 0) ? back << 1 : pen << 1;
+			pix0 |= ((val & 0b00000100) == 0) ? back << 2 : pen << 2;
+			pix0 |= ((val & 0b00001000) == 0) ? back << 3 : pen << 3;
+			pix0 |= ((val & 0b00010000) == 0) ? back << 4 : pen << 4;
+			pix0 |= ((val & 0b00100000) == 0) ? back << 5 : pen << 5;
+			pix0 |= ((val & 0b01000000) == 0) ? back << 6 : pen << 6;
+			pix0 |= ((val & 0b10000000) == 0) ? back << 7 : pen << 7;
 
 			*video++ = pix0;
 		}
 		else
-			*video++ = 0;
+			*video++ = (bgPen == 1) ? 0xFF : 0x00;
 
 		pixChara -= FONT_NB_LINE;
 		video += (CPC_SCR_CX_BYTES - 1);
@@ -222,7 +222,7 @@ static void wincpct_drawString(void* string, void* video_memory, u8 fg_pen, u8 b
 			break;
 		case MODE_1: wincpct_displayFontM1(video + videoOffset, fg_pen, bg_pen, str[i]);
 			break;
-		case MODE_2: wincpct_displayFontM2(video + videoOffset, bg_pen, str[i]);
+		case MODE_2: wincpct_displayFontM2(video + videoOffset, fg_pen, bg_pen, str[i]);
 			break;
 		}
 
@@ -241,53 +241,81 @@ static void wincpct_drawString(void* string, void* video_memory, u8 fg_pen, u8 b
 	wincpct_msgLoop();
 }
 
-void cpct_drawCharM0(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
+/** CPCTelera API */
+/** Updated for v1.5*/
+static u8 fg_pen_mode0, bg_pen_mode0;
+static u8 fg_pen_mode1, bg_pen_mode1;
+static u8 fg_pen_mode2, bg_pen_mode2;
+
+/** Mode 0 */
+void cpct_setDrawCharM0(u8 fg_pen, u8 bg_pen)
+{
+	fg_pen_mode0 = fg_pen;
+	bg_pen_mode0 = bg_pen;
+}
+
+void cpct_drawCharM0(void* video_memory, u16 ascii)
 {
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 
-	wincpct_displayFontM0(video_memory, fg_pen, bg_pen, ascii);
+	wincpct_displayFontM0(video_memory, fg_pen_mode0, bg_pen_mode0, (char)ascii);
 }
 
-void cpct_drawStringM0(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
+void cpct_drawStringM0(const char* string, void* video_memory)
 {
-	wincpct_drawString(string, video_memory, fg_pen, bg_pen, MODE_0);
+	wincpct_drawString(string, video_memory, fg_pen_mode0, bg_pen_mode0, MODE_0);
 }
 
-void cpct_drawCharM1(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
+/** Mode 1 */
+void cpct_setDrawCharM1(u8 fg_pen, u8 bg_pen)
+{
+	fg_pen_mode1 = fg_pen;
+	bg_pen_mode1 = bg_pen;
+}
+
+void cpct_drawCharM1(void* video_memory, u16 ascii)
 {
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 	
-	wincpct_displayFontM1(video_memory, fg_pen, bg_pen, ascii);
+	wincpct_displayFontM1(video_memory, fg_pen_mode1, bg_pen_mode1, (char)ascii);
 }
 
 void cpct_drawCharM1_f(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 {
-	cpct_drawCharM1(video_memory, fg_pen, bg_pen, ascii);
+	cpct_setDrawCharM1(fg_pen, bg_pen);
+	cpct_drawCharM1(video_memory, ascii);
 }
 
-void cpct_drawStringM1(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
+void cpct_drawStringM1(const char* string, void* video_memory)
+{
+	wincpct_drawString(string, video_memory, fg_pen_mode1, bg_pen_mode1, MODE_1);
+}
+
+void cpct_drawStringM1_f(const char* string, void* video_memory, u8 fg_pen, u8 bg_pen)
 {
 	wincpct_drawString(string, video_memory, fg_pen, bg_pen, MODE_1);
 }
 
-void cpct_drawStringM1_f(void* string, void* video_memory, u8 fg_pen, u8 bg_pen)
+/** Mode 2 */
+void cpct_setDrawCharM2(u8 fg_pen, u8 bg_pen)
 {
-	wincpct_drawString(string, video_memory, fg_pen, bg_pen, MODE_1);
+	fg_pen_mode2 = fg_pen;
+	bg_pen_mode2 = bg_pen;
 }
 
-void cpct_drawCharM2(void* video_memory, u8 pen, u8 ascii)
+void cpct_drawCharM2(void* video_memory, u16 ascii)
 {
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 
-	wincpct_displayFontM2(video_memory, pen, ascii);
+	wincpct_displayFontM2(video_memory, fg_pen_mode2, bg_pen_mode2, (char)ascii);
 }
 
-void cpct_drawStringM2(void* string, void* video_memory, u8 pen)
+void cpct_drawStringM2(const char* string, void* video_memory)
 {
-	wincpct_drawString(string, video_memory, 0, pen, MODE_2);
+	wincpct_drawString(string, video_memory, fg_pen_mode2, bg_pen_mode2, MODE_2);
 }
 
 #undef FONT_SIZE
