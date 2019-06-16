@@ -68,10 +68,10 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
 {
-	u8* data = (u8*)wincpct_getMemory(array);
+	u16* data = (u16*)wincpct_getMemory(array);
 
-	for (int i = 0; i < size; i++)
-		data[i] = (u8)value;
+	for (int i = 0; i < size/2; i++)
+		data[i] = value;
 }
 
 void cpct_memset_f8(void *array, u16 value, u16 size)

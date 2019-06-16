@@ -26,6 +26,7 @@ static u16 g_lfsr = 100;
 void cpct_setSeed_mxor(u32 newseed)
 {
 	cpct_mxor32_seed = newseed;
+	srand(newseed);
 }
 
 u32 cpct_nextRandom_mxor_u32(u32 seed)

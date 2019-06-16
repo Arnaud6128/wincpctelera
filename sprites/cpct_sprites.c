@@ -34,15 +34,13 @@ u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
 	wincpct_drawSprite(sprite, memory, width, height, SPRITE_NORMAL);
-
-	wincpct_wait(2);
+	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
 	wincpct_drawSprite(sprite, memory, width, height, SPRITE_MASKED);
-
-	wincpct_wait(2);
+	wincpct_wait(1);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
@@ -59,7 +57,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		video += (CPC_SCR_CX_BYTES - width);
 	}
 
-	wincpct_wait(2);
+	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
@@ -67,7 +65,7 @@ void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 
 	_transparentColor = ((u8*)pmasktable)[0];
 	wincpct_drawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
 
-	wincpct_wait(2);
+	wincpct_wait(1);
 }
 
 

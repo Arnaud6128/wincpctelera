@@ -87,9 +87,6 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\_helper\wincpctelera_helper.c">
-      <Filter>helper</Filter>
-    </ClCompile>
     <ClCompile Include="..\winGDI.c">
       <Filter>render</Filter>
     </ClCompile>

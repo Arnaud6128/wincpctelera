@@ -48,7 +48,6 @@
     <ClCompile Include="..\_compressors\lz48\wincpct\lz48.c" />
     <ClCompile Include="..\_compressors\lz48\wincpct\lz48_decrunch.c" />
     <ClCompile Include="..\_compressors\zx7\wincpct\ZX7Decrunch.c" />
-    <ClCompile Include="..\_helper\wincpctelera_helper.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio\audio.h" />
