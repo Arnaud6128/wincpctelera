@@ -1,7 +1,7 @@
 # WinCpctelera is a port of cpctelera API to Windows
 https://github.com/lronaldo/cpctelera
 
-WinCpctelera is a Windows implementation of the API of CPCTelera (latest v1.5beta) and use GDI or SDL.
+WinCpctelera is a Windows implementation of the API of CPCTelera (latest v1.5 beta) and use GDI or SDL.
 The objective is to code and debug easily under Windows environment (i use Visual c++) and use the same code to compile for CPCTelera project.
 
 Some functions are also provided to help debug or to have a better code compatibility with CPC, 
