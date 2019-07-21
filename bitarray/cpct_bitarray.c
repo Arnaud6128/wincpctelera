@@ -10,7 +10,7 @@ static u8* GetByte(void *array, int pos, int nbBits)
 static u8 GetBitPos(int pos, int nbBits)
 {
 	int offset = pos * nbBits;
-	return (8 - nbBits) - offset % 8;
+	return offset % 8;
 }
 
 static u8 GetBits(void *array, u16 pos, int size)
