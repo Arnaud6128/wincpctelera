@@ -243,15 +243,13 @@ static void wincpct_drawString(void* string, void* video_memory, u8 fg_pen, u8 b
 
 /** CPCTelera API */
 /** Updated for v1.5*/
-static u8 fg_pen_mode0, bg_pen_mode0;
-static u8 fg_pen_mode1, bg_pen_mode1;
-static u8 fg_pen_mode2, bg_pen_mode2;
+static u8 fg_pen_mode, bg_pen_mode = 1;
 
 /** Mode 0 */
 void cpct_setDrawCharM0(u8 fg_pen, u8 bg_pen)
 {
-	fg_pen_mode0 = fg_pen;
-	bg_pen_mode0 = bg_pen;
+	fg_pen_mode = fg_pen;
+	bg_pen_mode = bg_pen;
 }
 
 void cpct_drawCharM0(void* video_memory, u16 ascii)
@@ -259,19 +257,19 @@ void cpct_drawCharM0(void* video_memory, u16 ascii)
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 
-	wincpct_displayFontM0(video_memory, fg_pen_mode0, bg_pen_mode0, (char)ascii);
+	wincpct_displayFontM0(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 
 void cpct_drawStringM0(const char* string, void* video_memory)
 {
-	wincpct_drawString(string, video_memory, fg_pen_mode0, bg_pen_mode0, MODE_0);
+	wincpct_drawString(string, video_memory, fg_pen_mode, bg_pen_mode, MODE_0);
 }
 
 /** Mode 1 */
 void cpct_setDrawCharM1(u8 fg_pen, u8 bg_pen)
 {
-	fg_pen_mode1 = fg_pen;
-	bg_pen_mode1 = bg_pen;
+	fg_pen_mode = fg_pen;
+	bg_pen_mode = bg_pen;
 }
 
 void cpct_drawCharM1(void* video_memory, u16 ascii)
@@ -279,7 +277,7 @@ void cpct_drawCharM1(void* video_memory, u16 ascii)
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 	
-	wincpct_displayFontM1(video_memory, fg_pen_mode1, bg_pen_mode1, (char)ascii);
+	wincpct_displayFontM1(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 
 void cpct_drawCharM1_f(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
@@ -290,7 +288,7 @@ void cpct_drawCharM1_f(void* video_memory, u8 fg_pen, u8 bg_pen, u8 ascii)
 
 void cpct_drawStringM1(const char* string, void* video_memory)
 {
-	wincpct_drawString(string, video_memory, fg_pen_mode1, bg_pen_mode1, MODE_1);
+	wincpct_drawString(string, video_memory, fg_pen_mode, bg_pen_mode, MODE_1);
 }
 
 void cpct_drawStringM1_f(const char* string, void* video_memory, u8 fg_pen, u8 bg_pen)
@@ -301,8 +299,8 @@ void cpct_drawStringM1_f(const char* string, void* video_memory, u8 fg_pen, u8 b
 /** Mode 2 */
 void cpct_setDrawCharM2(u8 fg_pen, u8 bg_pen)
 {
-	fg_pen_mode2 = fg_pen;
-	bg_pen_mode2 = bg_pen;
+	fg_pen_mode = fg_pen;
+	bg_pen_mode = bg_pen;
 }
 
 void cpct_drawCharM2(void* video_memory, u16 ascii)
@@ -310,12 +308,12 @@ void cpct_drawCharM2(void* video_memory, u16 ascii)
 	if (wincpct_isCpcMem(video_memory))
 		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 
-	wincpct_displayFontM2(video_memory, fg_pen_mode2, bg_pen_mode2, (char)ascii);
+	wincpct_displayFontM2(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 
 void cpct_drawStringM2(const char* string, void* video_memory)
 {
-	wincpct_drawString(string, video_memory, fg_pen_mode2, bg_pen_mode2, MODE_2);
+	wincpct_drawString(string, video_memory, fg_pen_mode, bg_pen_mode, MODE_2);
 }
 
 #undef FONT_SIZE
