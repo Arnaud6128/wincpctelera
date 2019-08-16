@@ -360,9 +360,8 @@ static int wincpct_interruptFunction(LPVOID lpParam)
 		}
 
 		wincpct_wait(1);
+		SetEvent(_EndInterruptEvent);
 	}
-
-	SetEvent(_EndInterruptEvent);
 
 	return 0;
 }

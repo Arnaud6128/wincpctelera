@@ -449,7 +449,8 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 
 	while (_runInterrupt)
 	{
-		if (timeGetTime() - time > INTERRUPT_MS)
+		int elapse = timeGetTime() - time;
+		if (elapse > INTERRUPT_MS)
 		{
 			time = timeGetTime();
 
@@ -466,10 +467,11 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 				amstrad->_interruptFunction();
 
 			wincpct_renderScreen(amstrad->_internalTimer++);
+
+			SetEvent(_EndInterruptEvent);
 		}
 
-		wincpct_wait(5);
-		SetEvent(_EndInterruptEvent);
+		wincpct_wait(1);
 	}
 
 	return 0;
