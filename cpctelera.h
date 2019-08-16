@@ -42,6 +42,7 @@
 #include "video/videomode.h"
 #include "audio/audio.h"
 #include "random/random.h"
+#include <macros/allmacros.h>
 #include "easytilemaps/easytilemaps.h"
 #include "compression/compression.h"
 

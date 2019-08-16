@@ -151,5 +151,13 @@ void cpct_pageMemory(u8 configAndBankValue)
 
 		gAmstrad._currentBank = configAndBankValue;
 	}
-
 }
+
+void cpct_waitHalts(u8 n)
+{
+	for (int i = 0; i < n; i++)
+	{
+		wincpct_waitEndInterrupt();
+	}
+}
+

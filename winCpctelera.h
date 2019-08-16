@@ -113,6 +113,7 @@ void wincpct_startInterrupt();
 u8 wincpct_getAsyncJoyState(u16 vKey);
 void wincpct_wait(int ms);
 void wincpct_waitVSync();
+void wincpct_waitEndInterrupt();
 void wincpct_createPaletteCpc();
 
 /* cpct_sprite */
