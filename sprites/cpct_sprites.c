@@ -23,7 +23,7 @@ u8 _transparentColor;
 
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
-	return (px1 << 4) | (0x0F & px0);
+	return (px0 << 4) | (0x0F & px1);
 }
 
 u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
