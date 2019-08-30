@@ -164,15 +164,35 @@ static void reverseOutputData(unsigned char* output)
 		*output-- = output_data[i];
 }
 
-void cpct_zx7b_decrunch(const unsigned char* input, unsigned char* output)
+void cpct_zx7b_decrunch_s(void* dest_end, void* source_end)
 {
-	input_data = (unsigned char*)input;
+	void cpct_zx7b_decrunch(dest_end, source_end);
+}
+
+void cpct_zx7b_decrunch_f0(void* dest_end, void* source_end)
+{
+	void cpct_zx7b_decrunch(dest_end, source_end);
+}
+
+void cpct_zx7b_decrunch_f1(void* dest_end, void* source_end)
+{
+	void cpct_zx7b_decrunch(dest_end, source_end);
+}
+
+void cpct_zx7b_decrunch_f2(void* dest_end, void* source_end)
+{
+	void cpct_zx7b_decrunch(dest_end, source_end);
+}
+
+void cpct_zx7b_decrunch(void* dest_end, void* source_end)
+{
+	input_data = (unsigned char*)source_end;
 	computeOutputSize();
 
-	input_data = (unsigned char*)input;
+	input_data = (unsigned char*)source_end;
 	output_data = malloc(output_size);
 	decompress();
 	
-	reverseOutputData(output);
+	reverseOutputData(dest_end);
 	free(output_data);
 }
