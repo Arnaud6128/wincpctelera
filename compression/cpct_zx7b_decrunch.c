@@ -135,7 +135,8 @@ static void computeOutputSize()
 {
 	int length;
 	output_size = 1;
-
+	bit_mask = 0; 
+	
 	read_byte();
 	while (1)
 	{
