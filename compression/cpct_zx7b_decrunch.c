@@ -167,22 +167,22 @@ static void reverseOutputData(unsigned char* output)
 
 void cpct_zx7b_decrunch_s(void* dest_end, void* source_end)
 {
-	void cpct_zx7b_decrunch(dest_end, source_end);
+	cpct_zx7b_decrunch(dest_end, source_end);
 }
 
 void cpct_zx7b_decrunch_f0(void* dest_end, void* source_end)
 {
-	void cpct_zx7b_decrunch(dest_end, source_end);
+	cpct_zx7b_decrunch(dest_end, source_end);
 }
 
 void cpct_zx7b_decrunch_f1(void* dest_end, void* source_end)
 {
-	void cpct_zx7b_decrunch(dest_end, source_end);
+	cpct_zx7b_decrunch(dest_end, source_end);
 }
 
 void cpct_zx7b_decrunch_f2(void* dest_end, void* source_end)
 {
-	void cpct_zx7b_decrunch(dest_end, source_end);
+	cpct_zx7b_decrunch(dest_end, source_end);
 }
 
 void cpct_zx7b_decrunch(void* dest_end, void* source_end)
