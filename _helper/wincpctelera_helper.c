@@ -1,4 +1,4 @@
-#include "wincpctelera_helper.h"
+#include <cpctelera.h>
 
 #ifdef WINCPCTELERA
 	extern u8* wincpct_getMemory(const void* ptr);
