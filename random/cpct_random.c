@@ -109,11 +109,13 @@ u8 cpct_getRandom_xsp40_u8()
 void cpct_setSeed_xsp40_u8(u16 seed8, u32 seed32)
 {
 	cpct_mxor32_seed = seed32;
+	srand(seed32);
 }
 
 void cpct_setSeed_lcg_u8(u8 newseed)
 {
 	cpct_mxor32_seed = newseed;
+	srand(newseed);
 }
 
 void cpct_restoreState_mxor_u8()
