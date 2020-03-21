@@ -70,7 +70,7 @@
 // Known issues:
 //		* This is a C-language macro. It cannot be called or used from assembly code.
 //
-#define cpctm_px2byteM0(X, Y) cpct_px2byteM0(X, Y)
+#define cpctm_px2byteM0(X, Y) ((X << 4) | (Y & Y))
 											
 //
 // Macro: cpctm_px2byteM1
@@ -114,7 +114,7 @@
 // Known issues:
 //		* This is a C-language macro. It cannot be called or used from assembly code.
 //
-#define cpctm_px2byteM1(A, B, C, D) cpct_px2byteM1(A, B, C, D)
+#define cpctm_px2byteM1(A, B, C, D) ((A << 6) | (B << 4) | (C << 2) | D)
 
 
 #endif
