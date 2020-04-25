@@ -468,8 +468,6 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 			wincpct_renderScreen(amstrad->_internalTimer++);
 
 			SetEvent(_EndInterruptEvent);
-
-			WinCpcTelera_PrintInt("Int", elapse);
 			wincpct_wait(1);
 		}
 
