@@ -360,6 +360,7 @@ static void wincpct_posWindow()
 void wincpct_initJoystick()
 {
 	_joystickOK = TRUE;
+	int t = joyGetNumDevs();
 	if (joyGetNumDevs() == 0)
 		_joystickOK = FALSE;
 	else
@@ -450,7 +451,7 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 	while (_runInterrupt)
 	{
 		int elapse = timeGetTime() - time;
-		if (elapse > INTERRUPT_MS)
+		if (elapse >= INTERRUPT_MS)
 		{
 			time = timeGetTime();
 
@@ -458,9 +459,7 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 			{
 				amstrad->_internalTimer = 0;
 				SetEvent(_vsyncEvent);
-				wincpct_redraw();
-
-				wincpct_getAsyncJoystickState();
+				wincpct_redraw();				
 			}
 
 			if (amstrad->_interruptFunction != NULL)
@@ -469,9 +468,12 @@ static DWORD WINAPI wincpct_interruptFunction(LPVOID lpParam)
 			wincpct_renderScreen(amstrad->_internalTimer++);
 
 			SetEvent(_EndInterruptEvent);
+
+			WinCpcTelera_PrintInt("Int", elapse);
+			wincpct_wait(1);
 		}
 
-		wincpct_wait(1);
+		wincpct_getAsyncJoystickState();		
 	}
 
 	return 0;

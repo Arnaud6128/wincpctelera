@@ -1,7 +1,6 @@
 /** Functions to keep code compatibility with CPCTelera and debug */
 /** Include to your project */
 
-#include <cpctelera.h>
 #include <stdio.h>
 
 #ifdef WINCPCTELERA

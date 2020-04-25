@@ -113,6 +113,4 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 		dst += CPC_SCR_CX_BYTES - width;
 	}
-
-	wincpct_wait(1);
 }

@@ -45,6 +45,9 @@ BOOL wincpct_isInternaVideoMem(const void* pAddress)
 
 void cpct_memcpy(void* to, const void* from, u16 size)
 {
+	if (size < 1)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memcpy", "WARNING Number of bytes to be set (>= 1)");
+
 	BOOL isToVideo = wincpct_isInternaVideoMem(to);
 	BOOL isFromVideo = wincpct_isInternaVideoMem(from);
 
@@ -68,6 +71,9 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
 {
+	if (size % 64 != 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memset_f64", "WARNING Number of bytes to be set (>= 64, multiple of 64)");
+
 	u16* data = (u16*)wincpct_getMemory(array);
 
 	for (int i = 0; i < size/2; i++)
@@ -76,11 +82,20 @@ void cpct_memset_f64(void *array, u16 value, u16 size)
 
 void cpct_memset_f8(void *array, u16 value, u16 size)
 {
-	cpct_memset(array, (u8)value, size);
+	if (size % 8 != 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memset_f8", "WARNING Number of bytes to be set (>= 8, multiple of 8)");
+
+	u16* data = (u16*)wincpct_getMemory(array);
+
+	for (int i = 0; i < size / 2; i++)
+		data[i] = value;
 }
 
 void cpct_memset(void *array, u8 value, u16 size)
 {	
+	if (size < 2)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memset", "WARNING Number of bytes to be set (>= 2)");
+
 	if (wincpct_isVideoMem(array))
 	{
 		int address = (int)array;

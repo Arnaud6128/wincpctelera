@@ -46,4 +46,6 @@
 #include "easytilemaps/easytilemaps.h"
 #include "compression/compression.h"
 
+#include "_helper/wincpctelera_helper.h"
+
 #endif

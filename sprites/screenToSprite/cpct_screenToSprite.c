@@ -23,6 +23,8 @@ void cpct_getScreenToSprite(u8* memory, u8* sprite, u8 width, u8 height)
 {
 	u8* video = (u8*)wincpct_getVideoBufferFromAddress((int)memory);
 
+	int t = 0;
+
 	for (int yi = 0; yi < height; yi++)
 	{
 		for (int xi = 0; xi < width; xi++)
@@ -30,9 +32,8 @@ void cpct_getScreenToSprite(u8* memory, u8* sprite, u8 width, u8 height)
 			*sprite = wincpct_convPixSpritePCtoCPC(*video);
 			video++;
 			sprite++;
+			t++;
 		}
 		video += (CPC_SCR_CX_BYTES - width);
 	}
-
-	wincpct_wait(2);
 }

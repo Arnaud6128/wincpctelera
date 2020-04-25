@@ -1,4 +1,6 @@
-#include <cpctelera.h>
+
+#define u16 unsigned short
+#define u8 unsigned char
 
 #ifdef WINCPCTELERA
 	extern u8* wincpct_getMemory(const void* ptr);

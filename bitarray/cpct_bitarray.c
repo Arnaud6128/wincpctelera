@@ -1,37 +1,41 @@
 #include <winCpctelera.h>
 
-static u8* GetByte(void *array, int pos, int nbBits)
+static u16* GetWord(void *array, int pos, int nbBits)
 {
 	int offset = pos * nbBits;
-	u8* byte = ((u8*)array) + offset / 8;
-	return byte;
+	u16* word = ((u16*)array) + offset / 16;
+	return word;
 }
 
 static u8 GetBitPos(int pos, int nbBits)
 {
 	int offset = pos * nbBits;
-	return offset % 8;
+	return offset % 16;
 }
 
 static u8 GetBits(void *array, u16 pos, int size)
 {
 	u8 bitPos = GetBitPos(pos, size);
-	u8* byte = GetByte(array, pos, size);
+	u8* byte = GetWord(array, pos, size);
 	
-	u8 mask = 0xFF >> (8 - size);
+	//u8 byte = *word >> 
+
+	u8 mask = 0xFFFF >> (16 - size);
 	mask = mask << bitPos;
 	return (*byte & mask) >> bitPos;
 }
 
-void SetBits(void *array, u16 pos, u16 value, int size)
+void SetBits(void *array, u16 groupPos, u16 value, int size)
 {
-	u8 bitPos = GetBitPos(pos, size);
-	u8* byte = GetByte(array, pos, size);
+	u8 bitPos = GetBitPos(groupPos, size);
+	u16* word = GetWord(array, groupPos, size);
 	
-	u8 mask = 0xFF >> (8 - size);
+	u8 byte = 0;
+
+	u16 mask = 0xFFFF >> (16 - size);
 	mask = ~(mask << bitPos);
-	*byte = *byte & mask;
-	*byte |= (value << bitPos);
+	*word = *word & mask;
+	*word |= (value << bitPos);
 }
 
 u8 cpct_getBit(void *array, u16 pos)

@@ -67,7 +67,6 @@ void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
 void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
 {
 	cpct_hflipSpriteM0(width, height, (u8*)sprite);
-	wincpct_wait(1);
 }
 
 static u8 wincpct_decodeFlipPixMode1(u8 data)
@@ -92,8 +91,6 @@ void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
 		*data++ = wincpct_decodeFlipPixMode1(*data);
-
-	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
@@ -156,8 +153,6 @@ void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
 
 	for (int i = 0; i < width*height * 2; i++)
 		*data++ = wincpct_decodeFlipPixMode0(*data);
-
-	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
@@ -167,8 +162,6 @@ void cpct_hflipSpriteMaskedM1(u8 width, u8 height, void* sprite)
 
 	for (int i = 0; i < width*height*2; i++)
 		*data++ = wincpct_decodeFlipPixMode1(*data);
-
-	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
@@ -178,6 +171,4 @@ void cpct_hflipSpriteMaskedM2(u8 width, u8 height, void* sprite)
 
 	for (int i = 0; i < width*height * 2; i++)
 		*data++ = wincpct_decodeFlipPixMode2(*data);
-
-	wincpct_wait(1);
 }

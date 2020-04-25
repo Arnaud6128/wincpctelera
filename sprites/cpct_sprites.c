@@ -33,18 +33,34 @@ u8 cpct_px2byteM1(u8 px0, u8 px1, u8 px2, u8 px3)
 
 void cpct_drawSprite(void *sprite, void* memory, u8 width, u8 height)
 {
+	if (width < 1 || width > 63)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSprite", "WARNING Sprite Width in bytes [1-63] (Beware, not in pixels!)");
+
+	if (height == 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSprite", "WARNING Sprite Height in bytes (>0)");
+
 	wincpct_drawSprite(sprite, memory, width, height, SPRITE_NORMAL);
-	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 {
+	if (width == 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSpriteMasked", "WARNING Sprite Width > 0");
+
+	if (height == 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSpriteMasked", "WARNING Sprite Height > 0");
+
 	wincpct_drawSprite(sprite, memory, width, height, SPRITE_MASKED);
-	wincpct_wait(1);
 }
 
 void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 {
+	if (width < 1 || width > 64)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSolidBox", "WARNING Sprite Width in bytes [1-64] (Beware, not in pixels!)");
+	
+	if (height == 0)
+		printf("In file %s line %d  %s : %s", __FILE__, __LINE__, "cpct_drawSprite", "WARNING Sprite Height in bytes (>0)");
+
 	u8* video = (u8*)wincpct_getVideoBufferFromAddress((int)memory);
 
 	for (int yi = 0; yi < height; yi++)
@@ -56,12 +72,16 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		}
 		video += (CPC_SCR_CX_BYTES - width);
 	}
-
-	wincpct_wait(1);
 }
 
 void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 width, u8 height, const void* pmasktable)
 {
+	if (width == 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSpriteMaskedAlignedTable", "WARNING Sprite Width > 0");
+
+	if (height == 0)
+		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSpriteMaskedAlignedTable", "WARNING Sprite Height > 0");
+
 	_transparentColor = ((u8*)pmasktable)[0];
 	wincpct_drawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
 
