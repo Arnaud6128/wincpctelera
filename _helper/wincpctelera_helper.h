@@ -7,6 +7,7 @@
 extern u8* wincpct_getMemory(const void* ptr);
 extern void wincpct_wait(int ms);
 extern void wincpct_msgLoop();
+extern void wincpct_CPCTeleraWin();
 
 #define	WinCpcTelera_Start()		wincpct_CPCTeleraWin()
 #define WinCpcTelera_GetMemPtr(X)	(u8*)wincpct_getMemory((u8*)X)

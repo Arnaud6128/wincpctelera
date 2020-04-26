@@ -19,7 +19,4 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\Debug\WinCPCTelera.lib" />
-  </ItemGroup>
 </Project>
