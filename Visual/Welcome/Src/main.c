@@ -21,7 +21,7 @@
 
 void main(void) {
    u8* pvmem;  // Pointer to video memory
-   wincpct_CPCTeleraWin();
+   WinCpcTelera_Start(); // Can be removed if you use cpct_disableFirmware or cpct_setStackLocation
 
    // Make pvmem point to the byte in video memory where we want
    // to print our string (coordinates (20, 96) in bytes, (80, 96) in pixels,
