@@ -300,7 +300,7 @@ u8* wincpct_getRenderingBuffer()
 
 	int i = 0, j = 0;
 	u8 curVideo = wincpct_getCurrentVideoMode();
-	int bytesPerInterrupt = 0x4000 / INTERRUPT_PER_VBL;
+	int bytesPerInterrupt = (WIDTH_SCREEN * CPC_SCR_CY_LINE) / INTERRUPT_PER_VBL / 8;
 	int bytesProcess = 0;
 
 	for (int k = 0; k < INTERRUPT_PER_VBL; k++)
