@@ -120,8 +120,6 @@ void cpct_hflipSpriteM2(u8 width, u8 height, void* sprite)
 	data = sprite;
 	for (int i = 0; i < width*height; i++)
 		*data++ = wincpct_decodeFlipPixMode2(*data);
-
-	wincpct_wait(1);
 }
 
 void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
