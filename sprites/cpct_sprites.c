@@ -84,8 +84,6 @@ void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 
 
 	_transparentColor = ((u8*)pmasktable)[0];
 	wincpct_drawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
-
-	wincpct_wait(1);
 }
 
 
