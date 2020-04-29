@@ -76,7 +76,7 @@ void cpct_setSeed_glfsr16(u16 glfsrSeed)
 /** From http://www.cpcwiki.eu/forum/programming/fill-the-character-screen// */
 u16 cpct_getRandom_glfsr16_u16()
 {
-		unsigned lastbit = g_lfsr & 1;
+	unsigned lastbit = g_lfsr & 1;
 
 	// Shift Register by one
 	g_lfsr >>= 1;
@@ -108,8 +108,8 @@ u8 cpct_getRandom_xsp40_u8()
 
 void cpct_setSeed_xsp40_u8(u16 seed8, u32 seed32)
 {
-	cpct_mxor32_seed = seed32;
-	srand(seed32);
+	cpct_mxor32_seed = seed32 + seed8;
+	srand(cpct_mxor32_seed);
 }
 
 void cpct_setSeed_lcg_u8(u8 newseed)
