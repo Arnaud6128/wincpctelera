@@ -156,7 +156,7 @@ u8 cpct_isKeyPressed(cpct_keyID key)
 	wincpct_msgLoop();
 	
 	u16 vKey = wincpct_getVKey(key);
-	BOOL isKeyPressed = (GetAsyncKeyState(vKey) != 0);
+	BOOL isKeyPressed = ((GetAsyncKeyState(vKey) & 0x8000) != 0);
 
 	if (isKeyPressed == FALSE)
 		isKeyPressed = (wincpct_getAsyncJoyState(vKey) != 0);
