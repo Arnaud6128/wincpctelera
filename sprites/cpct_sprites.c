@@ -164,4 +164,35 @@ void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteM
 			video += (CPC_SCR_CX_BYTES - cx);
 		}
 	}
+	else if (pSpriteMode == SPRITE_ZIGZAG)
+	{
+		u8 indexZigzag[] = { 0, 1, 3, 2, 7, 6, 4, 5 };
+		
+		for (int yi = 0; yi < 8; yi++)
+		{
+			u8 zigzag = indexZigzag[yi];
+			if ((zigzag % 2) == 0)
+			{
+				u8* pix = &sprite[zigzag * cx];
+				for (int xi = 0; xi < cx; xi++)
+				{
+					*video = wincpct_convPixSpriteCPCtoPC(*pix);
+					video++;
+					pix++;
+				}
+			}
+			else
+			{
+				u8* pix = &sprite[(zigzag + 1) * cx - 1];
+				for (int xi = 0; xi < cx; xi++)
+				{
+					*video = wincpct_convPixSpriteCPCtoPC(*pix);
+					video++;
+					pix--;
+				}
+			}
+
+			video += (CPC_SCR_CX_BYTES - cx);
+		}
+	}
 }
