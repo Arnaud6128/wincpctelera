@@ -19,14 +19,22 @@
 
 #include <winCpctelera.h>
 
-#define TILE_CX	2
-#define TILE_CY	4
+#define TILE_CX		2
+#define TILE_CY		4
 
-static u8** _curTilset;
+#define TILE_CX_AG	4
+#define TILE_CY_AG	8
+
+static u16 _tilemapWidthAg;
+static u8 _mapWidthAg;
+static u8 _mapHeightAg;
+static u8* _curTilesetAg;
+
+static u8** _curTileset;
 
 void cpct_etm_setTileset2x4(const void* ptileset)
 {
-	_curTilset = (u8**)ptileset;
+	_curTileset = (u8**)ptileset;
 }
 
 void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideomem, const void* ptilemap)
@@ -40,7 +48,7 @@ void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideom
 	{
 		for (int ix = 0; ix < w; ix++)
 		{
-			u8* tileSprite = _curTilset[*tilemap++];
+			u8* tileSprite = _curTileset[*tilemap++];
 			wincpct_drawSprite(tileSprite, screen, TILE_CX, TILE_CY, SPRITE_NORMAL);
 
 			screen += TILE_CX;
@@ -65,9 +73,55 @@ void cpct_etm_drawTileRow2x4(u8 numtiles, void* pvideomem, const void* ptilemap_
 	for (int ix = 0; ix < numtiles; ix++)
 	{
 		u8 tileIndex = *tilemap++;
-		u8* tileSprite = _curTilset[tileIndex];
+		u8* tileSprite = _curTileset[tileIndex];
 		cpct_drawSprite(tileSprite, screen, TILE_CX, TILE_CY);
 
 		screen += TILE_CX;
 	}
+}
+
+void cpct_etm_setDrawTilemap4x8_ag(u8 width, u8 height, u16 tilemapWidth, const void* tileset)
+{	
+	_mapWidthAg = width;
+	_mapHeightAg = height;
+	
+	_curTilesetAg = tileset;
+}
+
+void cpct_etm_setDrawTilemap4x8_agf(u8 width, u8 height, u16 tilemapWidth, const void* tileset)
+{
+	_mapWidthAg = width;
+	_mapHeightAg = height;
+	_tilemapWidthAg = tilemapWidth;
+	_curTilesetAg = tileset;
+}
+
+void cpct_etm_drawTilemap4x8_ag(void* memory, const void* pTilemap)
+{
+	u8* videoAddress = (u8*)memory;
+	u8* screen = wincpct_getVideoBufferFromAddress((int)videoAddress);
+	u8* tilemap = (u8*)pTilemap;
+
+	for (int iy = 0; iy < _mapHeightAg; iy++)
+	{
+		for (int ix = 0; ix < _mapWidthAg; ix++)
+		{
+			u8 tileIndex = *tilemap++;
+			u8* tileSprite = &_curTilesetAg[tileIndex * TILE_CX_AG * TILE_CY_AG];
+			wincpct_drawSprite(tileSprite, screen, TILE_CX_AG, TILE_CY_AG, SPRITE_ZIGZAG);
+
+			screen += TILE_CX_AG;
+		}
+		tilemap += _tilemapWidthAg - _mapWidthAg;
+		screen += CPC_SCR_CX_BYTES * TILE_CY_AG - _mapWidthAg * TILE_CX_AG;
+
+		wincpct_wait(5);
+	}
+
+	wincpct_msgLoop();
+}
+
+void cpct_etm_drawTilemap4x8_agf(void* memory, const void* tilemap)
+{
+	cpct_etm_drawTilemap4x8_ag(memory, tilemap);
 }
