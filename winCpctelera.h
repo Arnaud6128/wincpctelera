@@ -68,7 +68,8 @@ enum
 {
 	SPRITE_NORMAL,
 	SPRITE_MASKED,
-	SPRITE_ALIGNEDTABLE
+	SPRITE_ALIGNEDTABLE,
+	SPRITE_ZIGZAG
 };
 
 typedef void(*TInterrupt)(void);
