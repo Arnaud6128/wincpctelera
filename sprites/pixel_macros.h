@@ -70,8 +70,9 @@
 // Known issues:
 //		* This is a C-language macro. It cannot be called or used from assembly code.
 //
-#define cpctm_px2byteM0(X, Y) ((X << 4) | (Y & Y))
-											
+#define cpctm_px2byteM0(X, Y) (u8)(	(((X) & 0x01) << 6 | ((X) & 0x02) << 1 | ((X) & 0x04) << 2 | ((X) & 0x08) >> 3) << 1 | \
+                                    (((Y) & 0x01) << 6 | ((Y) & 0x02) << 1 | ((Y) & 0x04) << 2 | ((Y) & 0x08) >> 3) )
+
 //
 // Macro: cpctm_px2byteM1
 //
@@ -114,7 +115,10 @@
 // Known issues:
 //		* This is a C-language macro. It cannot be called or used from assembly code.
 //
-#define cpctm_px2byteM1(A, B, C, D) ((A << 6) | (B << 4) | (C << 2) | D)
+#define cpctm_px2byteM1(A, B, C, D) (u8)( (((A) & 0x01) << 4 |  ((A) & 0x02) >> 1) << 3 | \
+                                          (((B) & 0x01) << 4 |  ((B) & 0x02) >> 1) << 2 | \
+                                          (((C) & 0x01) << 4 |  ((C) & 0x02) >> 1) << 1 | \
+                                          (((D) & 0x01) << 4 |  ((D) & 0x02) >> 1) )
 
 
 #endif

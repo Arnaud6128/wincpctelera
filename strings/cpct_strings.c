@@ -19,6 +19,10 @@
 
 #include "winCpctelera.h"
 
+extern int wincpct_getCpcMem(int address);
+extern u8* wincpct_getPCMem(int address);
+extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
+
 #define FONT_SIZE		8
 #define FONT_NB_LINE	32
 #define FONT_NB_COL		3
@@ -84,9 +88,12 @@ static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
+	u16 videoAddress = wincpct_getCpcMem((int)video);
+
 	/** 2 pixels per Byte -> 4 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
+		u8* video = wincpct_getPCMem(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
@@ -94,18 +101,18 @@ static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
 			/* Input character on 1 bpp : 32 10 32 10 */
 
 			/* 32 -> 3333 2222 */
-			u8 pix3 = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
-			pix3 |= ((val & 0b00000010) << 1) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix3 = ((val & 0b00000001) << 0) == 0 ? cpctm_px2byteM0(0, bgPen) : cpctm_px2byteM0(0, fgPen);
+			pix3 |= ((val &   0b00000010) << 1) == 0 ? cpctm_px2byteM0(bgPen, 0) : cpctm_px2byteM0(fgPen, 0);
 
-			u8 pix2 = ((val & 0b00000100) << 2) == 0 ? bgPen : fgPen;
-			pix2 |= ((val & 0b00001000) << 3) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix2 = ((val & 0b00000100) << 2) == 0 ? cpctm_px2byteM0(0, bgPen) : cpctm_px2byteM0(0, fgPen);
+			pix2 |= ((val &   0b00001000) << 3) == 0 ? cpctm_px2byteM0(bgPen, 0) : cpctm_px2byteM0(fgPen, 0);
 
 			/* 10 -> 1111 0000 */
-			u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
-			pix1 |= ((val & 0b00100000) >> 3) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix1 = ((val & 0b00010000) >> 4) == 0 ? cpctm_px2byteM0(0, bgPen) : cpctm_px2byteM0(0, fgPen);
+			pix1 |= ((val &   0b00100000) >> 3) == 0 ? cpctm_px2byteM0(bgPen, 0) : cpctm_px2byteM0(fgPen, 0);
 
-			u8 pix0 = ((val & 0b01000000) >> 2) == 0 ? bgPen : fgPen;
-			pix0 |= ((val & 0b10000000) >> 1) == 0 ? bgPen << 4 : fgPen << 4;
+			u8 pix0 = ((val & 0b01000000) >> 2) == 0 ? cpctm_px2byteM0(0, bgPen) : cpctm_px2byteM0(0, fgPen);
+			pix0 |= ((val &   0b10000000) >> 1) == 0 ? cpctm_px2byteM0(bgPen, 0) : cpctm_px2byteM0(fgPen, 0);
 
 			*video++ = pix0;
 			*video++ = pix1;
@@ -114,14 +121,16 @@ static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
 		}
 		else
 		{
-			*video++ = bgPen | bgPen << 4;
-			*video++ = bgPen | bgPen << 4;
-			*video++ = bgPen | bgPen << 4;
-			*video++ = bgPen | bgPen << 4;
+			*video++ = cpctm_px2byteM0(bgPen, bgPen);
+			*video++ = cpctm_px2byteM0(bgPen, bgPen);
+			*video++ = cpctm_px2byteM0(bgPen, bgPen);
+			*video++ = cpctm_px2byteM0(bgPen, bgPen);
 		}
-
+		
 		pixChara -= FONT_NB_LINE;
-		video += (CPC_SCR_CX_BYTES - 4);
+
+		videoAddress += 4;
+		wincpct_computeCrossBoundary(&videoAddress, 4);
 	}
 
 	wincpct_msgLoop();
@@ -131,38 +140,42 @@ static void wincpct_displayFontM1(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
+	u16 videoAddress = wincpct_getCpcMem((int)video);
+
 	/** 4 pixels per Byte -> 2 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
+		u8* video = wincpct_getPCMem(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
 		{
 			/* Input character on 1 bpp : 3210 3210 */
 			/* 3210 -> 33 22 11 00 */
-			u8 pix00a = ((val & 0b00000001) << 0) == 0 ? bgPen : fgPen;
-			u8 pix11a = ((val & 0b00000010) << 1) == 0 ? bgPen << 2 : fgPen << 2;
-			u8 pix22a = ((val & 0b00000100) << 2) == 0 ? bgPen << 4 : fgPen << 4;
-			u8 pix33a = ((val & 0b00001000) << 3) == 0 ? bgPen << 6 : fgPen << 6;
+			u8 pix00a = ((val & 0b00000001) << 0) == 0 ? cpctm_px2byteM1(0, 0, 0, bgPen) : cpctm_px2byteM1(0, 0, 0, fgPen);
+			u8 pix11a = ((val & 0b00000010) << 1) == 0 ? cpctm_px2byteM1(0, 0, bgPen, 0) : cpctm_px2byteM1(0, 0, fgPen, 0);
+			u8 pix22a = ((val & 0b00000100) << 2) == 0 ? cpctm_px2byteM1(0, bgPen, 0, 0) : cpctm_px2byteM1(0, fgPen, 0, 0);
+			u8 pix33a = ((val & 0b00001000) << 3) == 0 ? cpctm_px2byteM1(bgPen, 0, 0, 0) : cpctm_px2byteM1(fgPen, 0, 0, 0);
 
 			/* 3210 -> 33 22 11 00 */
-			u8 pix00b = ((val & 0b00010000) >> 4) == 0 ? bgPen : fgPen;
-			u8 pix11b = ((val & 0b00100000) >> 3) == 0 ? bgPen << 2 : fgPen << 2;
-			u8 pix22b = ((val & 0b01000000) >> 2) == 0 ? bgPen << 4 : fgPen << 4;
-			u8 pix33b = ((val & 0b10000000) >> 1) == 0 ? bgPen << 6 : fgPen << 6;
+			u8 pix00b = ((val & 0b00010000) >> 4) == 0 ? cpctm_px2byteM1(0, 0, 0, bgPen) : cpctm_px2byteM1(0, 0, 0, fgPen);
+			u8 pix11b = ((val & 0b00100000) >> 3) == 0 ? cpctm_px2byteM1(0, 0, bgPen, 0) : cpctm_px2byteM1(0, 0, fgPen, 0);
+			u8 pix22b = ((val & 0b01000000) >> 2) == 0 ? cpctm_px2byteM1(0, bgPen, 0, 0) : cpctm_px2byteM1(0, fgPen, 0, 0);
+			u8 pix33b = ((val & 0b10000000) >> 1) == 0 ? cpctm_px2byteM1(bgPen, 0, 0, 0) : cpctm_px2byteM1(fgPen, 0, 0, 0);
 
 			*video++ = pix33b | pix22b | pix11b | pix00b;
 			*video++ = pix33a | pix22a | pix11a | pix00a;
 		}
 		else
 		{
-			*video++ = bgPen | bgPen << 2 | bgPen << 4 | bgPen << 6;
-			*video++ = bgPen | bgPen << 2 | bgPen << 4 | bgPen << 6;
+			*video++ = cpctm_px2byteM1(bgPen, bgPen, bgPen, bgPen);
+			*video++ = cpctm_px2byteM1(bgPen, bgPen, bgPen, bgPen);
 		}
 
 
 		pixChara -= FONT_NB_LINE;
-		video += (CPC_SCR_CX_BYTES - 2);
+		videoAddress += 2;
+		wincpct_computeCrossBoundary(&videoAddress, 2);
 	}
 
 	wincpct_msgLoop();
@@ -172,9 +185,12 @@ static void wincpct_displayFontM2(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
+	u16 videoAddress = wincpct_getCpcMem((int)video);
+
 	/** 8 pixels per Byte */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
+		u8* video = wincpct_getPCMem(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
@@ -197,7 +213,8 @@ static void wincpct_displayFontM2(u8* video, u8 fgPen, u8 bgPen, char pChara)
 			*video++ = (bgPen == 1) ? 0xFF : 0x00;
 
 		pixChara -= FONT_NB_LINE;
-		video += (CPC_SCR_CX_BYTES - 1);
+		videoAddress++;
+		wincpct_computeCrossBoundary(&videoAddress, 1);
 	}
 
 	wincpct_msgLoop();
@@ -207,8 +224,7 @@ static void wincpct_drawString(void* string, void* video_memory, u8 fg_pen, u8 b
 {
 	int offsetRam = (int)video_memory - wincpct_getVideoArea((int)video_memory);
 
-	if (wincpct_isCpcMem(video_memory))
-		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
+	video_memory = wincpct_getMemory((int)video_memory);
 
 	u8* str = (u8*)string;
 	u8* video = (u8*)video_memory;
@@ -255,7 +271,7 @@ void cpct_setDrawCharM0(u8 fg_pen, u8 bg_pen)
 void cpct_drawCharM0(void* video_memory, u16 ascii)
 {
 	if (wincpct_isCpcMem(video_memory))
-		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
+		video_memory = wincpct_getMemory((int)video_memory);
 
 	wincpct_displayFontM0(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
@@ -274,9 +290,7 @@ void cpct_setDrawCharM1(u8 fg_pen, u8 bg_pen)
 
 void cpct_drawCharM1(void* video_memory, u16 ascii)
 {
-	if (wincpct_isCpcMem(video_memory))
-		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
-	
+	video_memory = wincpct_getMemory((int)video_memory);
 	wincpct_displayFontM1(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 
@@ -305,9 +319,7 @@ void cpct_setDrawCharM2(u8 fg_pen, u8 bg_pen)
 
 void cpct_drawCharM2(void* video_memory, u16 ascii)
 {
-	if (wincpct_isCpcMem(video_memory))
-		video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
-
+	video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
 	wincpct_displayFontM2(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 

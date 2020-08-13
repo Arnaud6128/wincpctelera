@@ -127,7 +127,6 @@ BOOL wincpct_isCpcMem(const void* pAddress);
 u8* wincpct_getMemory(const void* ptr);
 
 /* cpct_video */
-u8* wincpct_getVideoBufferFromAddress(int pScreenAddr);
 void wincpct_applyLSBOffset(u8* buffVideo);
 int wincpct_getVideoArea(int pScreenAddr);
 int wincpct_getPageAddress(int pPage);

@@ -43,7 +43,24 @@ void cpct_drawToSpriteBuffer(u16 buffer_width, void* buffer, u8 width, u8 height
 
 void cpct_drawToSpriteBufferMasked(u16 buffer_width, void* buffer, u8 width, u8 height,	void* sprite)
 {
+	u8* buff = wincpct_getMemory(buffer);
+	u16* spr = (u16*)wincpct_getMemory(sprite);
 
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width; xi++)
+		{
+			u8 mask = (u8)*spr;
+			u8 sprite = (u8)(*spr >> 8);
+			*buff = *buff ^ sprite;
+			*buff = *buff & mask;
+			*buff = *buff ^ sprite;
+
+			buff++;
+			spr++;
+		}
+		buff += (buffer_width - width);
+	}
 }
 
 void cpct_drawToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u8 width, u8 height,	void* sprite, u8* mask_table)
@@ -59,12 +76,7 @@ void cpct_drawToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u
 
 			if (pixel != 0)
 			{
-				pixel = wincpct_convPixSpriteCPCtoPC(pixel);
-				u8 back = wincpct_convPixSpriteCPCtoPC(*buff);
-
-				wincpct_filterPixel(&back, pixel, _transparentColor);
-
-				*buff = wincpct_convPixSpritePCtoCPC(back);
+				wincpct_filterPixel(buff, pixel, _transparentColor);
 			}	
 
 			buff++;

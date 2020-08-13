@@ -19,6 +19,10 @@
 
 #include <winCpctelera.h>
 
+extern int wincpct_getCpcMem(int address);
+extern u8* wincpct_getPCMem(int address);
+extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
+
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
 static int _carry;
 
@@ -29,39 +33,40 @@ void cpct_setBlendMode(CPCT_BlendMode mode)
 
 void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 {
-	u8* dst = wincpct_getVideoBufferFromAddress((int)memory);
+	u16 videoAddress = wincpct_getCpcMem((int)memory);
 	u8* src = (u8*)wincpct_getMemory(sprite);
 
 	for (int y = 0; y < height; y++)
 	{
+		u8* ptrVideo = wincpct_getPCMem(videoAddress);
 		for (int x = 0; x < width; x++)
 		{
-			u8 pixSrc = wincpct_convPixSpriteCPCtoPC(*src);
+			u8 pixSrc = *src;
 
 			switch (_blendMode)
 			{
 				case CPCT_BLEND_XOR:
 				{
-					*dst ^= pixSrc;
+					*ptrVideo ^= pixSrc;
 				}
 				break;
 
 				case CPCT_BLEND_AND:
 				{
-					*dst &= pixSrc;
+					*ptrVideo &= pixSrc;
 				}
 				break;
 
 				case CPCT_BLEND_OR:
 				{
-					*dst |= pixSrc;
+					*ptrVideo |= pixSrc;
 				}
 				break;
 
 				case CPCT_BLEND_ADD:
 				{
-					int dstWithCarry = *dst + pixSrc;
-					*dst = (u8)dstWithCarry;
+					int dstWithCarry = *ptrVideo + pixSrc;
+					*ptrVideo = (u8)dstWithCarry;
 					if (dstWithCarry > 0xFF)
 						_carry = dstWithCarry - 0xFF;
 				}
@@ -69,8 +74,8 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 				case CPCT_BLEND_ADC:
 				{
-					int dstWithCarry = *dst + pixSrc + _carry;
-					*dst = (u8)dstWithCarry;
+					int dstWithCarry = *ptrVideo + pixSrc + _carry;
+					*ptrVideo = (u8)dstWithCarry;
 					if (dstWithCarry > 0xFF)
 						_carry = dstWithCarry - 0xFF;
 				}
@@ -78,8 +83,8 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 				case CPCT_BLEND_SUB:
 				{
-					int dstWithCarry = *dst - pixSrc;
-					*dst = (u8)dstWithCarry;
+					int dstWithCarry = *ptrVideo - pixSrc;
+					*ptrVideo = (u8)dstWithCarry;
 					if (dstWithCarry < 0)
 						_carry = -dstWithCarry;
 				}
@@ -87,8 +92,8 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 				case CPCT_BLEND_SBC:
 				{
-					int dstWithCarry = *dst - pixSrc + _carry;
-					*dst = (u8)dstWithCarry;
+					int dstWithCarry = *ptrVideo - pixSrc + _carry;
+					*ptrVideo = (u8)dstWithCarry;
 					if (dstWithCarry < 0)
 						_carry = -dstWithCarry;
 				}
@@ -96,21 +101,22 @@ void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 
 				case CPCT_BLEND_LDI:
 				{
-					*dst = pixSrc;
+					*ptrVideo = pixSrc;
 				}
 				break;
 
 				case CPCT_BLEND_NOP:
 				{
-					*dst = *dst;
+					*ptrVideo = *ptrVideo;
 				}
 				break;
 			}
 
-			dst++;
+			ptrVideo++;
 			src++;
+			videoAddress++;
 		}
 
-		dst += CPC_SCR_CX_BYTES - width;
+		wincpct_computeCrossBoundary(&videoAddress, width);
 	}
 }

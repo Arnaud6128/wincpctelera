@@ -95,7 +95,7 @@ u16 cpct_count2VSYNC()
 
 void cpct_clearScreen(u8 colour_pattern)
 {
-	memset(wincpct_getVideoBufferFromAddress(0xC000), colour_pattern, 0x4000);
+	memset(wincpct_getMemory((u8*)0xC000), colour_pattern, 0x4000);
 }
 
 void cpct_setVideoMode(u8 videoMode)
@@ -115,8 +115,8 @@ void cpct_setVideoMemoryOffset(u8 offset)
 
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
-	u8* memory = wincpct_getVideoBufferFromAddress((int)screen_start);
-	return memory + y * CPC_SCR_CX_BYTES + x;
+	u8* memory = wincpct_getMemory((u8*)screen_start);
+	return (u8*)memory + (u16)(80 * ((u16)(y / 8)) + 2048 * (y % 8) + x);
 }
 
 void wincpct_setPalette(int i, u8 pHW)
@@ -174,15 +174,23 @@ static int wincpct_convertScreenAddress(int pScreenAddr)
 	return videoAddress + buffAddress;
 }
 
+u8* wincpct_getPCMem(int address)
+{
+	return address + gAmstrad._memCPC;
+}
+
+int wincpct_getCpcMem(int address)
+{
+	//if (address < (int)(gAmstrad._memCPC + sizeof(gAmstrad._memCPC)))
+	return address - (int)gAmstrad._memCPC;
+}
+
+
 u8* wincpct_getVideoBufferFromAddress(int pScreenAddr)
 {
 	if (wincpct_isCpcMem((void*)pScreenAddr))
 	{
-		int address = wincpct_convertScreenAddress(pScreenAddr);
-		if (address == -1)
-			return NULL;
-
-		return gAmstrad._memCPC + address;
+		return gAmstrad._memCPC + pScreenAddr;
 	}
 	else
 		return (u8*)pScreenAddr;
@@ -287,32 +295,25 @@ u8* wincpct_getRenderingBuffer()
 
 	u8 *buffVideo = wincpct_getCurVideoBuffer();
 
-	static u8 off = 0;
-
-	if (gAmstrad._memOffset != 0 && gAmstrad._memOffset <= 80)
-	{
-		if (off != gAmstrad._memOffset)
-		{
-			wincpct_applyLSBOffset(buffVideo);
-			gAmstrad._memOffset = off;
-		}
-	}
-
-	int i = 0, j = 0;
+	int i = gAmstrad._memOffset * 2, j = 0;
 	u8 curVideo = wincpct_getCurrentVideoMode();
 	int bytesPerInterrupt = (WIDTH_SCREEN * CPC_SCR_CY_LINE) / INTERRUPT_PER_VBL / 8;
 	int bytesProcess = 0;
+
+	u16 byteCounter = 0;
 
 	for (int k = 0; k < INTERRUPT_PER_VBL; k++)
 	{
 		bytesProcess = 0;
 		while (bytesProcess++ < bytesPerInterrupt)
 		{
+			byteCounter++;
+			u8 valPix = buffVideo[i++ % 0x4000];
+			valPix = wincpct_convPixSpriteCPCtoPC(valPix);
+
 			/* Convert color depth 4bpp to 8bpp */
 			if (curVideo == MODE_0)
 			{
-				u8 valPix = buffVideo[i++];
-
 				u8 pix0 = valPix & 0x0F;
 				u8 pix1 = valPix >> 4;
 
@@ -332,8 +333,6 @@ u8* wincpct_getRenderingBuffer()
 			/* Convert color depth 2bpp to 8bpp */
 			else if (curVideo == MODE_1)
 			{
-				u8 valPix = buffVideo[i++];
-
 				u8 pix0 = (valPix & 0b00000011);
 				u8 pix1 = (valPix & 0b00001100) >> 2;
 				u8 pix2 = (valPix & 0b00110000) >> 4;
@@ -355,8 +354,6 @@ u8* wincpct_getRenderingBuffer()
 			/* Convert color depth 2bpp to 8bpp */
 			else if (curVideo == MODE_2)
 			{
-				u8 valPix = buffVideo[i++];
-
 				u8 pix0 = (valPix & 0b00000001);
 				u8 pix1 = (valPix & 0b00000010) >> 1;
 				u8 pix2 = (valPix & 0b00000100) >> 2;
@@ -375,6 +372,19 @@ u8* wincpct_getRenderingBuffer()
 				sRenderBuffer[j++] = pix1;
 				sRenderBuffer[j++] = pix0;
 			}
+
+			u16 spare = i + 0xC000;
+
+			if ((byteCounter % 0x50) == 0)
+			{
+				spare += 0x800 - 0x50;
+
+				u8 crossBoundary = (u8)(spare >> 8);
+				if ((crossBoundary & 0x38) == 0)
+					spare += 0xC050;
+			}
+
+			i = spare - 0xC000;
 		}
 	}
 

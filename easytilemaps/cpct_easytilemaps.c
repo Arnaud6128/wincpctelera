@@ -19,6 +19,11 @@
 
 #include <winCpctelera.h>
 
+extern u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y);
+extern int wincpct_getCpcMem(int address);
+extern u8* wincpct_getPCMem(int address);
+extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
+
 #define TILE_CX		2
 #define TILE_CY		4
 
@@ -39,22 +44,25 @@ void cpct_etm_setTileset2x4(const void* ptileset)
 
 void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideomem, const void* ptilemap)
 {
-	u8* videoAddress = (u8*)pvideomem + 0x50 * (y / 2) + 0x2000 * (y % 2) + 2 * x;
-
-	u8* screen = wincpct_getVideoBufferFromAddress((int)videoAddress);
+	u16 videoAddress = wincpct_getCpcMem((int)pvideomem);
 	u8* tilemap = ((u8*)ptilemap) + y*map_width + x;
 
 	for (int iy = 0; iy < h; iy++)
 	{
+		u8* screen = wincpct_getPCMem(videoAddress);
 		for (int ix = 0; ix < w; ix++)
 		{
 			u8* tileSprite = _curTileset[*tilemap++];
 			wincpct_drawSprite(tileSprite, screen, TILE_CX, TILE_CY, SPRITE_NORMAL);
 
 			screen += TILE_CX;
+			videoAddress += TILE_CX;
 		}
 		tilemap += map_width - w;
-		screen += CPC_SCR_CX_BYTES * TILE_CY - w * TILE_CX;
+
+		wincpct_computeCrossBoundary(&videoAddress, w * TILE_CX);
+		for (int i = 0; i < TILE_CY - 1; i++)
+			wincpct_computeCrossBoundary(&videoAddress, 0);
 	}
 
 	wincpct_msgLoop();
@@ -84,7 +92,7 @@ void cpct_etm_setDrawTilemap4x8_ag(u8 width, u8 height, u16 tilemapWidth, const 
 {	
 	_mapWidthAg = width;
 	_mapHeightAg = height;
-	
+	_tilemapWidthAg = tilemapWidth;
 	_curTilesetAg = tileset;
 }
 
@@ -98,26 +106,34 @@ void cpct_etm_setDrawTilemap4x8_agf(u8 width, u8 height, u16 tilemapWidth, const
 
 void cpct_etm_drawTilemap4x8_ag(void* memory, const void* pTilemap)
 {
-	u8* videoAddress = (u8*)memory;
-	u8* screen = wincpct_getVideoBufferFromAddress((int)videoAddress);
+	u8* videoMem = wincpct_getMemory(memory);
+	u16 videoAddress = wincpct_getCpcMem((int)videoMem);
+
 	u8* tilemap = (u8*)pTilemap;
 
 	for (int iy = 0; iy < _mapHeightAg; iy++)
 	{
+		u8* screen = wincpct_getPCMem(videoAddress);
 		for (int ix = 0; ix < _mapWidthAg; ix++)
 		{
 			u8 tileIndex = *tilemap++;
 			u8* tileSprite = &_curTilesetAg[tileIndex * TILE_CX_AG * TILE_CY_AG];
 			wincpct_drawSprite(tileSprite, screen, TILE_CX_AG, TILE_CY_AG, SPRITE_ZIGZAG);
 
-			screen += TILE_CX_AG;
+			screen += TILE_CX_AG;			
 		}
-		tilemap += _tilemapWidthAg - _mapWidthAg;
-		screen += CPC_SCR_CX_BYTES * TILE_CY_AG - _mapWidthAg * TILE_CX_AG;
+		tilemap += (_tilemapWidthAg - _mapWidthAg);
+	
+		videoAddress += _mapWidthAg*TILE_CX_AG;
+		wincpct_computeCrossBoundary(&videoAddress, _mapWidthAg * TILE_CX_AG);
+		for (int i = 0; i < TILE_CY_AG - 1; i++)
+			wincpct_computeCrossBoundary(&videoAddress, 0);
+
+		//screen += CPC_SCR_CX_BYTES * TILE_CY_AG - _mapWidthAg * TILE_CX_AG;
 
 		wincpct_wait(5);
 	}
-
+	
 	wincpct_msgLoop();
 }
 
