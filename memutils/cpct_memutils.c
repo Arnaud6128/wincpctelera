@@ -19,6 +19,7 @@
 
 #include <winCpctelera.h>
 
+
 BOOL wincpct_isCpcMem(const void* pAddress)
 {
 	return ((int)pAddress < CPC_MEM_SIZE);
@@ -48,25 +49,10 @@ void cpct_memcpy(void* to, const void* from, u16 size)
 	if (size < 1)
 		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memcpy", "WARNING Number of bytes to be set (>= 1)");
 
-	BOOL isToVideo = wincpct_isInternaVideoMem(to);
-	BOOL isFromVideo = wincpct_isInternaVideoMem(from);
+	u8* toData = (u8*)wincpct_getMemory(to);
+	u8* fromData = (u8*)wincpct_getMemory(from);
 
-	to = wincpct_getMemory(to);
-	from = wincpct_getMemory(from);
-
-	if (isToVideo == isFromVideo)
-		memcpy_s(to, size, from, size);
-	else
-	{
-		u8* fromPix = from;
-		u8* toPix = to;
-
-		for (u16 i = 0; i < size; i++)
-		{
-			u8 conv = wincpct_convPixSpritePCtoCPC(fromPix[i]);
-			toPix[i] = conv;
-		}
-	}
+	memcpy_s(toData, size, fromData, size);
 }
 
 void cpct_memset_f64(void *array, u16 value, u16 size)
@@ -96,20 +82,8 @@ void cpct_memset(void *array, u8 value, u16 size)
 	if (size < 2)
 		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_memset", "WARNING Number of bytes to be set (>= 2)");
 
-	if (wincpct_isVideoMem(array))
-	{
-		int address = (int)array;
-		for (int i = 0; i < size; i++) 
-		{
-			u8* videoData = wincpct_getVideoBufferFromAddress(address + i);
-			*videoData = value;
-		}
-	}
-	else
-	{
-		u8* data = (u8*)wincpct_getMemory(array);
-		memset(data, value, size);
-	}
+	u8* data = (u8*)wincpct_getMemory(array);
+	memset(data, value, size);
 }
 
 void cpct_setStackLocation(void* memory)
