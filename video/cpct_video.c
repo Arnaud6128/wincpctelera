@@ -271,7 +271,7 @@ u8* wincpct_getRenderingBuffer()
 
 	int i = gAmstrad._memOffset * 2, j = 0;
 	u8 curVideo = wincpct_getCurrentVideoMode();
-	int bytesPerInterrupt = (WIDTH_SCREEN * CPC_SCR_CY_LINE) / INTERRUPT_PER_VBL / 8;
+	int bytesPerInterrupt = (WIDTH_SCREEN * CPC_SCR_CY_LINE) / INTERRUPT_PER_VBL / 8 + 1;
 	int bytesProcess = 0;
 
 	u16 byteCounter = 0;
@@ -279,7 +279,7 @@ u8* wincpct_getRenderingBuffer()
 	for (int k = 0; k < INTERRUPT_PER_VBL; k++)
 	{
 		bytesProcess = 0;
-		while (bytesProcess++ < bytesPerInterrupt)
+		while (bytesProcess++ < bytesPerInterrupt && j < WIDTH_SCREEN * CPC_SCR_CY_LINE)
 		{
 			byteCounter++;
 			u8 valPix = buffVideo[i++ % 0x4000];
