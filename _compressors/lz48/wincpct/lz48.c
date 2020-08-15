@@ -55,7 +55,7 @@ unsigned char *LZ48_encode(unsigned char *data, int length, int *retlength)
 	
 	if (!length) return NULL;
 
-	odata=malloc(length*1.1);
+	odata=malloc((size_t)(length*1.1));
 	if (!odata) {
 		fprintf(stderr,"memory full");
 		exit(-1);
@@ -268,7 +268,7 @@ void main(int argc, char **argv)
 
 	GetParametersFromCommandLine(argc,argv,&inputfilename,&outputfilename,&hexoutput,&crunch);
 
-	fin=fopen(inputfilename,"rb");
+	fopen_s(&fin, inputfilename,"rb");
 	if (!fin) Usage();
 	fseek(fin,0,SEEK_END);
 	isize=ftell(fin);
@@ -305,8 +305,8 @@ printf("input: %d output: %d\n",isize,newsize);
 		}
 		if (cr) printf("\n");
 	} else {
-		fout=fopen(outputfilename,"wb");
-		if (!fout) Usage;
+		fopen_s(&fout, outputfilename,"wb");
+		if (!fout) Usage();
 		if (fwrite(newdata,1,newsize,fout)!=newsize) {
 			fprintf(stderr,"write error\n");
 			exit(-1);
