@@ -254,11 +254,11 @@ static void wincpct_redraw()
 	BitBlt(_hdc, 0, 0, FULL_SCREEN_CX, FULL_SCREEN_CY, _memDC, 0, 0, SRCCOPY);
 }
 
-static void wincpct_keyEvent(u16 pKey)
+static void wincpct_keyEvent(WPARAM pKey)
 {
 	gCurKey = TRUE;
 
-	unsigned short key = wincpct_getCpcKey(pKey);
+	unsigned short key = wincpct_getCpcKey((u16)pKey);
 	cpct_keyboardStatusBuffer[key & 0x0000F] = 0xFF ^ (key >> 8);
 }
 
@@ -376,7 +376,7 @@ void wincpct_initJoystick()
 
 void wincpct_createWindowApp()
 {
-	#define TITLE	"WinCPCTelera (GDI)"	
+	#define TITLE	L"WinCPCTelera (GDI)"	
 
 	HINSTANCE instance = GetModuleHandle(NULL);
 

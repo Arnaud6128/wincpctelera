@@ -20,8 +20,8 @@
 #include <winCpctelera.h>
 
 extern u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y);
-extern int wincpct_getCpcMem(int address);
-extern u8* wincpct_getPCMem(int address);
+extern u16 wincpct_getCpcMemAddress(void* address);
+extern u8* wincpct_getPCMemPtr(u16 address);
 extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
 
 #define TILE_CX		2
@@ -44,12 +44,12 @@ void cpct_etm_setTileset2x4(const void* ptileset)
 
 void cpct_etm_drawTileBox2x4(u8 x, u8 y, u8 w, u8 h, u8 map_width, void* pvideomem, const void* ptilemap)
 {
-	u16 videoAddress = wincpct_getCpcMem((int)pvideomem);
-	u8* tilemap = ((u8*)ptilemap) + y*map_width + x;
+	u16 videoAddress = wincpct_getCpcMemAddress(pvideomem);
+	u8* tilemap = (u8*)ptilemap + y*map_width + x;
 
 	for (int iy = 0; iy < h; iy++)
 	{
-		u8* screen = wincpct_getPCMem(videoAddress);
+		u8* screen = wincpct_getPCMemPtr(videoAddress);
 		for (int ix = 0; ix < w; ix++)
 		{
 			u8* tileSprite = _curTileset[*tilemap++];
@@ -107,13 +107,13 @@ void cpct_etm_setDrawTilemap4x8_agf(u8 width, u8 height, u16 tilemapWidth, const
 void cpct_etm_drawTilemap4x8_ag(void* memory, const void* pTilemap)
 {
 	u8* videoMem = wincpct_getMemory(memory);
-	u16 videoAddress = wincpct_getCpcMem((int)videoMem);
+	u16 videoAddress = wincpct_getCpcMemAddress(videoMem);
 
 	u8* tilemap = (u8*)pTilemap;
 
 	for (int iy = 0; iy < _mapHeightAg; iy++)
 	{
-		u8* screen = wincpct_getPCMem(videoAddress);
+		u8* screen = wincpct_getPCMemPtr(videoAddress);
 		for (int ix = 0; ix < _mapWidthAg; ix++)
 		{
 			u8 tileIndex = *tilemap++;
@@ -124,12 +124,10 @@ void cpct_etm_drawTilemap4x8_ag(void* memory, const void* pTilemap)
 		}
 		tilemap += (_tilemapWidthAg - _mapWidthAg);
 	
-		videoAddress += _mapWidthAg*TILE_CX_AG;
+		videoAddress += (uintptr_t)_mapWidthAg*TILE_CX_AG;
 		wincpct_computeCrossBoundary(&videoAddress, _mapWidthAg * TILE_CX_AG);
 		for (int i = 0; i < TILE_CY_AG - 1; i++)
 			wincpct_computeCrossBoundary(&videoAddress, 0);
-
-		//screen += CPC_SCR_CX_BYTES * TILE_CY_AG - _mapWidthAg * TILE_CX_AG;
 
 		wincpct_wait(5);
 	}

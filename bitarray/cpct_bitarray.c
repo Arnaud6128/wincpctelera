@@ -16,7 +16,7 @@ static u8 GetBitPos(int pos, int nbBits)
 static u8 GetBits(void *array, u16 pos, int size)
 {
 	u8 bitPos = GetBitPos(pos, size);
-	u8* byte = GetWord(array, pos, size);
+	u8* byte = (u8*)GetWord(array, pos, size);
 	
 	//u8 byte = *word >> 
 

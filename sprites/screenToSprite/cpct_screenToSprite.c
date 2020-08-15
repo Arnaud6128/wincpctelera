@@ -20,15 +20,15 @@
 #include <winCpctelera.h>
 
 extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
-extern int wincpct_getCpcMem(int address);
+extern u16 wincpct_getCpcMemAddress(void* address);
 
 void cpct_getScreenToSprite(u8* memory, u8* sprite, u8 width, u8 height)
 {
-	u16 videoAddress = wincpct_getCpcMem((int)memory);
+	u16 videoAddress = wincpct_getCpcMemAddress(memory);
 
   	for (int yi = 0; yi < height; yi++)
 	{
-		u8* ptrVideo = gAmstrad._memCPC + videoAddress;
+		u8* ptrVideo = gAmstrad._memCPC + (uintptr_t)videoAddress;
 		for (int xi = 0; xi < width; xi++)
 		{
 			*sprite++ = *ptrVideo++;

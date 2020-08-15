@@ -19,8 +19,9 @@
 
 #include "winCpctelera.h"
 
-extern int wincpct_getCpcMem(int address);
-extern u8* wincpct_getPCMem(int address);
+extern u8* wincpct_getVideoBufferFromAddress(void* pScreenAddr);
+extern u16 wincpct_getCpcMemAddress(void* address);
+extern u8* wincpct_getPCMemPtr(u16 address);
 extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
 
 #define FONT_SIZE		8
@@ -88,12 +89,12 @@ static void wincpct_displayFontM0(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
-	u16 videoAddress = wincpct_getCpcMem((int)video);
+	u16 videoAddress = wincpct_getCpcMemAddress(video);
 
 	/** 2 pixels per Byte -> 4 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
-		u8* video = wincpct_getPCMem(videoAddress);
+		u8* video = wincpct_getPCMemPtr(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
@@ -140,12 +141,12 @@ static void wincpct_displayFontM1(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
-	u16 videoAddress = wincpct_getCpcMem((int)video);
+	u16 videoAddress = wincpct_getCpcMemAddress(video);
 
 	/** 4 pixels per Byte -> 2 Bytes */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
-		u8* video = wincpct_getPCMem(videoAddress);
+		u8* video = wincpct_getPCMemPtr(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
@@ -185,12 +186,12 @@ static void wincpct_displayFontM2(u8* video, u8 fgPen, u8 bgPen, char pChara)
 {
 	const u8* pixChara = wincpct_getCharacterSprite(pChara);
 
-	u16 videoAddress = wincpct_getCpcMem((int)video);
+	u16 videoAddress = wincpct_getCpcMemAddress(video);
 
 	/** 8 pixels per Byte */
 	for (int yi = 0; yi < FONT_SIZE; yi++)
 	{
-		u8* video = wincpct_getPCMem(videoAddress);
+		u8* video = wincpct_getPCMemPtr(videoAddress);
 		u8 val = *pixChara;
 
 		if (pChara != ' ')
@@ -222,9 +223,9 @@ static void wincpct_displayFontM2(u8* video, u8 fgPen, u8 bgPen, char pChara)
 
 static void wincpct_drawString(void* string, void* video_memory, u8 fg_pen, u8 bg_pen, int pMode)
 {
-	int offsetRam = (int)video_memory - wincpct_getVideoArea((int)video_memory);
+	uintptr_t offsetRam = (uintptr_t)video_memory - (uintptr_t)wincpct_getVideoArea((uintptr_t)video_memory);
 
-	video_memory = wincpct_getMemory((int)video_memory);
+	video_memory = wincpct_getMemory(video_memory);
 
 	u8* str = (u8*)string;
 	u8* video = (u8*)video_memory;
@@ -271,7 +272,7 @@ void cpct_setDrawCharM0(u8 fg_pen, u8 bg_pen)
 void cpct_drawCharM0(void* video_memory, u16 ascii)
 {
 	if (wincpct_isCpcMem(video_memory))
-		video_memory = wincpct_getMemory((int)video_memory);
+		video_memory = wincpct_getMemory(video_memory);
 
 	wincpct_displayFontM0(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
@@ -290,7 +291,7 @@ void cpct_setDrawCharM1(u8 fg_pen, u8 bg_pen)
 
 void cpct_drawCharM1(void* video_memory, u16 ascii)
 {
-	video_memory = wincpct_getMemory((int)video_memory);
+	video_memory = wincpct_getMemory(video_memory);
 	wincpct_displayFontM1(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 
@@ -319,7 +320,7 @@ void cpct_setDrawCharM2(u8 fg_pen, u8 bg_pen)
 
 void cpct_drawCharM2(void* video_memory, u16 ascii)
 {
-	video_memory = wincpct_getVideoBufferFromAddress((int)video_memory);
+	video_memory = wincpct_getVideoBufferFromAddress(video_memory);
 	wincpct_displayFontM2(video_memory, fg_pen_mode, bg_pen_mode, (char)ascii);
 }
 

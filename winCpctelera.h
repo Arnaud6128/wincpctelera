@@ -119,14 +119,13 @@ void wincpct_createPaletteCpc();
 
 /* cpct_sprite */
 u8 wincpct_convPixSpriteCPCtoPC(u8 pix);
-u8 wincpct_convPixSpritePCtoCPC(u8 pix);
 void wincpct_drawSprite(void *sprite, void *memory, int cx, int cy, u8 pSpriteMode);
 
 /* cpct_memutils */
-BOOL wincpct_isCpcMem(const void* pAddress);
-u8* wincpct_getMemory(const void* ptr);
+BOOL wincpct_isCpcMem(const u8* pAddress);
+u8* wincpct_getMemory(const u8* ptr);
 
 /* cpct_video */
 void wincpct_applyLSBOffset(u8* buffVideo);
-int wincpct_getVideoArea(int pScreenAddr);
-int wincpct_getPageAddress(int pPage);
+DWORD wincpct_getVideoArea(uintptr_t pScreenAddr);
+uintptr_t wincpct_getPageAddress(int pPage);

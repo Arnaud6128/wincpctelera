@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #ifdef WINCPCTELERA
-extern u8* wincpct_getMemory(const void* ptr);
+extern u8* wincpct_getMemory(u8* ptr);
 extern void wincpct_wait(int ms);
 extern void wincpct_msgLoop();
 extern void wincpct_CPCTeleraWin();

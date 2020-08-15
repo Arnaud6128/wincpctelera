@@ -20,28 +20,23 @@
 #include <winCpctelera.h>
 
 
-BOOL wincpct_isCpcMem(const void* pAddress)
+BOOL wincpct_isCpcMem(const u8* pAddress)
 {
-	return ((int)pAddress < CPC_MEM_SIZE);
+	return ((uintptr_t)pAddress < (uintptr_t)CPC_MEM_SIZE);
 }
 
-BOOL wincpct_isVideoMem(const void* pAddress)
+BOOL wincpct_isVideoMem(const u8* pAddress)
 {
-	int videoAdress = wincpct_getPageAddress(gAmstrad._currentPage);
-	return ((int)pAddress >= videoAdress && (int)pAddress <= (videoAdress + CPC_BANK_SIZE));
+	uintptr_t videoAdress = wincpct_getPageAddress(gAmstrad._currentPage);
+	return ((uintptr_t)pAddress >= videoAdress && (uintptr_t)pAddress <= (uintptr_t)(videoAdress + CPC_BANK_SIZE));
 }
 
-u8* wincpct_getMemory(const void* ptr)
+u8* wincpct_getMemory(const u8* ptr)
 {
 	if (wincpct_isCpcMem(ptr))
-		return (u8*)(gAmstrad._memCPC) + (int)ptr;
+		return (u8*)(gAmstrad._memCPC) + (uintptr_t)ptr;
 
 	return (u8*)ptr;
-}
-
-BOOL wincpct_isInternaVideoMem(const void* pAddress)
-{
-	return (int)pAddress >= (int)(gAmstrad._memCPC + 0xC000);
 }
 
 void cpct_memcpy(void* to, const void* from, u16 size)
@@ -93,7 +88,7 @@ void cpct_setStackLocation(void* memory)
 
 static void switchBank(u8 indexMemCpc, u8 bankCur, u8 bankNext)
 {
-	u8* addressMemCpc = gAmstrad._memCPC + indexMemCpc*CPC_BANK_SIZE;
+	u8* addressMemCpc = gAmstrad._memCPC + (DWORD)indexMemCpc*CPC_BANK_SIZE;
 
 	/** Save current memory to bank */
 	memcpy_s(&gAmstrad._bankCPC[bankCur], CPC_BANK_SIZE, addressMemCpc, CPC_BANK_SIZE);

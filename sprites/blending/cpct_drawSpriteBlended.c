@@ -19,8 +19,8 @@
 
 #include <winCpctelera.h>
 
-extern int wincpct_getCpcMem(int address);
-extern u8* wincpct_getPCMem(int address);
+extern u16 wincpct_getCpcMemAddress(void* address);
+extern u8* wincpct_getPCMemPtr(u16 address);
 extern void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx);
 
 static CPCT_BlendMode _blendMode = CPCT_BLEND_XOR;
@@ -33,12 +33,12 @@ void cpct_setBlendMode(CPCT_BlendMode mode)
 
 void cpct_drawSpriteBlended(void* memory, u8 height, u8 width, void* sprite)
 {
-	u16 videoAddress = wincpct_getCpcMem((int)memory);
+	u16 videoAddress = wincpct_getCpcMemAddress(memory);
 	u8* src = (u8*)wincpct_getMemory(sprite);
 
 	for (int y = 0; y < height; y++)
 	{
-		u8* ptrVideo = wincpct_getPCMem(videoAddress);
+		u8* ptrVideo = wincpct_getPCMemPtr(videoAddress);
 		for (int x = 0; x < width; x++)
 		{
 			u8 pixSrc = *src;

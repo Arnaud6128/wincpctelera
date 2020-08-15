@@ -116,7 +116,7 @@ void cpct_setVideoMemoryOffset(u8 offset)
 u8* cpct_getScreenPtr(void* screen_start, u8 x, u8 y)
 {
 	u8* memory = wincpct_getMemory((u8*)screen_start);
-	return (u8*)memory + (u16)(80 * ((u16)(y / 8)) + 2048 * (y % 8) + x);
+	return (u8*)memory + (uintptr_t)(80 * ((uintptr_t)(y / 8)) + 2048 * (y % 8) + x);
 }
 
 void wincpct_setPalette(int i, u8 pHW)
@@ -142,7 +142,7 @@ DWORD wincpct_getColorFW(int pFW)
 	return gCpcPalette[pFW].rgb;
 }
 
-int wincpct_getVideoArea(int pScreenAddr)
+DWORD wincpct_getVideoArea(uintptr_t pScreenAddr)
 {
 	int videoAddress = 0;
 
@@ -174,29 +174,27 @@ static int wincpct_convertScreenAddress(int pScreenAddr)
 	return videoAddress + buffAddress;
 }
 
-u8* wincpct_getPCMem(int address)
+u8* wincpct_getPCMemPtr(u16 address)
 {
-	return address + gAmstrad._memCPC;
+	return gAmstrad._memCPC + (uintptr_t)address;
 }
 
-int wincpct_getCpcMem(int address)
+u16 wincpct_getCpcMemAddress(void* address)
 {
-	//if (address < (int)(gAmstrad._memCPC + sizeof(gAmstrad._memCPC)))
-	return address - (int)gAmstrad._memCPC;
+	return (u16)((uintptr_t)address - (uintptr_t)gAmstrad._memCPC);
 }
 
-
-u8* wincpct_getVideoBufferFromAddress(int pScreenAddr)
+u8* wincpct_getVideoBufferFromAddress(void* pScreenAddr)
 {
-	if (wincpct_isCpcMem((void*)pScreenAddr))
+	if (wincpct_isCpcMem(pScreenAddr))
 	{
-		return gAmstrad._memCPC + pScreenAddr;
+		return gAmstrad._memCPC + (uintptr_t)pScreenAddr;
 	}
 	else
 		return (u8*)pScreenAddr;
 }
 
-int wincpct_getPageAddress(int page)
+uintptr_t wincpct_getPageAddress(int page)
 {
 	switch(page)
 	{
@@ -212,7 +210,7 @@ int wincpct_getPageAddress(int page)
 	}
 }
 
-u8* wincpct_getVideoBufferFromPage(int pPage)
+u8* wincpct_getVideoBufferFromPage(DWORD pPage)
 {
 	return gAmstrad._memCPC + wincpct_getPageAddress(pPage);
 }
@@ -220,30 +218,6 @@ u8* wincpct_getVideoBufferFromPage(int pPage)
 u8* wincpct_getCurVideoBuffer()
 {
 	return wincpct_getVideoBufferFromPage(gAmstrad._currentPage);
-}
-
-/*
-*	Convert pixel from CPC format to PC format
-*	ex mode 0 : 3210 dcba -> 0a2c 1b3d
-*	cf. cpct_px2byteM0 and cpct_px2byteM1
-*/
-u8 wincpct_convPixSpritePCtoCPC(u8 pix)
-{
-	if (wincpct_getCurrentVideoMode() == MODE_0)
-	{
-		u8 pix3 = (pix & 0x80) >> 6;
-		u8 pix2 = (pix & 0x40) >> 1;
-		u8 pix1 = (pix & 0x20) >> 2;
-		u8 pix0 = (pix & 0x10) << 3;
-
-		u8 pixd = (pix & 0x08) >> 3;
-		u8 pixc = (pix & 0x04) << 2;
-		u8 pixb = (pix & 0x02) << 1;
-		u8 pixa = (pix & 0x01) << 6;
-
-		return (pix0 | pixa | pix2 | pixc | pix1 | pixb | pix3 | pixd);
-	}
-	return pix;
 }
 
 /*
