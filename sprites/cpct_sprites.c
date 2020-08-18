@@ -19,6 +19,7 @@
 
 #include <winCpctelera.h>
 
+extern u8* wincpct_getVideoBufferFromAddress(void* pScreenAddr);
 extern u16 wincpct_getCpcMemAddress(void* address);
 extern u8* wincpct_getPCMemPtr(u16 address);
 
@@ -73,7 +74,9 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 	if (height == 0)
 		printf("In file %s line %d  %s : %s", __FILE__, __LINE__, "cpct_drawSprite", "WARNING Sprite Height in bytes (>0)");
 
-	u16 videoAddress = wincpct_getCpcMemAddress(memory);
+	u8* videoPtr = wincpct_getVideoBufferFromAddress(memory);
+
+	u16 videoAddress = wincpct_getCpcMemAddress(videoPtr);
 
 	for (int yi = 0; yi < height; yi++)
 	{
