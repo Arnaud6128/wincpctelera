@@ -77,6 +77,15 @@
     <Filter Include="cpctelera\compression">
       <UniqueIdentifier>{e1a281dc-b52a-4209-a4fb-4e08df4d0dc0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="compressor\zx1">
+      <UniqueIdentifier>{ee72c4c3-75f8-4406-a600-a8234a033d36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\colorReplace\M0">
+      <UniqueIdentifier>{445e8aa6-4d98-497d-8b27-610a9292e8a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cpctelera\sprites\colorReplace\M1">
+      <UniqueIdentifier>{1031fffd-2829-4cfd-a808-30a112bc58bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\cpcfonts.bmp">
@@ -151,17 +160,23 @@
     <ClCompile Include="..\sprites\drawToSpriteBuffer\cpct_drawToSpriteBuffer.c">
       <Filter>cpctelera\sprites\drawToSpriteBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM0.c">
-      <Filter>cpctelera\sprites\colorReplace</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM1.c">
-      <Filter>cpctelera\sprites\colorReplace</Filter>
-    </ClCompile>
     <ClCompile Include="..\compression\cpct_zx7b_decrunch.c">
       <Filter>cpctelera\compression</Filter>
     </ClCompile>
     <ClCompile Include="..\_helper\wincpctelera_helper.c">
       <Filter>helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\_compressors\zx1\wincpct\ZX1Decrunch.c">
+      <Filter>compressor\zx1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\_helper\wincpctelera_loader.c">
+      <Filter>helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\colorReplace\M0\cpct_spriteColourizeM0.c">
+      <Filter>cpctelera\sprites\colorReplace\M0</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sprites\colorReplace\M1\cpct_spriteColourizeM1.c">
+      <Filter>cpctelera\sprites\colorReplace\M1</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -267,6 +282,9 @@
     </ClInclude>
     <ClInclude Include="..\compression\compression.h">
       <Filter>cpctelera\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="..\_compressors\zx1\wincpct\ZX1Decrunch.h">
+      <Filter>compressor\zx1</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

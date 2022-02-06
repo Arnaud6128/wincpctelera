@@ -32,8 +32,8 @@
     <ClCompile Include="..\memutils\cpct_memutils.c" />
     <ClCompile Include="..\random\cpct_random.c" />
     <ClCompile Include="..\sprites\blending\cpct_drawSpriteBlended.c" />
-    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM0.c" />
-    <ClCompile Include="..\sprites\colorReplace\cpct_spriteColorizeM1.c" />
+    <ClCompile Include="..\sprites\colorReplace\M0\cpct_spriteColourizeM0.c" />
+    <ClCompile Include="..\sprites\colorReplace\M1\cpct_spriteColourizeM1.c" />
     <ClCompile Include="..\sprites\cpct_sprites.c" />
     <ClCompile Include="..\sprites\drawTile\cpct_drawTile.c" />
     <ClCompile Include="..\sprites\drawToSpriteBuffer\cpct_drawToSpriteBuffer.c" />
@@ -47,8 +47,10 @@
     <ClCompile Include="..\_compressors\exomizer\wincpct\exodecrunch.c" />
     <ClCompile Include="..\_compressors\lz48\wincpct\lz48.c" />
     <ClCompile Include="..\_compressors\lz48\wincpct\lz48_decrunch.c" />
+    <ClCompile Include="..\_compressors\zx1\wincpct\ZX1Decrunch.c" />
     <ClCompile Include="..\_compressors\zx7\wincpct\ZX7Decrunch.c" />
     <ClCompile Include="..\_helper\wincpctelera_helper.c" />
+    <ClCompile Include="..\_helper\wincpctelera_loader.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\audio\audio.h" />
@@ -84,6 +86,7 @@
     <ClInclude Include="..\winCpctelera.h" />
     <ClInclude Include="..\_compressors\exomizer\wincpct\exodecrunch.h" />
     <ClInclude Include="..\_compressors\lz48\wincpct\lz48decrunch.h" />
+    <ClInclude Include="..\_compressors\zx1\wincpct\ZX1Decrunch.h" />
     <ClInclude Include="..\_compressors\zx7\wincpct\ZX7Decrunch.h" />
     <ClInclude Include="..\_helper\wincpctelera_helper.h" />
   </ItemGroup>
