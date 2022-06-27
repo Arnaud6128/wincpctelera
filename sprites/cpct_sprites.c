@@ -32,7 +32,7 @@ void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx)
 		*videoAddress += 0xC050;
 }
 
-u8 _transparentColor;
+static u8* _pmasktable;
 
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
@@ -72,7 +72,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSolidBox", "WARNING Sprite Width in bytes [1-64] (Beware, not in pixels!)");
 	
 	if (height == 0)
-		printf("In file %s line %d  %s : %s", __FILE__, __LINE__, "cpct_drawSprite", "WARNING Sprite Height in bytes (>0)");
+		printf("In file %s line %d  %s : %s", __FILE__, __LINE__, "cpct_drawSolidBox", "WARNING Sprite Height in bytes (>0)");
 
 	u8* videoPtr = wincpct_getVideoBufferFromAddress(memory);
 
@@ -99,33 +99,12 @@ void cpct_drawSpriteMaskedAlignedTable(const void* psprite, void* pvideomem, u8 
 	if (height == 0)
 		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSpriteMaskedAlignedTable", "WARNING Sprite Height > 0");
 
-	_transparentColor = ((u8*)pmasktable)[0];
+	_pmasktable = (u8*)pmasktable;
 	wincpct_drawSprite((void*)psprite, pvideomem, width, height, SPRITE_ALIGNEDTABLE);
-}
-
-void wincpct_filterPixel(u8* video, u8 pix, u8 transColor)
-{
-	if (wincpct_getCurrentVideoMode() == MODE_0)
-	{
-		if ((pix & cpctm_px2byteM0(0, 0x0F)) != transColor)
-				*video = (*video & cpctm_px2byteM0(0x0F, 0)) | (pix & cpctm_px2byteM0(0, 0x0F));
-
-		if ((pix & cpctm_px2byteM0(0x0F, 0))  != transColor)
-			*video = (*video & cpctm_px2byteM0(0, 0x0F)) | (pix & cpctm_px2byteM0(0x0F, 0));
-	}
-	else
-	if (wincpct_getCurrentVideoMode() == MODE_1)
-	{
-		if ((pix & cpctm_px2byteM1(0x03, 0, 0, 0)) != transColor)	*video = (*video & cpctm_px2byteM1(0x00, 0x03, 0x03, 0x03)) | (pix & cpctm_px2byteM1(0x03, 0, 0, 0));
-		if ((pix & cpctm_px2byteM1(0, 0x03, 0, 0)) != transColor)	*video = (*video & cpctm_px2byteM1(0x03, 0x00, 0x03, 0x03)) | (pix & cpctm_px2byteM1(0, 0x03, 0, 0));
-		if ((pix & cpctm_px2byteM1(0, 0, 0x03, 0)) != transColor)	*video = (*video & cpctm_px2byteM1(0x03, 0x03, 0x00, 0x03)) | (pix & cpctm_px2byteM1(0, 0, 0x03, 0));
-		if ((pix & cpctm_px2byteM1(0, 0, 0, 0x03)) != transColor)	*video = (*video & cpctm_px2byteM1(0x03, 0x03, 0x03, 0x00)) | (pix & cpctm_px2byteM1(0, 0, 0, 0x03));
-	}
 }
 
 void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteMode)
 {
-
 	static u8 sSlowDown = 0;
 
 	u8* videoMem = wincpct_getMemory(memory);
@@ -179,12 +158,8 @@ void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteM
 			for (int xi = 0; xi < cx; xi++)
 			{
 				u8 pixel = *pix++; 
-
-				/** Filter only index 0 in cpctelera */
-				if (_transparentColor == 0)
-					wincpct_filterPixel(ptrVideo, pixel, _transparentColor);
-
-				ptrVideo++;				
+				u8 mask = _pmasktable[pixel];
+				*ptrVideo++ = (*ptrVideo & mask) | pixel;	
 			}
 
 			videoAddress += cx;
