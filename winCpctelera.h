@@ -73,6 +73,7 @@ enum
 };
 
 typedef void(*TInterrupt)(void);
+typedef void(*TLoader)(void);
 
 typedef struct tagVideoConf
 {
