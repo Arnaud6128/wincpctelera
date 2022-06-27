@@ -20,9 +20,7 @@
 
 #include <winCpctelera.h>
 
-extern void wincpct_filterPixel(u8* video, u8 pix, u8 transColor);
-
-extern u8 _transparentColor;
+extern u8* _pmasktable;
 
 void cpct_drawToSpriteBuffer(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite)
 {
@@ -72,15 +70,9 @@ void cpct_drawToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u
 	{
 		for (int xi = 0; xi < width; xi++)
 		{
-			u8 pixel = *spr;
-
-			if (pixel != 0)
-			{
-				wincpct_filterPixel(buff, pixel, _transparentColor);
-			}	
-
-			buff++;
-			spr++;
+			u8 pixel = *spr++;
+			u8 mask = _pmasktable[pixel];
+			*buff++ = (*buff & mask) | pixel;
 		}
 		buff += (buffer_width - width);
 	}
