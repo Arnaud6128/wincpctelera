@@ -117,7 +117,7 @@
 // memory address of your program. That's easier to manage.
 //
 #define cpctm_createTransparentMaskTable(TABLENAME,ADDRESS,MODE,PEN) \
-const u8 TABLENAME[256] = { CPCTM_MASKTABLE ## PEN ## M ## MODE }
+const u8 TABLENAME[256] = { CPCTM_MASKTABLE ## PEN ## MODE }
 
 //
 // Macro: cpctm_declareMaskTable
