@@ -66,7 +66,7 @@ void cpct_drawSpriteMasked(void *sprite, void* memory, u8 width, u8 height)
 	wincpct_drawSprite(sprite, memory, width, height, SPRITE_MASKED);
 }
 
-void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
+void cpct_drawSolidBox(void *memory, u16 colour_pattern, u8 width, u8 height)
 {
 	if (width < 1 || width > 64)
 		printf("In file %s line %d %s : %s", __FILE__, __LINE__, "cpct_drawSolidBox", "WARNING Sprite Width in bytes [1-64] (Beware, not in pixels!)");
@@ -83,7 +83,7 @@ void cpct_drawSolidBox(void *memory, u8 colour_pattern, u8 width, u8 height)
 		u8* ptrVideo = wincpct_getPCMemPtr(videoAddress);
 		for (int xi = 0; xi < width; xi++)
 		{
-			*ptrVideo++ = colour_pattern;
+			*ptrVideo++ = (u8)colour_pattern;
 			videoAddress++;
 		}
 
