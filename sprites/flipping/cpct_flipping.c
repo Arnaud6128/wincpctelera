@@ -19,6 +19,9 @@
 
 #include <winCpctelera.h>
 
+extern void wincpct_invertComputeCrossBoundary(u16* videoAddress, u8 cx);
+extern u16 wincpct_getCpcMemAddress(void* address);
+
 static void wincpct_hflipByte(u8 width, u8 height, u8* sprite)
 {
 	for (int y = 0; y < height; y++)
@@ -69,6 +72,20 @@ void cpct_hflipSpriteM0_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM0(width, height, (u8*)sprite);
 }
 
+void cpct_drawSpriteHFlipM0(const void *sprite, void* memory, u8 width, u8 height)
+{
+	char* spriteCopied = malloc(width*height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM0(width, height, spriteCopied);
+		cpct_drawSprite(spriteCopied, memory, width, height);
+
+		free(spriteCopied);
+	}
+}
+
 static u8 wincpct_decodeFlipPixMode1(u8 data)
 {
 	u8 pix0 = (data & 0x80) >> 7;
@@ -96,6 +113,20 @@ void cpct_hflipSpriteM1(u8 width, u8 height, void* sprite)
 void cpct_hflipSpriteM1_f(u8 width, u8 height, void* sprite)
 {
 	cpct_hflipSpriteM1(width, height, (u8*)sprite);
+}
+
+void cpct_drawSpriteHFlipM1(const void *sprite, void* memory, u8 width, u8 height)
+{
+	char* spriteCopied = malloc(width*height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM1(width, height, spriteCopied);
+		cpct_drawSprite(spriteCopied, memory, width, height);
+
+		free(spriteCopied);
+	}
 }
 
 static u8 wincpct_decodeFlipPixMode2(u8 data)
@@ -127,6 +158,20 @@ void cpct_hflipSpriteM2_f(u8 width, u8 height, void* sprite)
 	cpct_hflipSpriteM2(width, height, (u8*)sprite);
 }
 
+void cpct_drawSpriteHFlipM2(const void *sprite, void* memory, u8 width, u8 height)
+{
+	char* spriteCopied = malloc(width*height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM2(width, height, spriteCopied);
+		cpct_drawSprite(spriteCopied, memory, width, height);
+
+		free(spriteCopied);
+	}
+}
+
 static void wincpct_hflipByteMasked(u8 width, u8 height, u16* sprite)
 {
 	for (int y = 0; y < height; y++)
@@ -142,6 +187,11 @@ static void wincpct_hflipByteMasked(u8 width, u8 height, u16* sprite)
 		}
 		sprite += width;
 	}
+}
+
+void cpct_drawSpriteVFlip(void* sprite, void* memory, u8 width, u8 height)
+{
+	wincpct_drawSprite(sprite, memory, width, height, SPRITE_FLIP_V);
 }
 
 void cpct_hflipSpriteMaskedM0(u8 width, u8 height, void* sprite)
