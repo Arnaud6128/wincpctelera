@@ -32,6 +32,18 @@ void wincpct_computeCrossBoundary(u16* videoAddress, u8 cx)
 		*videoAddress += 0xC050;
 }
 
+void wincpct_invertComputeCrossBoundary(u16* videoAddress, u8 cx)
+{
+	*videoAddress -= (0x800 + cx);
+
+	u8 crossBoundary = (u8)(*videoAddress >> 8);
+	crossBoundary &= 0x38;
+	crossBoundary ^= 0x38;
+
+	if (crossBoundary == 0)
+		*videoAddress += 0x3FB0;
+}
+
 static u8* _pmasktable;
 
 u8 cpct_px2byteM0(u8 px0, u8 px1)
@@ -164,6 +176,21 @@ void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteM
 
 			videoAddress += cx;
 			wincpct_computeCrossBoundary(&videoAddress, cx);
+		}
+	}
+	else if (pSpriteMode == SPRITE_FLIP_V)
+	{
+		u8* pix = (u8*)sprite;
+		for (int yi = 0; yi < cy; yi++)
+		{
+			u8* ptrVideo = wincpct_getPCMemPtr(videoAddress);
+			for (int xi = 0; xi < cx; xi++)
+			{
+				*ptrVideo++ = *pix++;
+			}
+
+			videoAddress += cx;
+			wincpct_invertComputeCrossBoundary(&videoAddress, cx);
 		}
 	}
 	else if (pSpriteMode == SPRITE_ZIGZAG)
