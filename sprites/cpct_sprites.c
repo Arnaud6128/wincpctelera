@@ -44,7 +44,7 @@ void wincpct_invertComputeCrossBoundary(u16* videoAddress, u8 cx)
 		*videoAddress += 0x3FB0;
 }
 
-static u8* _pmasktable;
+u8* _pmasktable = NULL;
 
 u8 cpct_px2byteM0(u8 px0, u8 px1)
 {
