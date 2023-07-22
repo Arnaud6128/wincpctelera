@@ -63,6 +63,8 @@ void cpct_drawToSpriteBufferMasked(u16 buffer_width, void* buffer, u8 width, u8 
 
 void cpct_drawToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u8 width, u8 height,	void* sprite, u8* mask_table)
 {
+	_pmasktable = (u8*)mask_table;
+
 	u8* buff = wincpct_getMemory(buffer);
 	u8* spr = wincpct_getMemory(sprite);
 
