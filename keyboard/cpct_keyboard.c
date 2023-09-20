@@ -51,13 +51,13 @@ static const SKeyMapping sCpctMapKey[] =
 	{ Key_F2, VK_NUMPAD2 },
 	{ Key_F0, VK_NUMPAD0 },
 
-	{ Key_Clr,  VK_CONTROL },
+	{ Key_Clr, VK_DELETE },
 	{ Key_OpenBracket, 0 },
 	{ Key_Return, VK_RETURN },
 	{ Key_CloseBracket, 0 },
 	{ Key_F4, VK_NUMPAD4 },
 	{ Key_Shift, VK_SHIFT },
-	{ Key_BackSlash, VK_BACK },
+	{ Key_BackSlash, VK_OEM_5 },
 	{ Key_Control, VK_CONTROL },
 
 	{ Key_Caret, 0 },
@@ -128,7 +128,7 @@ static const SKeyMapping sCpctMapKey[] =
 	{ Joy0_Fire1, VK_SPACE },
 	{ Joy0_Fire2, VK_CONTROL },
 	{ Joy0_Fire3, VK_CONTROL },
-	{ Key_Del, VK_DELETE },
+	{ Key_Del, VK_BACK },
 };
 
 void cpct_scanKeyboard_f()
