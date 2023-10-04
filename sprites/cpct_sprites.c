@@ -19,6 +19,8 @@
 
 #include <winCpctelera.h>
 
+#include "pixel_macros.h"
+
 extern u8* wincpct_getVideoBufferFromAddress(void* pScreenAddr);
 extern u16 wincpct_getCpcMemAddress(void* address);
 extern u8* wincpct_getPCMemPtr(u16 address);
@@ -224,4 +226,23 @@ void wincpct_drawSprite(void *pSprite, void *memory, int cx, int cy, u8 pSpriteM
 
 	if ((++sSlowDown % 8) == 0)
 		WinCpcTelera_Wait(1);
+}
+
+u16 cpct_pens2pixelPatternPairM1_real(u8 NewPen, u8 OldPen)
+{
+	return CPCTM_PENS2PIXELPATTERNPAIR_M1(OldPen, NewPen);
+}
+u8 cpct_pen2pixelPatternM1(u16 pen)
+{
+	return CPCTM_PEN2PIXELPATTERN_M1(pen);
+}
+
+u16 cpct_pens2pixelPatternPairM0_real(u8 NewPen, u8 OldPen)
+{
+	return CPCTM_PENS2PIXELPATTERNPAIR_M0(OldPen, NewPen);
+}
+
+u8 cpct_pen2pixelPatternM0(u16 pen)
+{
+	return CPCTM_PEN2PIXELPATTERN_M0(pen);
 }
