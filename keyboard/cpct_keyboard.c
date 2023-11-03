@@ -154,7 +154,7 @@ void cpct_scanKeyboard()
 u8 cpct_isKeyPressed(cpct_keyID key)
 {
 	wincpct_msgLoop();
-	
+
 	u16 vKey = wincpct_getVKey(key);
 	BOOL isKeyPressed = ((GetAsyncKeyState(vKey) & 0x8000) != 0);
 
@@ -206,5 +206,25 @@ u16 wincpct_getCpcKey(u16 pVKeyID)
 			return sCpctMapKey[i].cpcKeyID;
 		}
 	}
+	return 0;
+}
+
+u8 cpct_getKeypressedAsASCII()
+{
+	for (int i = 0; i < 10; i++)
+	{
+		u8 currKey = cpct_keyboardStatusBuffer[i];
+
+		if (currKey != 0xFF)
+		{
+			u8 lsb = i;
+			u16 msb = (currKey << 8) ^ 0xFF00;
+
+			u16 keyCpc = msb | lsb;
+			u16 vkey = wincpct_getVKey(keyCpc);
+			return vkey <= 127 ? vkey : 0;
+		}
+	}
+
 	return 0;
 }

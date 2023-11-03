@@ -50,6 +50,7 @@ extern void cpct_scanKeyboard_if();
 extern   u8 cpct_isKeyPressed     (cpct_keyID key) __z88dk_fastcall;
 extern   u8 cpct_isAnyKeyPressed  ();
 extern   u8 cpct_isAnyKeyPressed_f();
+extern u8 cpct_getKeypressedAsASCII();
 
 //
 // Array: cpct_keyboardStatusBuffer
