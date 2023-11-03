@@ -1,6 +1,7 @@
 //-----------------------------LICENSE NOTICE------------------------------------
-//  This file is part of Throne Legacy
-//  Copyright (C) 2020 Arnaud Bouche (@Arnaud6128)
+//  This file is part of CPCtelera: An Amstrad CPC Game Engine
+//  Copyright (C) 2022 Arnaud Bouche (@Arnaud6128)
+//  Copyright (C) 2022 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -25,32 +26,44 @@
 /*                                                   */
 /*****************************************************/
 #ifdef WINCPCTELERA
+#define RRCA(N, D) (N = ((N >> D) | (N << (8 - D))))
+
 void cpct_spriteColourizeM0(u16 rplcPat, u16 size, void* sprite)
 {
-    u8 InsrPat = (u8)rplcPat;
-    u8 FindPat = (u8)(rplcPat >> 8); // D Reg
+    u8 E = (u8)rplcPat; // New pen
+    u8 D = (u8)(rplcPat >> 8); // Old pen
+    u8* HL = (u8*)sprite;
 
-    u8 InsrPatXorFindPat = InsrPat ^ FindPat; // E Reg
+    u8 A;
+    u8 IXL;
+     
+    A = E;
+    A = A ^ D;
+    E = A;
 
-    u8* spritePtr = (u8*)sprite;
+    IXL = D;
 
-    for (u16 i = 0; i < size; i++)
+    for (u16 BC = 0; BC < size; BC++)
     {
-        u8 SpriteByteXorFindPat = *spritePtr ^ FindPat;
-        u8 SpriteByte = SpriteByteXorFindPat;
+        A = IXL;
 
-        SpriteByte = SpriteByte >> 2;
-        SpriteByte = SpriteByte | SpriteByteXorFindPat;
-        SpriteByteXorFindPat = SpriteByte;
+        A = A ^ *HL;
+        D = A;
 
-        SpriteByte = SpriteByte >> 4;
-        SpriteByte = SpriteByte | SpriteByteXorFindPat;
-        SpriteByte = ~SpriteByte;
+        RRCA(A, 2);
+        A = A | D;
+        D = A;
+        RRCA(A, 4);
+        A = A | D;
 
-        SpriteByte &= InsrPatXorFindPat;
-        SpriteByte = SpriteByte ^ *spritePtr;
+        A = ~A;
 
-        *spritePtr++ = SpriteByte;
+        A = A & E;
+        A = A ^ *HL;
+
+        *HL = A;
+        HL++;
     }
 }
+
 #endif
