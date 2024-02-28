@@ -285,6 +285,11 @@ u8 wincpct_getAsyncJoyState(u16 vKey)
 	return 0;
 }
 
+BOOL HasFocus()
+{
+	return (GetActiveWindow() == _hWnd);
+}
+
 LRESULT FAR PASCAL WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
@@ -376,7 +381,7 @@ void wincpct_initJoystick()
 
 void wincpct_createWindowApp()
 {
-	#define TITLE	L"WinCPCTelera (GDI)"	
+	#define TITLE	(LPCSTR)"WinCPCTelera (GDI)"	
 
 	HINSTANCE instance = GetModuleHandle(NULL);
 
