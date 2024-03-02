@@ -30,6 +30,7 @@ extern DWORD wincpct_getColorHW(int pHW);
 extern u8* wincpct_getRenderingBuffer();
 extern u16 wincpct_getCpcKey(u16 pVKeyID);
 
+static int _joystickId;
 static BOOL _joystickOK;
 static JOYINFOEX _joyState;
 
@@ -136,7 +137,7 @@ static void wincpct_getAsyncJoystickState()
 {
 	if (_joystickOK)
 	{
-		joyGetPosEx(JOYSTICKID1, &_joyState);
+		joyGetPosEx(_joystickId, &_joyState);
 
 		if (wincpct_getJoystickButton() != 0 || wincpct_getXAxis() != 0 || wincpct_getYAxis() != 0)
 			gCurKey = TRUE;
@@ -165,6 +166,9 @@ static LPBITMAPINFO CreateBitmapInfo(int pBitCount, int cx, int cy)
 
 	int sizeBitmapInfo = sizeof(BITMAPINFOHEADER) + nbColor * sizeof(WORD);
 	LPBITMAPINFO bitmapInfos = (LPBITMAPINFO)malloc(sizeBitmapInfo);
+	if (bitmapInfos == NULL)
+		exit(-1);
+
 	memset(bitmapInfos, 0, sizeBitmapInfo);
 	bitmapInfos->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bitmapInfos->bmiHeader.biWidth = cx;
@@ -190,6 +194,8 @@ static void wincpct_createPaletteCpc()
 	}
 
 	NPLOGPALETTE logPalette = (NPLOGPALETTE)malloc(sizeof(LOGPALETTE) + NB_COLORS * sizeof(PALETTEENTRY));
+	if (logPalette == NULL)
+		exit(-1);
 
 	logPalette->palNumEntries = NB_COLORS;
 	logPalette->palVersion = 0x300;
@@ -259,7 +265,10 @@ static void wincpct_keyEvent(WPARAM pKey)
 	gCurKey = TRUE;
 
 	unsigned short key = wincpct_getCpcKey((u16)pKey);
-	cpct_keyboardStatusBuffer[key & 0x0000F] = 0xFF ^ (key >> 8);
+
+	int keyIndex = key & 0x0000F;
+	if (keyIndex < sizeof(cpct_keyboardStatusBuffer))
+		cpct_keyboardStatusBuffer[keyIndex] = 0xFF ^ (key >> 8);
 }
 
 u8 wincpct_getAsyncJoyState(u16 vKey)
@@ -364,15 +373,20 @@ static void wincpct_posWindow()
 
 void wincpct_initJoystick()
 {
-	_joystickOK = TRUE;
-	int t = joyGetNumDevs();
-	if (joyGetNumDevs() == 0)
-		_joystickOK = FALSE;
-	else
+	_joystickOK = FALSE;
+	if (joyGetNumDevs() > 0)
 	{
-		JOYCAPS jc;
-		if (joyGetDevCaps(JOYSTICKID1, &jc, sizeof(jc)) != JOYERR_NOERROR)
-			_joystickOK = FALSE;
+		for (int i = 0; i < joyGetNumDevs(); i++)
+		{
+			JOYCAPS jc;
+			int ret = joyGetDevCaps(i, &jc, sizeof(jc));
+			if (ret == JOYERR_NOERROR)
+			{
+				_joystickOK = TRUE;
+				_joystickId = i;
+				break;
+			}
+		}
 	}
 
 	_joyState.dwSize = sizeof(_joyState);
