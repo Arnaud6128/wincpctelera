@@ -248,7 +248,7 @@ static void wincpct_renderScreen(int screenPart)
 
 		_oldhPal = SelectPalette(_memDC, _hPal, FALSE);
 		RealizePalette(_memDC);
-
+		SetStretchBltMode(_memDC, COLORONCOLOR);
 		StretchDIBits(_memDC,	BORDER_CX, y * COEF, WIDTH_SCREEN, cy * COEF,
 								0, 0, WIDTH_SCREEN, cy, wincpct_getRenderingBuffer() + yBitmap * WIDTH_SCREEN, bitmapInfos, DIB_PAL_COLORS, SRCCOPY);
 		free(bitmapInfos);
