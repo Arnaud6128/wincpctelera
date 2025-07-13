@@ -24,11 +24,11 @@ extern u16 wincpct_getCpcMemAddress(void* address);
 
 void cpct_getScreenToSprite(u8* memory, u8* sprite, u8 width, u8 height)
 {
-	u16 videoAddress = wincpct_getCpcMemAddress(memory);
+	u16 videoAddress = (u16)memory;
 
   	for (int yi = 0; yi < height; yi++)
 	{
-		u8* ptrVideo = gAmstrad._memCPC + (uintptr_t)videoAddress;
+		u8* ptrVideo = &gAmstrad._memCPC[videoAddress];
 		for (int xi = 0; xi < width; xi++)
 		{
 			*sprite++ = *ptrVideo++;
