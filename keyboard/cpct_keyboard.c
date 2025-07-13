@@ -23,7 +23,6 @@ static void wincpct_scanKeyboard();
 static u16 wincpct_getVKey(u16 pCpcKeyID);
 BOOL HasFocus();
 
-BOOL gCurKey;
 u8 cpct_keyboardStatusBuffer[10];
 
 typedef struct
@@ -164,7 +163,6 @@ u8 cpct_isKeyPressed(cpct_keyID key)
 		if (isKeyPressed == FALSE)
 			isKeyPressed = (wincpct_getAsyncJoyState(vKey) != 0);
 
-		gCurKey = FALSE;
 		return isKeyPressed;
 	}
 	return FALSE;
@@ -175,9 +173,12 @@ u8 cpct_isAnyKeyPressed()
 	wincpct_msgLoop();
 	if (HasFocus())
 	{
-		BOOL isKeyPressed = (gCurKey != FALSE);
-		gCurKey = FALSE;
-		return isKeyPressed;
+		for (int keyCode = 0; keyCode < 256; ++keyCode) 
+		{
+			// Check if the key with keyCode is currently pressed
+			if (GetAsyncKeyState(keyCode) & 0x8000) 
+				return TRUE;
+		}
 	}
 	return FALSE;
 }
