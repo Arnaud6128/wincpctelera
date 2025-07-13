@@ -105,7 +105,6 @@ typedef struct tagSCPCPalette
 } SCPCPalette;
 
 extern SCPCPalette gCpcPalette[];
-extern BOOL gCurKey;
 extern SAmstrad gAmstrad;
 
 /* wincpctelera */

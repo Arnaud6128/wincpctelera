@@ -139,8 +139,8 @@ static void wincpct_getAsyncJoystickState()
 	{
 		joyGetPosEx(_joystickId, &_joyState);
 
-		if (wincpct_getJoystickButton() != 0 || wincpct_getXAxis() != 0 || wincpct_getYAxis() != 0)
-			gCurKey = TRUE;
+		//if (wincpct_getJoystickButton() != 0 || wincpct_getXAxis() != 0 || wincpct_getYAxis() != 0)
+		//	gCurKey = TRUE;
 	}
 }
 
@@ -262,8 +262,6 @@ static void wincpct_redraw()
 
 static void wincpct_keyEvent(WPARAM pKey)
 {
-	gCurKey = TRUE;
-
 	unsigned short key = wincpct_getCpcKey((u16)pKey);
 
 	int keyIndex = key & 0x0000F;
@@ -376,7 +374,7 @@ void wincpct_initJoystick()
 	_joystickOK = FALSE;
 	if (joyGetNumDevs() > 0)
 	{
-		for (int i = 0; i < joyGetNumDevs(); i++)
+		for (UINT i = 0; i < joyGetNumDevs(); i++)
 		{
 			JOYCAPS jc;
 			int ret = joyGetDevCaps(i, &jc, sizeof(jc));
