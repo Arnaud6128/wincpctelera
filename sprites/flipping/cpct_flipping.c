@@ -58,9 +58,24 @@ static u8 wincpct_decodeFlipPixMode0(u8 data)
 	return (pix0 << 6 | pixa << 7 | pix2 << 4 | pixc << 5 | pix1 << 2 | pixb << 3 | pix3 << 0 | pixd << 1);
 }
 
+void cpct_vflipSprite(u8 width, u8 height, void* spbl, void* sprite)
+{
+	u8* flipSprite = malloc(width * height);
+	u8* srcSprite = (u8*)spbl;
+
+	for (u8 i = 0; i < height; i++)
+	{
+		cpct_memcpy(flipSprite + i * width, srcSprite - i * width, width);
+	}
+
+	cpct_memcpy(sprite, flipSprite, width * height);
+
+	free(flipSprite);
+}
+
 void cpct_hflipSpriteM0(u8 width, u8 height, void* sprite)
 {
-	u8* data = (u8*)sprite;
+	u8* data = (u8*)wincpct_getMemory(sprite);
 	wincpct_hflipByte(width, height, data);
 
 	for (int i = 0; i < width*height; i++)
@@ -187,6 +202,11 @@ static void wincpct_hflipByteMasked(u8 width, u8 height, u16* sprite)
 		}
 		sprite += width;
 	}
+}
+
+void cpct_drawSpriteVFlip_f(void* sprite, void* memory, u8 width, u8 height)
+{
+	wincpct_drawSprite(sprite, memory, width, height, SPRITE_FLIP_V);
 }
 
 void cpct_drawSpriteVFlip(void* sprite, void* memory, u8 width, u8 height)
