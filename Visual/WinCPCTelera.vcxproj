@@ -32,6 +32,8 @@
     <ClCompile Include="..\memutils\cpct_memutils.c" />
     <ClCompile Include="..\random\cpct_random.c" />
     <ClCompile Include="..\sprites\blending\cpct_drawSpriteBlended.c" />
+    <ClCompile Include="..\sprites\clip\cpct_drawSpriteClipped.c" />
+    <ClCompile Include="..\sprites\collision\cpct_checkCollision.c" />
     <ClCompile Include="..\sprites\colorReplace\M0\cpct_spriteColourizeM0.c" />
     <ClCompile Include="..\sprites\colorReplace\M1\cpct_spriteColourizeM1.c" />
     <ClCompile Include="..\sprites\cpct_sprites.c" />
@@ -49,6 +51,7 @@
     <ClCompile Include="..\_compressors\lz48\wincpct\lz48_decrunch.c" />
     <ClCompile Include="..\_compressors\zx1\wincpct\ZX1Decrunch.c" />
     <ClCompile Include="..\_compressors\zx7\wincpct\ZX7Decrunch.c" />
+    <ClCompile Include="..\_helper\DebugWnd.c" />
     <ClCompile Include="..\_helper\wincpctelera_helper.c" />
     <ClCompile Include="..\_helper\wincpctelera_loader.c" />
   </ItemGroup>
@@ -67,6 +70,8 @@
     <ClInclude Include="..\random\random.h" />
     <ClInclude Include="..\random\random_types.h" />
     <ClInclude Include="..\sprites\blending\blending.h" />
+    <ClInclude Include="..\sprites\clip\clip.h" />
+    <ClInclude Include="..\sprites\collision\collision.h" />
     <ClInclude Include="..\sprites\colorReplace\colorReplace.h" />
     <ClInclude Include="..\sprites\drawTile\drawTile.h" />
     <ClInclude Include="..\sprites\drawToSpriteBuffer\drawToSpriteBuffer.h" />
@@ -77,6 +82,8 @@
     <ClInclude Include="..\sprites\screenToSprite\screenToSprite.h" />
     <ClInclude Include="..\sprites\sprites.h" />
     <ClInclude Include="..\sprites\sprite_types.h" />
+    <ClInclude Include="..\sprites\transparency_tables_m0.h" />
+    <ClInclude Include="..\sprites\transparency_tables_m1.h" />
     <ClInclude Include="..\sprites\transparency_table_macros.h" />
     <ClInclude Include="..\strings\strings.h" />
     <ClInclude Include="..\types.h" />
@@ -88,6 +95,7 @@
     <ClInclude Include="..\_compressors\lz48\wincpct\lz48decrunch.h" />
     <ClInclude Include="..\_compressors\zx1\wincpct\ZX1Decrunch.h" />
     <ClInclude Include="..\_compressors\zx7\wincpct\ZX7Decrunch.h" />
+    <ClInclude Include="..\_helper\DebugWnd.h" />
     <ClInclude Include="..\_helper\wincpctelera_helper.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -100,26 +108,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>NotSet</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
