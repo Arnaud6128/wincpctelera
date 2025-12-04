@@ -1,7 +1,6 @@
 //-----------------------------LICENSE NOTICE------------------------------------
 //  This file is part of CPCtelera: An Amstrad CPC Game Engine
-//  Copyright (C) 2016 Arnaud Bouche
-//  Copyright (C) 2016 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
+//  Copyright (C) 2014-2015 ronaldo / Fremos / Cheesetea / ByteRealms (@FranGallegoBR)
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Lesser General Public License as published by
@@ -17,37 +16,6 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //-------------------------------------------------------------------------------
 
-#define WINCPCTELERA	1
-
-#ifndef CPCTELERA_H
-#define CPCTELERA_H
-
-#define __z88dk_fastcall	
-#define __z88dk_callee	
-#define __naked 
-#define __at(X) \
-		/* X */
-#define __asm__(X) \
-		/* X */
-#define __endasm
-
-#define __sdcc_heap_init()
-
-#include "types.h"
-#include "firmware/firmware.h"
-#include "memutils/memutils.h"
-#include "keyboard/keyboard.h"
-#include "bitarray/bitarray.h"
-#include "sprites/sprites.h"
-#include "strings/strings.h"
-#include "video/videomode.h"
-#include "audio/audio.h"
-#include "random/random.h"
-#include "files/files.h"
-#include "macros/allmacros.h"
-#include "easytilemaps/easytilemaps.h"
-#include "compression/compression.h"
-
-#include "_helper/wincpctelera_helper.h"
-
-#endif
+extern void cpct_loadFile(u8* fileName, u8* destBuffer, u8* sectorTable) __z88dk_callee;
+extern void cpct_fdcOff(void);
+extern void cpct_fdcOn(void);
