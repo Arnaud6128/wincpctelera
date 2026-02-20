@@ -22,7 +22,8 @@
 
 extern u8* _pmasktable;
 
-void cpct_drawToSpriteBuffer(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite)
+// To buffer
+void cpct_drawToSpriteBuffer(u16 buffer_width, u8* buffer, u8 width, u8 height, u8* sprite)
 {
 	u8* buff = wincpct_getMemory(buffer);
 	u8* spr = wincpct_getMemory(sprite);
@@ -31,9 +32,7 @@ void cpct_drawToSpriteBuffer(u16 buffer_width, void* buffer, u8 width, u8 height
 	{
 		for (int xi = 0; xi < width; xi++)
 		{
-			*buff = *spr;
-			buff++;
-			spr++;
+			*buff++ = *spr++;
 		}
 		buff += (buffer_width - width);
 	}
@@ -77,5 +76,145 @@ void cpct_drawToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u
 			*buff++ = (*buff & mask) | pixel;
 		}
 		buff += (buffer_width - width);
+	}
+}
+
+// Clip
+void cpct_drawSpriteClipToSpriteBuffer(u8 buffer_width, void* buffer, u8 width_to_draw, u8 width, u16 height, void* sprite)
+{
+	u8* buff = wincpct_getMemory(buffer);
+	u8* spr = wincpct_getMemory(sprite);
+
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width_to_draw; xi++)
+		{
+			*buff++ = *spr++;
+		}
+
+		buff += (buffer_width - width_to_draw);
+		spr += (width - width_to_draw);
+	}
+}
+
+void cpct_drawSpriteClipToSpriteBufferMasked(u16 buffer_width, void* buffer, u8 width_to_draw, u8 width, u8 height, void* sprite)
+{
+	u8* buff = wincpct_getMemory(buffer);
+	u16* spr = (u16*)wincpct_getMemory(sprite);
+
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width_to_draw; xi++)
+		{
+			u8 mask = (u8)*spr;
+			u8 sprite = (u8)(*spr >> 8);
+			*buff = *buff ^ sprite;
+			*buff = *buff & mask;
+			*buff = *buff ^ sprite;
+
+			buff++;
+			spr++;
+		}
+		buff += (buffer_width - width);
+		spr += (width - width_to_draw);
+	}
+}
+
+void cpct_drawSpriteClipToSpriteBufferMaskedAlignedTable(u16 buffer_width, void* buffer, u8 width_to_draw, u8 width, u8 height, void* sprite, u8* mask_table)
+{
+	_pmasktable = (u8*)mask_table;
+
+	u8* buff = wincpct_getMemory(buffer);
+	u8* spr = wincpct_getMemory(sprite);
+
+	for (int yi = 0; yi < height; yi++)
+	{
+		for (int xi = 0; xi < width_to_draw; xi++)
+		{
+			u8 pixel = *spr++;
+			u8 mask = _pmasktable[pixel];
+			*buff++ = (*buff & mask) | pixel;
+		}
+		buff += (buffer_width - width);
+		spr += (width - width_to_draw);
+	}
+}
+
+// Flip
+void cpct_drawToSpriteBufferHFlipM0(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM0(width, height, spriteCopied);
+		cpct_drawToSpriteBuffer(buffer_width, buffer, width, height, spriteCopied);
+		free(spriteCopied);
+	}
+}
+
+void cpct_drawToSpriteBufferHFlipM1(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM1(width, height, spriteCopied);
+		cpct_drawToSpriteBuffer(buffer_width, buffer, width, height, spriteCopied);
+		free(spriteCopied);
+	}
+}
+
+void cpct_drawToSpriteBufferHFlipM2(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM2(width, height, spriteCopied);
+		cpct_drawToSpriteBuffer(buffer_width, buffer, width, height, spriteCopied);
+		free(spriteCopied);
+	}
+}
+
+void cpct_drawMaskedAlignedToSpriteBufferHFlipM0(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite, u8* mask_table)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM0(width, height, spriteCopied);
+		cpct_drawToSpriteBufferMaskedAlignedTable(buffer_width, buffer, width, height, spriteCopied, mask_table);
+		free(spriteCopied);
+	}
+}
+
+void cpct_drawMaskedAlignedToSpriteBufferHFlipM1(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite, u8* mask_table)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM1(width, height, spriteCopied);
+		cpct_drawToSpriteBufferMaskedAlignedTable(buffer_width, buffer, width, height, spriteCopied, mask_table);
+		free(spriteCopied);
+	}
+}
+
+void cpct_drawMaskedAlignedToSpriteBufferHFlipM2(u16 buffer_width, void* buffer, u8 width, u8 height, void* sprite, u8* mask_table)
+{
+	char* spriteCopied = malloc(width * height);
+
+	if (spriteCopied != NULL)
+	{
+		memcpy(spriteCopied, sprite, width * height);
+		cpct_hflipSpriteM0(width, height, spriteCopied);
+		cpct_drawToSpriteBufferMaskedAlignedTable(buffer_width, buffer, width, height, spriteCopied, mask_table);
+		free(spriteCopied);
 	}
 }
