@@ -91,11 +91,11 @@ static void switchBank(u8 indexMemCpc, u8 bankCur, u8 bankNext)
 	u8* addressMemCpc = gAmstrad._memCPC + (DWORD)indexMemCpc*CPC_BANK_SIZE;
 
 	/** Save current memory to bank */
-	memcpy_s(&gAmstrad._bankCPC[bankCur], CPC_BANK_SIZE, addressMemCpc, CPC_BANK_SIZE);
+	memcpy_s(gAmstrad._bankCPC[bankCur], CPC_BANK_SIZE, addressMemCpc, CPC_BANK_SIZE);
 	
 
 	/** Copy data from bank to memory */
-	memcpy_s(addressMemCpc, CPC_BANK_SIZE, &gAmstrad._bankCPC[bankNext], CPC_BANK_SIZE);
+	memcpy_s(addressMemCpc, CPC_BANK_SIZE, gAmstrad._bankCPC[bankNext], CPC_BANK_SIZE);
 }
 
 void cpct_pageMemory(u8 configAndBankValue)
@@ -121,10 +121,9 @@ void cpct_pageMemory(u8 configAndBankValue)
 		{ 0, 7, 2, 3 }
 	};
 
-	configAndBankValue &= 0x07;
 	if (gAmstrad._currentBank != configAndBankValue)
 	{
-		u8* curBankConfig = sRamCfg[gAmstrad._currentBank];
+		u8* curBankConfig = sRamCfg[gAmstrad._currentBank & 0x07];
 		u8* nextBankConfig = sRamCfg[configAndBankValue];
 
 		for (int i = 0; i < 4; i++)
