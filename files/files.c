@@ -41,7 +41,11 @@ void cpct_loadFile(u8* fileName, u8* destBuffer, u8* sectorTable)
 	}
 }
 
-void asm_LoadSectorTable(u8* sectorTable)
+void cpct_sectorWrite(void* buffer, u8 track, u8 sector, u8 nbSectorsRead, u8 driveNumber)
+{
+}
+
+void cpct_sectorRead(void* buffer, u8 track, u8 sector, u8 nbSectorsWrite, u8 driveNumber)
 {
 }
 

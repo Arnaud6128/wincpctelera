@@ -16,6 +16,11 @@
 //  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //-------------------------------------------------------------------------------
 
+// File load
 extern void cpct_loadFile(u8* fileName, u8* destBuffer, u8* sectorTable) __z88dk_callee;
 extern void cpct_fdcOff(void);
 extern void cpct_fdcOn(void);
+
+// Sectorial read and write on disk
+extern void cpct_sectorRead(void* buffer, u8 track, u8 sector, u8 nbSectorsRead, u8 driveNumber) __z88dk_callee;
+extern void cpct_sectorWrite(void* buffer, u8 track, u8 sector, u8 nbSectorsWrite, u8 driveNumber) __z88dk_callee;
